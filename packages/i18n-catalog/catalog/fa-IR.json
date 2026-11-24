@@ -1,0 +1,65 @@
+{
+  "locale": "fa-IR",
+  "direction": "rtl",
+  "calendar": "jalali",
+  "brandTemplateNote": "Never hardcode product name; interpolate {appName} from APP_BRAND_NAME_FA / BinaBrand.appNameFa.",
+  "common": {
+    "welcomeTitle": "به {appName} خوش آمدید",
+    "appTagline": "همراه هوشمند مراقبت چشمی",
+    "eyeOd": "چشم راست",
+    "eyeOs": "چشم چپ",
+    "eyeOu": "هر دو چشم",
+    "retry": "تلاش مجدد",
+    "cancel": "انصراف",
+    "confirm": "تایید",
+    "save": "ذخیره",
+    "back": "بازگشت",
+    "offlineBanner": "آفلاین — ثبت‌ها ذخیره و پس از اتصال همگام می‌شوند",
+    "syncedReceipt": "ثبت شد",
+    "queuedReceipt": "در صف ارسال"
+  },
+  "tabs": {
+    "today": "امروز",
+    "care": "مراقبت",
+    "tests": "آزمایش‌ها",
+    "account": "حساب من"
+  },
+  "urgency": {
+    "routine": "عادی",
+    "followup_3_6m": "پیگیری ۳ تا ۶ ماه",
+    "urgent": "ارجاع فوری"
+  },
+  "sos": {
+    "buttonLabel": "تماس اورژانس",
+    "sheetTitle": "علائم هشدار اورژانسی چشم",
+    "redFlagPain": "درد شدید یا ناگهانی چشم",
+    "redFlagVisionLoss": "کاهش یا از دست رفتن ناگهانی دید",
+    "redFlagDischarge": "ترشح چرکی یا قرمزی رو به افزایش",
+    "redFlagFlashes": "جرقه نور یا پرده سیاه جلوی دید",
+    "callClinicNow": "تماس فوری با اورژانس کلینیک",
+    "afterHoursNotice": "در ساعات غیرکاری کلینیک، بلافاصله به نزدیک‌ترین اورژانس چشم مراجعه کنید."
+  },
+  "auth": {
+    "phonePrompt": "شماره موبایل خود را وارد کنید",
+    "phoneHint": "۰۹۱۲۳۴۵۶۷۸۹",
+    "sendOtp": "ارسال کد تایید",
+    "otpPrompt": "کد تایید ارسال‌شده را وارد کنید",
+    "consentCheckbox": "رضایت‌نامه فارسی مراقبت چشمی {appName} را مطالعه کرده و می‌پذیرم.",
+    "verifyAndEnter": "تایید و ورود",
+    "caregiverModeLabel": "ورود به‌عنوان همراه بیمار"
+  },
+  "care": {
+    "markTaken": "مصرف شد",
+    "markMissed": "مصرف نشد",
+    "prescriptionVersion": "نسخه شماره {version}",
+    "dropSpacingNotice": "بین دو قطره متفاوت حداقل ۵ دقیقه فاصله بگذارید.",
+    "caregiverRevokeNow": "لغو فوری دسترسی"
+  },
+  "r2Tests": {
+    "calibrationRequired": "پیش از شروع آزمون، کالیبراسیون صفحه و فاصله ۴۰ سانتی‌متری لازم است.",
+    "landoltTitle": "آزمون دقت بینایی (لاندولت C)",
+    "amslerTitle": "آزمون شبکه آمسلر",
+    "contrastTitle": "آزمون حساسیت کنتراست",
+    "nonDiagnosticDisclaimer": "نتیجه آزمون خانگی جایگزین معاینه چشم‌پزشک نیست و برای پایش روند دید ثبت می‌شود."
+  }
+}

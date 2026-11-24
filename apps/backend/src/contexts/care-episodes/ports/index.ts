@@ -114,4 +114,5 @@ export interface CareEpisodeRepoPort {
       occurredAt: Date;
     }
   ): Promise<AdherenceEventRecord>;
+  listAdherenceEvents(tx: DbTx, episodeId: string, limit: number): Promise<AdherenceEventRecord[]>;
 }

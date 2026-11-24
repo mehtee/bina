@@ -47,4 +47,18 @@ describe("GET /health", () => {
     });
     expect(typeof payload.timestamp).toBe("string");
   });
+
+  it("handles CORS preflight and allows Flutter Web localhost origins in dev/test", async () => {
+    const config = loadConfig({ NODE_ENV: "test" });
+    app = buildApp(config);
+
+    const preflight = await app.inject({
+      method: "OPTIONS",
+      url: "/health",
+      headers: { origin: "http://localhost:54321" },
+    });
+    expect(preflight.statusCode).toBe(204);
+    expect(preflight.headers["access-control-allow-origin"]).toBe("http://localhost:54321");
+    expect(preflight.headers["access-control-allow-headers"]).toContain("Idempotency-Key");
+  });
 });

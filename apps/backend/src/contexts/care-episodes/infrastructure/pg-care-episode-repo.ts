@@ -272,4 +272,33 @@ export class PgCareEpisodeRepo implements CareEpisodeRepoPort {
       recordedAt: r.recorded_at,
     };
   }
+
+  async listAdherenceEvents(tx: DbTx, episodeId: string, limit: number): Promise<AdherenceEventRecord[]> {
+    const res = await tx.query<{
+      id: string;
+      episode_id: string;
+      eye_laterality: EyeLaterality;
+      prescription_version: number;
+      state: AdherenceState;
+      reason_fa: string | null;
+      recorded_at: Date;
+    }>(
+      `SELECT id, episode_id, eye_laterality, prescription_version, state, reason_fa, recorded_at
+       FROM medication_adherence_events
+       WHERE episode_id = $1
+       ORDER BY recorded_at DESC
+       LIMIT $2`,
+      [episodeId, limit]
+    );
+    return res.rows.map((r) => ({
+      eventId: r.id,
+      episodeId: r.episode_id,
+      eyeLaterality: r.eye_laterality,
+      prescriptionVersion: r.prescription_version,
+      state: r.state,
+      reasonFa: r.reason_fa ?? undefined,
+      deduplicated: false,
+      recordedAt: r.recorded_at,
+    }));
+  }
 }

@@ -13,6 +13,11 @@ const EnvSchema = z.object({
   DEFAULT_CALENDAR: z.enum(["jalali", "gregorian"]).default("jalali"),
   DEFAULT_COUNTRY_CODE: z.string().default("+98"),
   SELF_HOST_WEB_ASSETS: z.string().default("true"),
+  CORS_ALLOWED_ORIGINS: z
+    .string()
+    .default(
+      "http://localhost:3000,http://127.0.0.1:3000,http://localhost:4173,http://127.0.0.1:4173,http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080,http://127.0.0.1:8080,http://localhost:8088,http://127.0.0.1:8088"
+    ),
   DATABASE_URL: z.string().default("postgresql://bina_app:bina_app_dev@127.0.0.1:15432/bina_dev"),
   DATABASE_ADMIN_URL: z.string().optional(),
   REDIS_URL: z.string().default("redis://127.0.0.1:16379"),

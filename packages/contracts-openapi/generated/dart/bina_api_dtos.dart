@@ -293,6 +293,8 @@ class ClinicProfile {
   final String calendarMode;
   final String emergencyPhone;
   final String staffedHoursFa;
+  final String? todayJalali;
+  final bool? currentlyStaffed;
 
   const ClinicProfile({
     required this.clinicId,
@@ -302,6 +304,8 @@ class ClinicProfile {
     required this.calendarMode,
     required this.emergencyPhone,
     required this.staffedHoursFa,
+    this.todayJalali,
+    this.currentlyStaffed,
   });
 
   factory ClinicProfile.fromJson(Map<String, Object?> json) {
@@ -313,6 +317,8 @@ class ClinicProfile {
       calendarMode: json['calendarMode'] as String,
       emergencyPhone: json['emergencyPhone'] as String,
       staffedHoursFa: json['staffedHoursFa'] as String,
+      todayJalali: json['todayJalali'] as String?,
+      currentlyStaffed: json['currentlyStaffed'] as bool?,
     );
   }
 
@@ -325,6 +331,52 @@ class ClinicProfile {
       'calendarMode': calendarMode,
       'emergencyPhone': emergencyPhone,
       'staffedHoursFa': staffedHoursFa,
+      'todayJalali': todayJalali,
+      'currentlyStaffed': currentlyStaffed,
+    };
+  }
+}
+
+class StaffStepUpRequest {
+  final String stepUpCode;
+
+  const StaffStepUpRequest({
+    required this.stepUpCode,
+  });
+
+  factory StaffStepUpRequest.fromJson(Map<String, Object?> json) {
+    return StaffStepUpRequest(
+      stepUpCode: json['stepUpCode'] as String,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'stepUpCode': stepUpCode,
+    };
+  }
+}
+
+class StaffStepUpResponse {
+  final String accessToken;
+  final bool stepUpVerified;
+
+  const StaffStepUpResponse({
+    required this.accessToken,
+    required this.stepUpVerified,
+  });
+
+  factory StaffStepUpResponse.fromJson(Map<String, Object?> json) {
+    return StaffStepUpResponse(
+      accessToken: json['accessToken'] as String,
+      stepUpVerified: json['stepUpVerified'] as bool,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'accessToken': accessToken,
+      'stepUpVerified': stepUpVerified,
     };
   }
 }
@@ -400,16 +452,19 @@ class StaffSessionResponse {
 class PatientOtpRequest {
   final String phoneNumber;
   final String clinicId;
+  final String? tenantId;
 
   const PatientOtpRequest({
     required this.phoneNumber,
     required this.clinicId,
+    this.tenantId,
   });
 
   factory PatientOtpRequest.fromJson(Map<String, Object?> json) {
     return PatientOtpRequest(
       phoneNumber: json['phoneNumber'] as String,
       clinicId: json['clinicId'] as String,
+      tenantId: json['tenantId'] as String?,
     );
   }
 
@@ -417,6 +472,7 @@ class PatientOtpRequest {
     return <String, Object?>{
       'phoneNumber': phoneNumber,
       'clinicId': clinicId,
+      'tenantId': tenantId,
     };
   }
 }
@@ -454,12 +510,16 @@ class PatientOtpVerifyRequest {
   final String otpCode;
   final bool consentAccepted;
   final String consentVersion;
+  final String phoneNumber;
+  final String? tenantId;
 
   const PatientOtpVerifyRequest({
     required this.challengeId,
     required this.otpCode,
     required this.consentAccepted,
     required this.consentVersion,
+    required this.phoneNumber,
+    this.tenantId,
   });
 
   factory PatientOtpVerifyRequest.fromJson(Map<String, Object?> json) {
@@ -468,6 +528,8 @@ class PatientOtpVerifyRequest {
       otpCode: json['otpCode'] as String,
       consentAccepted: json['consentAccepted'] as bool,
       consentVersion: json['consentVersion'] as String,
+      phoneNumber: json['phoneNumber'] as String,
+      tenantId: json['tenantId'] as String?,
     );
   }
 
@@ -477,6 +539,8 @@ class PatientOtpVerifyRequest {
       'otpCode': otpCode,
       'consentAccepted': consentAccepted,
       'consentVersion': consentVersion,
+      'phoneNumber': phoneNumber,
+      'tenantId': tenantId,
     };
   }
 }
@@ -485,6 +549,7 @@ class PatientSessionResponse {
   final String accessToken;
   final String patientId;
   final String tenantId;
+  final String? clinicId;
   final String locale;
   final String calendarMode;
 
@@ -492,6 +557,7 @@ class PatientSessionResponse {
     required this.accessToken,
     required this.patientId,
     required this.tenantId,
+    this.clinicId,
     required this.locale,
     required this.calendarMode,
   });
@@ -501,6 +567,7 @@ class PatientSessionResponse {
       accessToken: json['accessToken'] as String,
       patientId: json['patientId'] as String,
       tenantId: json['tenantId'] as String,
+      clinicId: json['clinicId'] as String?,
       locale: json['locale'] as String,
       calendarMode: json['calendarMode'] as String,
     );
@@ -511,8 +578,257 @@ class PatientSessionResponse {
       'accessToken': accessToken,
       'patientId': patientId,
       'tenantId': tenantId,
+      'clinicId': clinicId,
       'locale': locale,
       'calendarMode': calendarMode,
+    };
+  }
+}
+
+class CaregiverOtpVerifyRequest {
+  final String challengeId;
+  final String otpCode;
+  final String? tenantId;
+  final String? patientId;
+
+  const CaregiverOtpVerifyRequest({
+    required this.challengeId,
+    required this.otpCode,
+    this.tenantId,
+    this.patientId,
+  });
+
+  factory CaregiverOtpVerifyRequest.fromJson(Map<String, Object?> json) {
+    return CaregiverOtpVerifyRequest(
+      challengeId: json['challengeId'] as String,
+      otpCode: json['otpCode'] as String,
+      tenantId: json['tenantId'] as String?,
+      patientId: json['patientId'] as String?,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'challengeId': challengeId,
+      'otpCode': otpCode,
+      'tenantId': tenantId,
+      'patientId': patientId,
+    };
+  }
+}
+
+class CaregiverPatientLink {
+  final String grantId;
+  final String patientId;
+  final String patientNameFa;
+  final String relationshipFa;
+  final List<String> scopes;
+  final String clinicId;
+  final bool active;
+  final String createdAt;
+
+  const CaregiverPatientLink({
+    required this.grantId,
+    required this.patientId,
+    required this.patientNameFa,
+    required this.relationshipFa,
+    required this.scopes,
+    required this.clinicId,
+    required this.active,
+    required this.createdAt,
+  });
+
+  factory CaregiverPatientLink.fromJson(Map<String, Object?> json) {
+    return CaregiverPatientLink(
+      grantId: json['grantId'] as String,
+      patientId: json['patientId'] as String,
+      patientNameFa: json['patientNameFa'] as String,
+      relationshipFa: json['relationshipFa'] as String,
+      scopes: (json['scopes'] as List<Object?>).map((e) => e as String).toList(),
+      clinicId: json['clinicId'] as String,
+      active: json['active'] as bool,
+      createdAt: json['createdAt'] as String,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'grantId': grantId,
+      'patientId': patientId,
+      'patientNameFa': patientNameFa,
+      'relationshipFa': relationshipFa,
+      'scopes': scopes,
+      'clinicId': clinicId,
+      'active': active,
+      'createdAt': createdAt,
+    };
+  }
+}
+
+class CaregiverSessionResponse {
+  final String accessToken;
+  final String grantId;
+  final String patientId;
+  final String tenantId;
+  final String clinicId;
+  final String locale;
+  final String calendarMode;
+  final List<CaregiverPatientLink> patients;
+
+  const CaregiverSessionResponse({
+    required this.accessToken,
+    required this.grantId,
+    required this.patientId,
+    required this.tenantId,
+    required this.clinicId,
+    required this.locale,
+    required this.calendarMode,
+    required this.patients,
+  });
+
+  factory CaregiverSessionResponse.fromJson(Map<String, Object?> json) {
+    return CaregiverSessionResponse(
+      accessToken: json['accessToken'] as String,
+      grantId: json['grantId'] as String,
+      patientId: json['patientId'] as String,
+      tenantId: json['tenantId'] as String,
+      clinicId: json['clinicId'] as String,
+      locale: json['locale'] as String,
+      calendarMode: json['calendarMode'] as String,
+      patients: (json['patients'] as List<Object?>).map((e) => CaregiverPatientLink.fromJson(e as Map<String, Object?>)).toList(),
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'accessToken': accessToken,
+      'grantId': grantId,
+      'patientId': patientId,
+      'tenantId': tenantId,
+      'clinicId': clinicId,
+      'locale': locale,
+      'calendarMode': calendarMode,
+      'patients': patients.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+class CaregiverPatientListResponse {
+  final List<CaregiverPatientLink> items;
+
+  const CaregiverPatientListResponse({
+    required this.items,
+  });
+
+  factory CaregiverPatientListResponse.fromJson(Map<String, Object?> json) {
+    return CaregiverPatientListResponse(
+      items: (json['items'] as List<Object?>).map((e) => CaregiverPatientLink.fromJson(e as Map<String, Object?>)).toList(),
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'items': items.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+class CaregiverGrantListResponse {
+  final List<CaregiverGrant> items;
+
+  const CaregiverGrantListResponse({
+    required this.items,
+  });
+
+  factory CaregiverGrantListResponse.fromJson(Map<String, Object?> json) {
+    return CaregiverGrantListResponse(
+      items: (json['items'] as List<Object?>).map((e) => CaregiverGrant.fromJson(e as Map<String, Object?>)).toList(),
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'items': items.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+class ConsentRecord {
+  final String consentId;
+  final String consentVersion;
+  final String locale;
+  final String acceptedAt;
+
+  const ConsentRecord({
+    required this.consentId,
+    required this.consentVersion,
+    required this.locale,
+    required this.acceptedAt,
+  });
+
+  factory ConsentRecord.fromJson(Map<String, Object?> json) {
+    return ConsentRecord(
+      consentId: json['consentId'] as String,
+      consentVersion: json['consentVersion'] as String,
+      locale: json['locale'] as String,
+      acceptedAt: json['acceptedAt'] as String,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'consentId': consentId,
+      'consentVersion': consentVersion,
+      'locale': locale,
+      'acceptedAt': acceptedAt,
+    };
+  }
+}
+
+class PatientProfileResponse {
+  final String patientId;
+  final String tenantId;
+  final String clinicId;
+  final String fullNameFa;
+  final String phoneMasked;
+  final String preferredLocale;
+  final AccessMode accessMode;
+  final List<ConsentRecord> consents;
+
+  const PatientProfileResponse({
+    required this.patientId,
+    required this.tenantId,
+    required this.clinicId,
+    required this.fullNameFa,
+    required this.phoneMasked,
+    required this.preferredLocale,
+    required this.accessMode,
+    required this.consents,
+  });
+
+  factory PatientProfileResponse.fromJson(Map<String, Object?> json) {
+    return PatientProfileResponse(
+      patientId: json['patientId'] as String,
+      tenantId: json['tenantId'] as String,
+      clinicId: json['clinicId'] as String,
+      fullNameFa: json['fullNameFa'] as String,
+      phoneMasked: json['phoneMasked'] as String,
+      preferredLocale: json['preferredLocale'] as String,
+      accessMode: AccessMode.fromJson(json['accessMode'] as String),
+      consents: (json['consents'] as List<Object?>).map((e) => ConsentRecord.fromJson(e as Map<String, Object?>)).toList(),
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'patientId': patientId,
+      'tenantId': tenantId,
+      'clinicId': clinicId,
+      'fullNameFa': fullNameFa,
+      'phoneMasked': phoneMasked,
+      'preferredLocale': preferredLocale,
+      'accessMode': accessMode.toJson(),
+      'consents': consents.map((e) => e.toJson()).toList(),
     };
   }
 }
@@ -953,11 +1269,76 @@ class AdherenceEventResponse {
   }
 }
 
+class PatientEpisodeWithPrescription {
+  final CareEpisode episode;
+  final PrescriptionVersion? activePrescription;
+
+  const PatientEpisodeWithPrescription({
+    required this.episode,
+    this.activePrescription,
+  });
+
+  factory PatientEpisodeWithPrescription.fromJson(Map<String, Object?> json) {
+    return PatientEpisodeWithPrescription(
+      episode: CareEpisode.fromJson(json['episode'] as Map<String, Object?>),
+      activePrescription: json['activePrescription'] == null ? null : PrescriptionVersion.fromJson(json['activePrescription'] as Map<String, Object?>),
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'episode': episode.toJson(),
+      'activePrescription': activePrescription?.toJson(),
+    };
+  }
+}
+
+class PatientEpisodeListResponse {
+  final List<PatientEpisodeWithPrescription> items;
+
+  const PatientEpisodeListResponse({
+    required this.items,
+  });
+
+  factory PatientEpisodeListResponse.fromJson(Map<String, Object?> json) {
+    return PatientEpisodeListResponse(
+      items: (json['items'] as List<Object?>).map((e) => PatientEpisodeWithPrescription.fromJson(e as Map<String, Object?>)).toList(),
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'items': items.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+class AdherenceEventListResponse {
+  final List<AdherenceEventResponse> items;
+
+  const AdherenceEventListResponse({
+    required this.items,
+  });
+
+  factory AdherenceEventListResponse.fromJson(Map<String, Object?> json) {
+    return AdherenceEventListResponse(
+      items: (json['items'] as List<Object?>).map((e) => AdherenceEventResponse.fromJson(e as Map<String, Object?>)).toList(),
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'items': items.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
 class SymptomReportRequest {
   final EyeLaterality eyeLaterality;
   final bool severePain;
   final bool suddenVisionLoss;
   final bool purulentDischarge;
+  final bool? flashesOrCurtain;
   final String freeTextFa;
 
   const SymptomReportRequest({
@@ -965,6 +1346,7 @@ class SymptomReportRequest {
     required this.severePain,
     required this.suddenVisionLoss,
     required this.purulentDischarge,
+    this.flashesOrCurtain,
     required this.freeTextFa,
   });
 
@@ -974,6 +1356,7 @@ class SymptomReportRequest {
       severePain: json['severePain'] as bool,
       suddenVisionLoss: json['suddenVisionLoss'] as bool,
       purulentDischarge: json['purulentDischarge'] as bool,
+      flashesOrCurtain: json['flashesOrCurtain'] as bool?,
       freeTextFa: json['freeTextFa'] as String,
     );
   }
@@ -984,6 +1367,7 @@ class SymptomReportRequest {
       'severePain': severePain,
       'suddenVisionLoss': suddenVisionLoss,
       'purulentDischarge': purulentDischarge,
+      'flashesOrCurtain': flashesOrCurtain,
       'freeTextFa': freeTextFa,
     };
   }
@@ -1969,6 +2353,434 @@ class PatientDiagnosticSummaryList {
   Map<String, Object?> toJson() {
     return <String, Object?>{
       'items': items.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+class CalibrationProfileRequest {
+  final String patientId;
+  final String? clinicId;
+  final String deviceFingerprintSha256;
+  final double screenWidthMm;
+  final double viewingDistanceCm;
+  final String calibratedBy;
+  final bool? verified;
+
+  const CalibrationProfileRequest({
+    required this.patientId,
+    this.clinicId,
+    required this.deviceFingerprintSha256,
+    required this.screenWidthMm,
+    required this.viewingDistanceCm,
+    required this.calibratedBy,
+    this.verified,
+  });
+
+  factory CalibrationProfileRequest.fromJson(Map<String, Object?> json) {
+    return CalibrationProfileRequest(
+      patientId: json['patientId'] as String,
+      clinicId: json['clinicId'] as String?,
+      deviceFingerprintSha256: json['deviceFingerprintSha256'] as String,
+      screenWidthMm: (json['screenWidthMm'] as num).toDouble(),
+      viewingDistanceCm: (json['viewingDistanceCm'] as num).toDouble(),
+      calibratedBy: json['calibratedBy'] as String,
+      verified: json['verified'] as bool?,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'patientId': patientId,
+      'clinicId': clinicId,
+      'deviceFingerprintSha256': deviceFingerprintSha256,
+      'screenWidthMm': screenWidthMm,
+      'viewingDistanceCm': viewingDistanceCm,
+      'calibratedBy': calibratedBy,
+      'verified': verified,
+    };
+  }
+}
+
+class CalibrationProfileResponse {
+  final String calibrationProfileId;
+  final String patientId;
+  final double screenWidthMm;
+  final double viewingDistanceCm;
+  final String calibratedBy;
+  final bool verified;
+  final String createdAt;
+
+  const CalibrationProfileResponse({
+    required this.calibrationProfileId,
+    required this.patientId,
+    required this.screenWidthMm,
+    required this.viewingDistanceCm,
+    required this.calibratedBy,
+    required this.verified,
+    required this.createdAt,
+  });
+
+  factory CalibrationProfileResponse.fromJson(Map<String, Object?> json) {
+    return CalibrationProfileResponse(
+      calibrationProfileId: json['calibrationProfileId'] as String,
+      patientId: json['patientId'] as String,
+      screenWidthMm: (json['screenWidthMm'] as num).toDouble(),
+      viewingDistanceCm: (json['viewingDistanceCm'] as num).toDouble(),
+      calibratedBy: json['calibratedBy'] as String,
+      verified: json['verified'] as bool,
+      createdAt: json['createdAt'] as String,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'calibrationProfileId': calibrationProfileId,
+      'patientId': patientId,
+      'screenWidthMm': screenWidthMm,
+      'viewingDistanceCm': viewingDistanceCm,
+      'calibratedBy': calibratedBy,
+      'verified': verified,
+      'createdAt': createdAt,
+    };
+  }
+}
+
+class HomeVisionTestRequest {
+  final String? patientId;
+  final String? calibrationProfileId;
+  final EyeLaterality eyeLaterality;
+  final String testType;
+  final double? vaLogmar;
+  final double? amslerDistortionScore;
+  final bool? amslerCentralScotoma;
+  final double viewingDistanceCm;
+  final double ambientLux;
+  final double deviceTiltDeg;
+  final bool? glareDetected;
+
+  const HomeVisionTestRequest({
+    this.patientId,
+    this.calibrationProfileId,
+    required this.eyeLaterality,
+    required this.testType,
+    this.vaLogmar,
+    this.amslerDistortionScore,
+    this.amslerCentralScotoma,
+    required this.viewingDistanceCm,
+    required this.ambientLux,
+    required this.deviceTiltDeg,
+    this.glareDetected,
+  });
+
+  factory HomeVisionTestRequest.fromJson(Map<String, Object?> json) {
+    return HomeVisionTestRequest(
+      patientId: json['patientId'] as String?,
+      calibrationProfileId: json['calibrationProfileId'] as String?,
+      eyeLaterality: EyeLaterality.fromJson(json['eyeLaterality'] as String),
+      testType: json['testType'] as String,
+      vaLogmar: (json['vaLogmar'] as num?)?.toDouble(),
+      amslerDistortionScore: (json['amslerDistortionScore'] as num?)?.toDouble(),
+      amslerCentralScotoma: json['amslerCentralScotoma'] as bool?,
+      viewingDistanceCm: (json['viewingDistanceCm'] as num).toDouble(),
+      ambientLux: (json['ambientLux'] as num).toDouble(),
+      deviceTiltDeg: (json['deviceTiltDeg'] as num).toDouble(),
+      glareDetected: json['glareDetected'] as bool?,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'patientId': patientId,
+      'calibrationProfileId': calibrationProfileId,
+      'eyeLaterality': eyeLaterality.toJson(),
+      'testType': testType,
+      'vaLogmar': vaLogmar,
+      'amslerDistortionScore': amslerDistortionScore,
+      'amslerCentralScotoma': amslerCentralScotoma,
+      'viewingDistanceCm': viewingDistanceCm,
+      'ambientLux': ambientLux,
+      'deviceTiltDeg': deviceTiltDeg,
+      'glareDetected': glareDetected,
+    };
+  }
+}
+
+class HomeVisionTestResponse {
+  final String testId;
+  final EyeLaterality eyeLaterality;
+  final String eyeLabelFa;
+  final String testType;
+  final bool qualityPassed;
+  final List<String> qualityIssuesFa;
+  final String? triggeredTriageCaseId;
+  final String guidanceFa;
+
+  const HomeVisionTestResponse({
+    required this.testId,
+    required this.eyeLaterality,
+    required this.eyeLabelFa,
+    required this.testType,
+    required this.qualityPassed,
+    required this.qualityIssuesFa,
+    this.triggeredTriageCaseId,
+    required this.guidanceFa,
+  });
+
+  factory HomeVisionTestResponse.fromJson(Map<String, Object?> json) {
+    return HomeVisionTestResponse(
+      testId: json['testId'] as String,
+      eyeLaterality: EyeLaterality.fromJson(json['eyeLaterality'] as String),
+      eyeLabelFa: json['eyeLabelFa'] as String,
+      testType: json['testType'] as String,
+      qualityPassed: json['qualityPassed'] as bool,
+      qualityIssuesFa: (json['qualityIssuesFa'] as List<Object?>).map((e) => e as String).toList(),
+      triggeredTriageCaseId: json['triggeredTriageCaseId'] as String?,
+      guidanceFa: json['guidanceFa'] as String,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'testId': testId,
+      'eyeLaterality': eyeLaterality.toJson(),
+      'eyeLabelFa': eyeLabelFa,
+      'testType': testType,
+      'qualityPassed': qualityPassed,
+      'qualityIssuesFa': qualityIssuesFa,
+      'triggeredTriageCaseId': triggeredTriageCaseId,
+      'guidanceFa': guidanceFa,
+    };
+  }
+}
+
+class VisionTrendPoint {
+  final String testId;
+  final String testType;
+  final EyeLaterality eyeLaterality;
+  final double? vaLogmar;
+  final double? amslerDistortionScore;
+  final String recordedAt;
+
+  const VisionTrendPoint({
+    required this.testId,
+    required this.testType,
+    required this.eyeLaterality,
+    this.vaLogmar,
+    this.amslerDistortionScore,
+    required this.recordedAt,
+  });
+
+  factory VisionTrendPoint.fromJson(Map<String, Object?> json) {
+    return VisionTrendPoint(
+      testId: json['testId'] as String,
+      testType: json['testType'] as String,
+      eyeLaterality: EyeLaterality.fromJson(json['eyeLaterality'] as String),
+      vaLogmar: (json['vaLogmar'] as num?)?.toDouble(),
+      amslerDistortionScore: (json['amslerDistortionScore'] as num?)?.toDouble(),
+      recordedAt: json['recordedAt'] as String,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'testId': testId,
+      'testType': testType,
+      'eyeLaterality': eyeLaterality.toJson(),
+      'vaLogmar': vaLogmar,
+      'amslerDistortionScore': amslerDistortionScore,
+      'recordedAt': recordedAt,
+    };
+  }
+}
+
+class PatientVisionTrendsResponse {
+  final String patientId;
+  final List<VisionTrendPoint> od;
+  final List<VisionTrendPoint> os;
+
+  const PatientVisionTrendsResponse({
+    required this.patientId,
+    required this.od,
+    required this.os,
+  });
+
+  factory PatientVisionTrendsResponse.fromJson(Map<String, Object?> json) {
+    return PatientVisionTrendsResponse(
+      patientId: json['patientId'] as String,
+      od: (json['od'] as List<Object?>).map((e) => VisionTrendPoint.fromJson(e as Map<String, Object?>)).toList(),
+      os: (json['os'] as List<Object?>).map((e) => VisionTrendPoint.fromJson(e as Map<String, Object?>)).toList(),
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'patientId': patientId,
+      'od': od.map((e) => e.toJson()).toList(),
+      'os': os.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+class IcareHome2ReadingRequest {
+  final String? patientId;
+  final String deviceSerial;
+  final EyeLaterality eyeLaterality;
+  final double iopMmHg;
+  final double qualityScore;
+  final String measuredAtIso;
+
+  const IcareHome2ReadingRequest({
+    this.patientId,
+    required this.deviceSerial,
+    required this.eyeLaterality,
+    required this.iopMmHg,
+    required this.qualityScore,
+    required this.measuredAtIso,
+  });
+
+  factory IcareHome2ReadingRequest.fromJson(Map<String, Object?> json) {
+    return IcareHome2ReadingRequest(
+      patientId: json['patientId'] as String?,
+      deviceSerial: json['deviceSerial'] as String,
+      eyeLaterality: EyeLaterality.fromJson(json['eyeLaterality'] as String),
+      iopMmHg: (json['iopMmHg'] as num).toDouble(),
+      qualityScore: (json['qualityScore'] as num).toDouble(),
+      measuredAtIso: json['measuredAtIso'] as String,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'patientId': patientId,
+      'deviceSerial': deviceSerial,
+      'eyeLaterality': eyeLaterality.toJson(),
+      'iopMmHg': iopMmHg,
+      'qualityScore': qualityScore,
+      'measuredAtIso': measuredAtIso,
+    };
+  }
+}
+
+class IcareHome2ReadingResponse {
+  final String readingId;
+  final bool accepted;
+  final UrgencyTier alertTier;
+  final String summaryFa;
+
+  const IcareHome2ReadingResponse({
+    required this.readingId,
+    required this.accepted,
+    required this.alertTier,
+    required this.summaryFa,
+  });
+
+  factory IcareHome2ReadingResponse.fromJson(Map<String, Object?> json) {
+    return IcareHome2ReadingResponse(
+      readingId: json['readingId'] as String,
+      accepted: json['accepted'] as bool,
+      alertTier: UrgencyTier.fromJson(json['alertTier'] as String),
+      summaryFa: json['summaryFa'] as String,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'readingId': readingId,
+      'accepted': accepted,
+      'alertTier': alertTier.toJson(),
+      'summaryFa': summaryFa,
+    };
+  }
+}
+
+class ReportSectionInput {
+  final String headingFa;
+  final List<String> linesFa;
+
+  const ReportSectionInput({
+    required this.headingFa,
+    required this.linesFa,
+  });
+
+  factory ReportSectionInput.fromJson(Map<String, Object?> json) {
+    return ReportSectionInput(
+      headingFa: json['headingFa'] as String,
+      linesFa: (json['linesFa'] as List<Object?>).map((e) => e as String).toList(),
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'headingFa': headingFa,
+      'linesFa': linesFa,
+    };
+  }
+}
+
+class CreateReportRequest {
+  final String reportType;
+  final String patientId;
+  final String sourceRefId;
+  final String titleFa;
+  final List<ReportSectionInput> sections;
+
+  const CreateReportRequest({
+    required this.reportType,
+    required this.patientId,
+    required this.sourceRefId,
+    required this.titleFa,
+    required this.sections,
+  });
+
+  factory CreateReportRequest.fromJson(Map<String, Object?> json) {
+    return CreateReportRequest(
+      reportType: json['reportType'] as String,
+      patientId: json['patientId'] as String,
+      sourceRefId: json['sourceRefId'] as String,
+      titleFa: json['titleFa'] as String,
+      sections: (json['sections'] as List<Object?>).map((e) => ReportSectionInput.fromJson(e as Map<String, Object?>)).toList(),
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'reportType': reportType,
+      'patientId': patientId,
+      'sourceRefId': sourceRefId,
+      'titleFa': titleFa,
+      'sections': sections.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+class CreateReportResponse {
+  final String reportId;
+  final String reportType;
+  final String sourceSha256;
+  final String pdfSha256;
+
+  const CreateReportResponse({
+    required this.reportId,
+    required this.reportType,
+    required this.sourceSha256,
+    required this.pdfSha256,
+  });
+
+  factory CreateReportResponse.fromJson(Map<String, Object?> json) {
+    return CreateReportResponse(
+      reportId: json['reportId'] as String,
+      reportType: json['reportType'] as String,
+      sourceSha256: json['sourceSha256'] as String,
+      pdfSha256: json['pdfSha256'] as String,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return <String, Object?>{
+      'reportId': reportId,
+      'reportType': reportType,
+      'sourceSha256': sourceSha256,
+      'pdfSha256': pdfSha256,
     };
   }
 }

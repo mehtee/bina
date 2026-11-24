@@ -55,6 +55,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/staff/step-up": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upgrade staff session with step-up verification */
+        post: operations["performStaffStepUp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/patient/otp/request": {
         parameters: {
             query?: never;
@@ -89,7 +106,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/patients/{patientId}/caregivers": {
+    "/v1/auth/caregiver/otp/verify": {
         parameters: {
             query?: never;
             header?: never;
@@ -97,6 +114,58 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
+        put?: never;
+        /** Verify +98 SMS OTP for delegated caregiver login and return accessible patients */
+        post: operations["verifyCaregiverOtp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/caregiver/patients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List active patient delegations for the authenticated caregiver */
+        get: operations["listCaregiverPatients"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/patient/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get patient profile metadata and accepted Persian consents */
+        get: operations["getPatientProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/patients/{patientId}/caregivers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List caregiver delegations granted for a patient */
+        get: operations["listPatientCaregivers"];
         put?: never;
         /** Grant scoped caregiver access to a patient */
         post: operations["grantCaregiverAccess"];
@@ -191,6 +260,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/patient/episodes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List active eye-isolated care episodes and latest prescriptions for the patient */
+        get: operations["listPatientEpisodes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/episodes/{episodeId}/adherence": {
         parameters: {
             query?: never;
@@ -198,7 +284,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** List recorded medication adherence history for a care episode */
+        get: operations["listMedicationAdherence"];
         put?: never;
         /** Record idempotent 4-state medication adherence event */
         post: operations["recordMedicationAdherence"];
@@ -361,6 +448,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/r2/calibration-profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register R2 display/distance calibration profile for home vision testing */
+        post: operations["registerCalibrationProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/r2/home-tests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit calibrated R2 home vision test (Landolt C, Amsler, Contrast) with sensor QC */
+        post: operations["submitHomeVisionTest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/r2/patients/{patientId}/trends": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve eye-separated longitudinal R2 vision trends */
+        get: operations["getPatientVisionTrends"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/integrations/icare-home2/readings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ingest validated iCare HOME2 home IOP reading */
+        post: operations["ingestIcareHome2Reading"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate and store deterministic Persian PDF report */
+        post: operations["createPersianReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/reports/{reportId}/pdf": {
         parameters: {
             query?: never;
@@ -478,6 +650,16 @@ export interface components {
             emergencyPhone: string;
             /** @example شنبه تا چهارشنبه ۸ تا ۲۰ — پنج‌شنبه ۸ تا ۱۴ */
             staffedHoursFa: string;
+            /** @example ۱۴۰۵/۰۹/۰۲ */
+            todayJalali?: string;
+            currentlyStaffed?: boolean;
+        };
+        StaffStepUpRequest: {
+            stepUpCode: string;
+        };
+        StaffStepUpResponse: {
+            accessToken: string;
+            stepUpVerified: boolean;
         };
         StaffSessionRequest: {
             oidcToken: string;
@@ -501,6 +683,8 @@ export interface components {
             phoneNumber: string;
             /** Format: uuid */
             clinicId: string;
+            /** Format: uuid */
+            tenantId?: string;
         };
         OtpDispatchResponse: {
             /** Format: uuid */
@@ -517,6 +701,10 @@ export interface components {
             consentAccepted: boolean;
             /** @example fa-IR-v1.0 */
             consentVersion: string;
+            /** @example +989123456789 */
+            phoneNumber: string;
+            /** Format: uuid */
+            tenantId?: string;
         };
         PatientSessionResponse: {
             accessToken: string;
@@ -524,10 +712,86 @@ export interface components {
             patientId: string;
             /** Format: uuid */
             tenantId: string;
+            /** Format: uuid */
+            clinicId?: string;
             /** @example fa-IR */
             locale: string;
             /** @example jalali */
             calendarMode: string;
+        };
+        CaregiverOtpVerifyRequest: {
+            /** Format: uuid */
+            challengeId: string;
+            /** @example 482910 */
+            otpCode: string;
+            /** Format: uuid */
+            tenantId?: string;
+            /** Format: uuid */
+            patientId?: string;
+        };
+        CaregiverPatientLink: {
+            /** Format: uuid */
+            grantId: string;
+            /** Format: uuid */
+            patientId: string;
+            /** @example علی رضایی */
+            patientNameFa: string;
+            /** @example فرزند بیمار */
+            relationshipFa: string;
+            scopes: string[];
+            /** Format: uuid */
+            clinicId: string;
+            active: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CaregiverSessionResponse: {
+            accessToken: string;
+            /** Format: uuid */
+            grantId: string;
+            /** Format: uuid */
+            patientId: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            /** @example fa-IR */
+            locale: string;
+            /** @example jalali */
+            calendarMode: string;
+            patients: components["schemas"]["CaregiverPatientLink"][];
+        };
+        CaregiverPatientListResponse: {
+            items: components["schemas"]["CaregiverPatientLink"][];
+        };
+        CaregiverGrantListResponse: {
+            items: components["schemas"]["CaregiverGrant"][];
+        };
+        ConsentRecord: {
+            /** Format: uuid */
+            consentId: string;
+            /** @example fa-IR-v1.0 */
+            consentVersion: string;
+            /** @example fa-IR */
+            locale: string;
+            /** Format: date-time */
+            acceptedAt: string;
+        };
+        PatientProfileResponse: {
+            /** Format: uuid */
+            patientId: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            /** @example بیمار محترم */
+            fullNameFa: string;
+            /** @example +98912***6789 */
+            phoneMasked: string;
+            /** @example fa-IR */
+            preferredLocale: string;
+            accessMode: components["schemas"]["AccessMode"];
+            consents: components["schemas"]["ConsentRecord"][];
         };
         CaregiverGrantRequest: {
             /** @example +989129876543 */
@@ -657,11 +921,22 @@ export interface components {
             /** Format: date-time */
             recordedAt: string;
         };
+        PatientEpisodeWithPrescription: {
+            episode: components["schemas"]["CareEpisode"];
+            activePrescription?: components["schemas"]["PrescriptionVersion"];
+        };
+        PatientEpisodeListResponse: {
+            items: components["schemas"]["PatientEpisodeWithPrescription"][];
+        };
+        AdherenceEventListResponse: {
+            items: components["schemas"]["AdherenceEventResponse"][];
+        };
         SymptomReportRequest: {
             eyeLaterality: components["schemas"]["EyeLaterality"];
             severePain: boolean;
             suddenVisionLoss: boolean;
             purulentDischarge: boolean;
+            flashesOrCurtain?: boolean;
             /** @example قرمزی شدید و درد ناگهانی در چشم راست از دیشب */
             freeTextFa: string;
         };
@@ -926,6 +1201,112 @@ export interface components {
         PatientDiagnosticSummaryList: {
             items: components["schemas"]["PatientDiagnosticSummary"][];
         };
+        CalibrationProfileRequest: {
+            /** Format: uuid */
+            patientId: string;
+            /** Format: uuid */
+            clinicId?: string;
+            deviceFingerprintSha256: string;
+            screenWidthMm: number;
+            viewingDistanceCm: number;
+            /** @enum {string} */
+            calibratedBy: "clinic_staff" | "patient_card";
+            verified?: boolean;
+        };
+        CalibrationProfileResponse: {
+            /** Format: uuid */
+            calibrationProfileId: string;
+            /** Format: uuid */
+            patientId: string;
+            screenWidthMm: number;
+            viewingDistanceCm: number;
+            calibratedBy: string;
+            verified: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        HomeVisionTestRequest: {
+            /** Format: uuid */
+            patientId?: string;
+            /** Format: uuid */
+            calibrationProfileId?: string;
+            eyeLaterality: components["schemas"]["EyeLaterality"];
+            /** @enum {string} */
+            testType: "landolt_c" | "amsler" | "contrast";
+            vaLogmar?: number;
+            amslerDistortionScore?: number;
+            amslerCentralScotoma?: boolean;
+            viewingDistanceCm: number;
+            ambientLux: number;
+            deviceTiltDeg: number;
+            glareDetected?: boolean;
+        };
+        HomeVisionTestResponse: {
+            /** Format: uuid */
+            testId: string;
+            eyeLaterality: components["schemas"]["EyeLaterality"];
+            eyeLabelFa: string;
+            testType: string;
+            qualityPassed: boolean;
+            qualityIssuesFa: string[];
+            /** Format: uuid */
+            triggeredTriageCaseId?: string | null;
+            guidanceFa: string;
+        };
+        VisionTrendPoint: {
+            /** Format: uuid */
+            testId: string;
+            testType: string;
+            eyeLaterality: components["schemas"]["EyeLaterality"];
+            vaLogmar?: number | null;
+            amslerDistortionScore?: number | null;
+            /** Format: date-time */
+            recordedAt: string;
+        };
+        PatientVisionTrendsResponse: {
+            /** Format: uuid */
+            patientId: string;
+            od: components["schemas"]["VisionTrendPoint"][];
+            os: components["schemas"]["VisionTrendPoint"][];
+        };
+        IcareHome2ReadingRequest: {
+            /** Format: uuid */
+            patientId?: string;
+            deviceSerial: string;
+            eyeLaterality: components["schemas"]["EyeLaterality"];
+            iopMmHg: number;
+            qualityScore: number;
+            /** Format: date-time */
+            measuredAtIso: string;
+        };
+        IcareHome2ReadingResponse: {
+            /** Format: uuid */
+            readingId: string;
+            accepted: boolean;
+            alertTier: components["schemas"]["UrgencyTier"];
+            summaryFa: string;
+        };
+        ReportSectionInput: {
+            headingFa: string;
+            linesFa: string[];
+        };
+        CreateReportRequest: {
+            /** @enum {string} */
+            reportType: "patient_schedule" | "postop_closure" | "signed_diagnostic";
+            /** Format: uuid */
+            patientId: string;
+            /** Format: uuid */
+            sourceRefId: string;
+            titleFa: string;
+            sections: components["schemas"]["ReportSectionInput"][];
+        };
+        CreateReportResponse: {
+            /** Format: uuid */
+            reportId: string;
+            reportType: string;
+            sourceSha256: string;
+            pdfSha256: string;
+        };
         AiEngineQcRequest: {
             assets: components["schemas"]["StudyAssetInput"][];
         };
@@ -1032,6 +1413,30 @@ export interface operations {
             };
         };
     };
+    performStaffStepUp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffStepUpRequest"];
+            };
+        };
+        responses: {
+            /** @description Step-up verified session token */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffStepUpResponse"];
+                };
+            };
+        };
+    };
     requestPatientOtp: {
         parameters: {
             query?: never;
@@ -1076,6 +1481,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PatientSessionResponse"];
+                };
+            };
+        };
+    };
+    verifyCaregiverOtp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaregiverOtpVerifyRequest"];
+            };
+        };
+        responses: {
+            /** @description Caregiver session granted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverSessionResponse"];
+                };
+            };
+        };
+    };
+    listCaregiverPatients: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Active delegated patients */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverPatientListResponse"];
+                };
+            };
+        };
+    };
+    getPatientProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Patient profile and consent history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientProfileResponse"];
+                };
+            };
+        };
+    };
+    listPatientCaregivers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: components["parameters"]["PatientIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Caregiver grant list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverGrantListResponse"];
                 };
             };
         };
@@ -1215,6 +1706,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PatientTodayResponse"];
+                };
+            };
+        };
+    };
+    listPatientEpisodes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Active eye-isolated care episodes with prescriptions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientEpisodeListResponse"];
+                };
+            };
+        };
+    };
+    listMedicationAdherence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                episodeId: components["parameters"]["EpisodeIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Adherence event history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdherenceEventListResponse"];
                 };
             };
         };
@@ -1461,6 +1994,124 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PatientDiagnosticSummaryList"];
+                };
+            };
+        };
+    };
+    registerCalibrationProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalibrationProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description Calibration profile saved */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalibrationProfileResponse"];
+                };
+            };
+        };
+    };
+    submitHomeVisionTest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HomeVisionTestRequest"];
+            };
+        };
+        responses: {
+            /** @description Home vision test evaluated and stored */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HomeVisionTestResponse"];
+                };
+            };
+        };
+    };
+    getPatientVisionTrends: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: components["parameters"]["PatientIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Eye-separated vision trend series */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientVisionTrendsResponse"];
+                };
+            };
+        };
+    };
+    ingestIcareHome2Reading: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IcareHome2ReadingRequest"];
+            };
+        };
+        responses: {
+            /** @description IOP reading ingested and evaluated */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IcareHome2ReadingResponse"];
+                };
+            };
+        };
+    };
+    createPersianReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateReportRequest"];
+            };
+        };
+        responses: {
+            /** @description Report generated */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateReportResponse"];
                 };
             };
         };

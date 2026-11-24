@@ -4,7 +4,12 @@ import { asClinicId, asTenantId, type NotificationTransportPort } from "../../..
 import type { AuditLogPort } from "../../audit-compliance/ports/index.js";
 import { signSessionToken } from "../../identity-access/index.js";
 import { hashIranPhone, hashOtpCode, maskIranPhone, normalizeIranPhone } from "../domain/phone.js";
-import type { CaregiverGrantRecord, EnrollmentRepoPort } from "../ports/index.js";
+import type {
+  CaregiverGrantRecord,
+  CaregiverPatientLink,
+  ConsentAcceptanceRecord,
+  EnrollmentRepoPort,
+} from "../ports/index.js";
 
 export class EnrollmentHttpError extends Error {
   constructor(
@@ -78,7 +83,14 @@ export class EnrollmentService {
       phoneNumberForMask: string;
       now?: Date | undefined;
     }
-  ): Promise<{ accessToken: string; patientId: string; locale: string; calendarMode: "jalali" }> {
+  ): Promise<{
+    accessToken: string;
+    patientId: string;
+    tenantId: string;
+    clinicId: string;
+    locale: string;
+    calendarMode: "jalali";
+  }> {
     if (!input.consentAccepted) {
       throw new EnrollmentHttpError(400, "CONSENT_REQUIRED", "پذیرش رضایت‌نامه فارسی بیمار الزامی است.");
     }
@@ -144,8 +156,132 @@ export class EnrollmentService {
     return {
       accessToken,
       patientId: patient.id,
+      tenantId: patient.tenantId,
+      clinicId: patient.clinicId,
       locale: patient.preferredLocale,
       calendarMode: "jalali",
+    };
+  }
+
+  async verifyCaregiverOtp(
+    tx: DbTx,
+    input: {
+      tenantId: string;
+      challengeId: string;
+      otpCode: string;
+      patientId?: string | undefined;
+      now?: Date | undefined;
+    }
+  ): Promise<{
+    accessToken: string;
+    grantId: string;
+    patientId: string;
+    tenantId: string;
+    clinicId: string;
+    locale: string;
+    calendarMode: "jalali";
+    patients: CaregiverPatientLink[];
+  }> {
+    const challenge = await this.repo.findOtpChallengeById(tx, input.challengeId);
+    if (!challenge) {
+      throw new EnrollmentHttpError(404, "OTP_CHALLENGE_NOT_FOUND", "درخواست کد تایید یافت نشد.");
+    }
+    if (challenge.consumedAt !== null) {
+      throw new EnrollmentHttpError(409, "OTP_REPLAYED", "این کد تایید قبلاً استفاده شده است.");
+    }
+    const now = input.now ?? new Date();
+    if (challenge.expiresAt.getTime() <= now.getTime()) {
+      throw new EnrollmentHttpError(401, "OTP_EXPIRED", "کد تایید منقضی شده است.");
+    }
+    if (challenge.attempts >= 5) {
+      throw new EnrollmentHttpError(429, "OTP_ATTEMPTS_EXCEEDED", "تعداد تلاش مجاز به پایان رسید.");
+    }
+
+    const candidateHash = hashOtpCode(challenge.id, input.otpCode, this.salt);
+    const a = Buffer.from(candidateHash, "hex");
+    const b = Buffer.from(challenge.codeHash, "hex");
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
+      await this.repo.incrementOtpAttempts(tx, challenge.id);
+      throw new EnrollmentHttpError(401, "OTP_INVALID", "کد تایید واردشده نادرست است.");
+    }
+
+    const consumed = await this.repo.markOtpConsumed(tx, challenge.id, now);
+    if (!consumed) {
+      throw new EnrollmentHttpError(409, "OTP_REPLAYED", "این کد تایید قبلاً مصرف شده است.");
+    }
+
+    const patients = await this.repo.listActiveGrantsByCaregiverPhoneHash(tx, challenge.phoneHash);
+    if (patients.length === 0) {
+      throw new EnrollmentHttpError(
+        403,
+        "CAREGIVER_GRANT_NOT_FOUND",
+        "هیچ مجوز فعال همراهی برای این شماره ثبت نشده است."
+      );
+    }
+
+    const selected =
+      (input.patientId ? patients.find((p) => p.patientId === input.patientId) : undefined) ?? patients[0]!;
+
+    const exp = Math.floor(now.getTime() / 1000) + 3600;
+    const accessToken = signSessionToken(
+      {
+        sub: challenge.phoneHash,
+        tenantId: input.tenantId,
+        clinicId: selected.clinicId,
+        actorType: "caregiver",
+        grantId: selected.grantId,
+        exp,
+      },
+      this.signingSecret
+    );
+
+    return {
+      accessToken,
+      grantId: selected.grantId,
+      patientId: selected.patientId,
+      tenantId: input.tenantId,
+      clinicId: selected.clinicId,
+      locale: "fa-IR",
+      calendarMode: "jalali",
+      patients,
+    };
+  }
+
+  async listCaregiversForPatient(tx: DbTx, patientId: string): Promise<CaregiverGrantRecord[]> {
+    return this.repo.listCaregiverGrantsByPatient(tx, patientId);
+  }
+
+  async listCaregiverPatients(tx: DbTx, caregiverPhoneHash: string): Promise<CaregiverPatientLink[]> {
+    return this.repo.listActiveGrantsByCaregiverPhoneHash(tx, caregiverPhoneHash);
+  }
+
+  async getPatientProfile(
+    tx: DbTx,
+    patientId: string
+  ): Promise<{
+    patientId: string;
+    tenantId: string;
+    clinicId: string;
+    fullNameFa: string;
+    phoneMasked: string;
+    preferredLocale: string;
+    accessMode: "app" | "caregiver" | "print_phone";
+    consents: ConsentAcceptanceRecord[];
+  }> {
+    const patient = await this.repo.findPatientById(tx, patientId);
+    if (!patient) {
+      throw new EnrollmentHttpError(404, "PATIENT_NOT_FOUND", "پروفایل بیمار یافت نشد.");
+    }
+    const consents = await this.repo.listConsentsByPatient(tx, patientId);
+    return {
+      patientId: patient.id,
+      tenantId: patient.tenantId,
+      clinicId: patient.clinicId,
+      fullNameFa: patient.fullNameFa,
+      phoneMasked: patient.phoneMasked,
+      preferredLocale: patient.preferredLocale,
+      accessMode: patient.accessMode,
+      consents,
     };
   }
 

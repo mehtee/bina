@@ -1,0 +1,15 @@
+{
+  "name": "@bina/clinical-fixtures",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./v01-v09": "./fixtures/v01-v09-preview.json"
+  }
+}

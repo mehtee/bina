@@ -34,6 +34,24 @@ export interface CaregiverGrantRecord {
   readonly createdAt: Date;
 }
 
+export interface ConsentAcceptanceRecord {
+  readonly id: string;
+  readonly consentVersion: string;
+  readonly locale: string;
+  readonly acceptedAt: Date;
+}
+
+export interface CaregiverPatientLink {
+  readonly grantId: string;
+  readonly patientId: string;
+  readonly patientNameFa: string;
+  readonly relationshipFa: string;
+  readonly scopes: string[];
+  readonly clinicId: string;
+  readonly active: boolean;
+  readonly createdAt: Date;
+}
+
 export interface EnrollmentRepoPort {
   createOtpChallenge(
     tx: DbTx,
@@ -59,10 +77,12 @@ export interface EnrollmentRepoPort {
       fullNameFa?: string | undefined;
     }
   ): Promise<PatientRecord>;
+  findPatientById(tx: DbTx, patientId: string): Promise<PatientRecord | null>;
   recordConsentAcceptance(
     tx: DbTx,
     input: { tenantId: string; patientId: string; consentVersion: string; locale: string }
   ): Promise<void>;
+  listConsentsByPatient(tx: DbTx, patientId: string): Promise<ConsentAcceptanceRecord[]>;
   createCaregiverGrant(
     tx: DbTx,
     input: {
@@ -74,5 +94,10 @@ export interface EnrollmentRepoPort {
     }
   ): Promise<CaregiverGrantRecord>;
   findCaregiverGrant(tx: DbTx, grantId: string, patientId: string): Promise<CaregiverGrantRecord | null>;
+  listCaregiverGrantsByPatient(tx: DbTx, patientId: string): Promise<CaregiverGrantRecord[]>;
+  listActiveGrantsByCaregiverPhoneHash(
+    tx: DbTx,
+    caregiverPhoneHash: string
+  ): Promise<CaregiverPatientLink[]>;
   revokeCaregiverGrant(tx: DbTx, grantId: string, patientId: string, revokedAt: Date): Promise<boolean>;
 }

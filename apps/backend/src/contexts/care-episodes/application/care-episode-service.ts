@@ -236,6 +236,25 @@ export class CareEpisodeService {
     };
   }
 
+  async listPatientEpisodes(
+    tx: DbTx,
+    patientId: string
+  ): Promise<Array<{ episode: CareEpisodeRecord; prescription: PrescriptionVersionRecord | null }>> {
+    return this.repo.listActiveEpisodesWithLatestRx(tx, patientId);
+  }
+
+  async listEpisodeAdherence(
+    tx: DbTx,
+    episodeId: string,
+    limit = 50
+  ): Promise<AdherenceEventRecord[]> {
+    const episode = await this.repo.findEpisodeById(tx, episodeId);
+    if (!episode) {
+      throw new CareEpisodeError(404, "EPISODE_NOT_FOUND", "اپیزود مراقبتی یافت نشد.");
+    }
+    return this.repo.listAdherenceEvents(tx, episodeId, Math.max(1, Math.min(limit, 200)));
+  }
+
   async recordAdherence(
     tx: DbTx,
     input: {

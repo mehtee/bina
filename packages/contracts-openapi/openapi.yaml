@@ -15,6 +15,7 @@ tags:
   - name: System
   - name: Auth
   - name: CareOperations
+  - name: HomeMonitoringR2
   - name: Triage
   - name: DiagnosticsAI
   - name: Reports
@@ -66,6 +67,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/StaffSessionResponse"
 
+  /v1/auth/staff/step-up:
+    post:
+      tags: [Auth]
+      operationId: performStaffStepUp
+      summary: Upgrade staff session with step-up verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffStepUpRequest"
+      responses:
+        "200":
+          description: Step-up verified session token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffStepUpResponse"
+
   /v1/auth/patient/otp/request:
     post:
       tags: [Auth]
@@ -104,7 +124,65 @@ paths:
               schema:
                 $ref: "#/components/schemas/PatientSessionResponse"
 
+  /v1/auth/caregiver/otp/verify:
+    post:
+      tags: [Auth]
+      operationId: verifyCaregiverOtp
+      summary: Verify +98 SMS OTP for delegated caregiver login and return accessible patients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CaregiverOtpVerifyRequest"
+      responses:
+        "200":
+          description: Caregiver session granted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaregiverSessionResponse"
+
+  /v1/caregiver/patients:
+    get:
+      tags: [CareOperations]
+      operationId: listCaregiverPatients
+      summary: List active patient delegations for the authenticated caregiver
+      responses:
+        "200":
+          description: Active delegated patients
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaregiverPatientListResponse"
+
+  /v1/patient/profile:
+    get:
+      tags: [CareOperations]
+      operationId: getPatientProfile
+      summary: Get patient profile metadata and accepted Persian consents
+      responses:
+        "200":
+          description: Patient profile and consent history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientProfileResponse"
+
   /v1/patients/{patientId}/caregivers:
+    get:
+      tags: [CareOperations]
+      operationId: listPatientCaregivers
+      summary: List caregiver delegations granted for a patient
+      parameters:
+        - $ref: "#/components/parameters/PatientIdParam"
+      responses:
+        "200":
+          description: Caregiver grant list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaregiverGrantListResponse"
     post:
       tags: [CareOperations]
       operationId: grantCaregiverAccess
@@ -205,7 +283,33 @@ paths:
               schema:
                 $ref: "#/components/schemas/PatientTodayResponse"
 
+  /v1/patient/episodes:
+    get:
+      tags: [CareOperations]
+      operationId: listPatientEpisodes
+      summary: List active eye-isolated care episodes and latest prescriptions for the patient
+      responses:
+        "200":
+          description: Active eye-isolated care episodes with prescriptions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientEpisodeListResponse"
+
   /v1/episodes/{episodeId}/adherence:
+    get:
+      tags: [CareOperations]
+      operationId: listMedicationAdherence
+      summary: List recorded medication adherence history for a care episode
+      parameters:
+        - $ref: "#/components/parameters/EpisodeIdParam"
+      responses:
+        "200":
+          description: Adherence event history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdherenceEventListResponse"
     post:
       tags: [CareOperations]
       operationId: recordMedicationAdherence
@@ -392,6 +496,97 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PatientDiagnosticSummaryList"
+
+  /v1/r2/calibration-profiles:
+    post:
+      tags: [HomeMonitoringR2]
+      operationId: registerCalibrationProfile
+      summary: Register R2 display/distance calibration profile for home vision testing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalibrationProfileRequest"
+      responses:
+        "201":
+          description: Calibration profile saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalibrationProfileResponse"
+
+  /v1/r2/home-tests:
+    post:
+      tags: [HomeMonitoringR2]
+      operationId: submitHomeVisionTest
+      summary: Submit calibrated R2 home vision test (Landolt C, Amsler, Contrast) with sensor QC
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HomeVisionTestRequest"
+      responses:
+        "201":
+          description: Home vision test evaluated and stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HomeVisionTestResponse"
+
+  /v1/r2/patients/{patientId}/trends:
+    get:
+      tags: [HomeMonitoringR2]
+      operationId: getPatientVisionTrends
+      summary: Retrieve eye-separated longitudinal R2 vision trends
+      parameters:
+        - $ref: "#/components/parameters/PatientIdParam"
+      responses:
+        "200":
+          description: Eye-separated vision trend series
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientVisionTrendsResponse"
+
+  /v1/integrations/icare-home2/readings:
+    post:
+      tags: [HomeMonitoringR2]
+      operationId: ingestIcareHome2Reading
+      summary: Ingest validated iCare HOME2 home IOP reading
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IcareHome2ReadingRequest"
+      responses:
+        "201":
+          description: IOP reading ingested and evaluated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IcareHome2ReadingResponse"
+
+  /v1/reports:
+    post:
+      tags: [Reports]
+      operationId: createPersianReport
+      summary: Generate and store deterministic Persian PDF report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReportRequest"
+      responses:
+        "201":
+          description: Report generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateReportResponse"
 
   /v1/reports/{reportId}/pdf:
     get:
@@ -607,6 +802,27 @@ components:
         staffedHoursFa:
           type: string
           example: شنبه تا چهارشنبه ۸ تا ۲۰ — پنج‌شنبه ۸ تا ۱۴
+        todayJalali:
+          type: string
+          example: "۱۴۰۵/۰۹/۰۲"
+        currentlyStaffed:
+          type: boolean
+
+    StaffStepUpRequest:
+      type: object
+      required: [stepUpCode]
+      properties:
+        stepUpCode:
+          type: string
+
+    StaffStepUpResponse:
+      type: object
+      required: [accessToken, stepUpVerified]
+      properties:
+        accessToken:
+          type: string
+        stepUpVerified:
+          type: boolean
 
     StaffSessionRequest:
       type: object
@@ -651,6 +867,9 @@ components:
         clinicId:
           type: string
           format: uuid
+        tenantId:
+          type: string
+          format: uuid
 
     OtpDispatchResponse:
       type: object
@@ -667,7 +886,7 @@ components:
 
     PatientOtpVerifyRequest:
       type: object
-      required: [challengeId, otpCode, consentAccepted, consentVersion]
+      required: [challengeId, otpCode, consentAccepted, consentVersion, phoneNumber]
       properties:
         challengeId:
           type: string
@@ -680,6 +899,13 @@ components:
         consentVersion:
           type: string
           example: fa-IR-v1.0
+        phoneNumber:
+          type: string
+          pattern: "^\\+989\\d{9}$"
+          example: "+989123456789"
+        tenantId:
+          type: string
+          format: uuid
 
     PatientSessionResponse:
       type: object
@@ -693,12 +919,154 @@ components:
         tenantId:
           type: string
           format: uuid
+        clinicId:
+          type: string
+          format: uuid
         locale:
           type: string
           example: fa-IR
         calendarMode:
           type: string
           example: jalali
+
+    CaregiverOtpVerifyRequest:
+      type: object
+      required: [challengeId, otpCode]
+      properties:
+        challengeId:
+          type: string
+          format: uuid
+        otpCode:
+          type: string
+          example: "482910"
+        tenantId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+
+    CaregiverPatientLink:
+      type: object
+      required: [grantId, patientId, patientNameFa, relationshipFa, scopes, clinicId, active, createdAt]
+      properties:
+        grantId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        patientNameFa:
+          type: string
+          example: علی رضایی
+        relationshipFa:
+          type: string
+          example: فرزند بیمار
+        scopes:
+          type: array
+          items:
+            type: string
+        clinicId:
+          type: string
+          format: uuid
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    CaregiverSessionResponse:
+      type: object
+      required: [accessToken, grantId, patientId, tenantId, clinicId, locale, calendarMode, patients]
+      properties:
+        accessToken:
+          type: string
+        grantId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        locale:
+          type: string
+          example: fa-IR
+        calendarMode:
+          type: string
+          example: jalali
+        patients:
+          type: array
+          items:
+            $ref: "#/components/schemas/CaregiverPatientLink"
+
+    CaregiverPatientListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CaregiverPatientLink"
+
+    CaregiverGrantListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CaregiverGrant"
+
+    ConsentRecord:
+      type: object
+      required: [consentId, consentVersion, locale, acceptedAt]
+      properties:
+        consentId:
+          type: string
+          format: uuid
+        consentVersion:
+          type: string
+          example: fa-IR-v1.0
+        locale:
+          type: string
+          example: fa-IR
+        acceptedAt:
+          type: string
+          format: date-time
+
+    PatientProfileResponse:
+      type: object
+      required: [patientId, tenantId, clinicId, fullNameFa, phoneMasked, preferredLocale, accessMode, consents]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        fullNameFa:
+          type: string
+          example: بیمار محترم
+        phoneMasked:
+          type: string
+          example: "+98912***6789"
+        preferredLocale:
+          type: string
+          example: fa-IR
+        accessMode:
+          $ref: "#/components/schemas/AccessMode"
+        consents:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConsentRecord"
 
     CaregiverGrantRequest:
       type: object
@@ -937,6 +1305,33 @@ components:
           type: string
           format: date-time
 
+    PatientEpisodeWithPrescription:
+      type: object
+      required: [episode]
+      properties:
+        episode:
+          $ref: "#/components/schemas/CareEpisode"
+        activePrescription:
+          $ref: "#/components/schemas/PrescriptionVersion"
+
+    PatientEpisodeListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PatientEpisodeWithPrescription"
+
+    AdherenceEventListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdherenceEventResponse"
+
     SymptomReportRequest:
       type: object
       required: [eyeLaterality, severePain, suddenVisionLoss, purulentDischarge, freeTextFa]
@@ -948,6 +1343,8 @@ components:
         suddenVisionLoss:
           type: boolean
         purulentDischarge:
+          type: boolean
+        flashesOrCurtain:
           type: boolean
         freeTextFa:
           type: string
@@ -1464,6 +1861,218 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PatientDiagnosticSummary"
+
+    CalibrationProfileRequest:
+      type: object
+      required: [patientId, deviceFingerprintSha256, screenWidthMm, viewingDistanceCm, calibratedBy]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        deviceFingerprintSha256:
+          type: string
+        screenWidthMm:
+          type: number
+        viewingDistanceCm:
+          type: number
+        calibratedBy:
+          type: string
+          enum: ["clinic_staff", "patient_card"]
+        verified:
+          type: boolean
+
+    CalibrationProfileResponse:
+      type: object
+      required: [calibrationProfileId, patientId, screenWidthMm, viewingDistanceCm, calibratedBy, verified, createdAt]
+      properties:
+        calibrationProfileId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        screenWidthMm:
+          type: number
+        viewingDistanceCm:
+          type: number
+        calibratedBy:
+          type: string
+        verified:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    HomeVisionTestRequest:
+      type: object
+      required: [eyeLaterality, testType, viewingDistanceCm, ambientLux, deviceTiltDeg]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        calibrationProfileId:
+          type: string
+          format: uuid
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        testType:
+          type: string
+          enum: ["landolt_c", "amsler", "contrast"]
+        vaLogmar:
+          type: number
+        amslerDistortionScore:
+          type: number
+        amslerCentralScotoma:
+          type: boolean
+        viewingDistanceCm:
+          type: number
+        ambientLux:
+          type: number
+        deviceTiltDeg:
+          type: number
+        glareDetected:
+          type: boolean
+
+    HomeVisionTestResponse:
+      type: object
+      required: [testId, eyeLaterality, eyeLabelFa, testType, qualityPassed, qualityIssuesFa, guidanceFa]
+      properties:
+        testId:
+          type: string
+          format: uuid
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        eyeLabelFa:
+          type: string
+        testType:
+          type: string
+        qualityPassed:
+          type: boolean
+        qualityIssuesFa:
+          type: array
+          items:
+            type: string
+        triggeredTriageCaseId:
+          type: ["string", "null"]
+          format: uuid
+        guidanceFa:
+          type: string
+
+    VisionTrendPoint:
+      type: object
+      required: [testId, testType, eyeLaterality, recordedAt]
+      properties:
+        testId:
+          type: string
+          format: uuid
+        testType:
+          type: string
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        vaLogmar:
+          type: ["number", "null"]
+        amslerDistortionScore:
+          type: ["number", "null"]
+        recordedAt:
+          type: string
+          format: date-time
+
+    PatientVisionTrendsResponse:
+      type: object
+      required: [patientId, od, os]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        od:
+          type: array
+          items:
+            $ref: "#/components/schemas/VisionTrendPoint"
+        os:
+          type: array
+          items:
+            $ref: "#/components/schemas/VisionTrendPoint"
+
+    IcareHome2ReadingRequest:
+      type: object
+      required: [deviceSerial, eyeLaterality, iopMmHg, qualityScore, measuredAtIso]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        deviceSerial:
+          type: string
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        iopMmHg:
+          type: number
+        qualityScore:
+          type: number
+        measuredAtIso:
+          type: string
+          format: date-time
+
+    IcareHome2ReadingResponse:
+      type: object
+      required: [readingId, accepted, alertTier, summaryFa]
+      properties:
+        readingId:
+          type: string
+          format: uuid
+        accepted:
+          type: boolean
+        alertTier:
+          $ref: "#/components/schemas/UrgencyTier"
+        summaryFa:
+          type: string
+
+    ReportSectionInput:
+      type: object
+      required: [headingFa, linesFa]
+      properties:
+        headingFa:
+          type: string
+        linesFa:
+          type: array
+          items:
+            type: string
+
+    CreateReportRequest:
+      type: object
+      required: [reportType, patientId, sourceRefId, titleFa, sections]
+      properties:
+        reportType:
+          type: string
+          enum: ["patient_schedule", "postop_closure", "signed_diagnostic"]
+        patientId:
+          type: string
+          format: uuid
+        sourceRefId:
+          type: string
+          format: uuid
+        titleFa:
+          type: string
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportSectionInput"
+
+    CreateReportResponse:
+      type: object
+      required: [reportId, reportType, sourceSha256, pdfSha256]
+      properties:
+        reportId:
+          type: string
+          format: uuid
+        reportType:
+          type: string
+        sourceSha256:
+          type: string
+        pdfSha256:
+          type: string
 
     AiEngineQcRequest:
       type: object

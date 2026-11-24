@@ -1,6 +1,8 @@
 import type { DbTx } from "../../../packages/db/index.js";
 import type {
   CaregiverGrantRecord,
+  CaregiverPatientLink,
+  ConsentAcceptanceRecord,
   EnrollmentRepoPort,
   OtpChallengeRecord,
   PatientRecord,
@@ -112,6 +114,35 @@ export class PgEnrollmentRepo implements EnrollmentRepoPort {
     };
   }
 
+  async findPatientById(tx: DbTx, patientId: string): Promise<PatientRecord | null> {
+    const res = await tx.query<{
+      id: string;
+      tenant_id: string;
+      clinic_id: string;
+      preferred_locale: string;
+      access_mode: "app" | "caregiver" | "print_phone";
+      phone_hash: string;
+      phone_masked: string;
+      full_name_fa: string;
+    }>(
+      `SELECT id, tenant_id, clinic_id, preferred_locale, access_mode, phone_hash, phone_masked, full_name_fa
+       FROM patients WHERE id = $1`,
+      [patientId]
+    );
+    const r = res.rows[0];
+    if (!r) return null;
+    return {
+      id: r.id,
+      tenantId: r.tenant_id,
+      clinicId: r.clinic_id,
+      preferredLocale: r.preferred_locale,
+      accessMode: r.access_mode,
+      phoneHash: r.phone_hash,
+      phoneMasked: r.phone_masked,
+      fullNameFa: r.full_name_fa,
+    };
+  }
+
   async recordConsentAcceptance(
     tx: DbTx,
     input: { tenantId: string; patientId: string; consentVersion: string; locale: string }
@@ -121,6 +152,28 @@ export class PgEnrollmentRepo implements EnrollmentRepoPort {
        VALUES ($1, $2, $3, $4)`,
       [input.tenantId, input.patientId, input.consentVersion, input.locale]
     );
+  }
+
+  async listConsentsByPatient(tx: DbTx, patientId: string): Promise<ConsentAcceptanceRecord[]> {
+    const res = await tx.query<{
+      id: string;
+      consent_version: string;
+      locale: string;
+      accepted_at: Date;
+    }>(
+      `SELECT id, consent_version, locale, accepted_at
+       FROM consent_acceptances
+       WHERE patient_id = $1
+       ORDER BY accepted_at DESC
+       LIMIT 20`,
+      [patientId]
+    );
+    return res.rows.map((r) => ({
+      id: r.id,
+      consentVersion: r.consent_version,
+      locale: r.locale,
+      acceptedAt: r.accepted_at,
+    }));
   }
 
   async createCaregiverGrant(
@@ -199,6 +252,70 @@ export class PgEnrollmentRepo implements EnrollmentRepoPort {
       revokedAt: r.revoked_at,
       createdAt: r.created_at,
     };
+  }
+
+  async listCaregiverGrantsByPatient(tx: DbTx, patientId: string): Promise<CaregiverGrantRecord[]> {
+    const res = await tx.query<{
+      id: string;
+      tenant_id: string;
+      patient_id: string;
+      caregiver_phone_hash: string;
+      relationship_fa: string;
+      scopes_json: string[];
+      active: boolean;
+      revoked_at: Date | null;
+      created_at: Date;
+    }>(
+      `SELECT id, tenant_id, patient_id, caregiver_phone_hash, relationship_fa, scopes_json, active, revoked_at, created_at
+       FROM caregiver_grants
+       WHERE patient_id = $1
+       ORDER BY created_at DESC`,
+      [patientId]
+    );
+    return res.rows.map((r) => ({
+      id: r.id,
+      tenantId: r.tenant_id,
+      patientId: r.patient_id,
+      caregiverPhoneHash: r.caregiver_phone_hash,
+      relationshipFa: r.relationship_fa,
+      scopes: r.scopes_json,
+      active: r.active,
+      revokedAt: r.revoked_at,
+      createdAt: r.created_at,
+    }));
+  }
+
+  async listActiveGrantsByCaregiverPhoneHash(
+    tx: DbTx,
+    caregiverPhoneHash: string
+  ): Promise<CaregiverPatientLink[]> {
+    const res = await tx.query<{
+      grant_id: string;
+      patient_id: string;
+      full_name_fa: string;
+      relationship_fa: string;
+      scopes_json: string[];
+      clinic_id: string;
+      active: boolean;
+      created_at: Date;
+    }>(
+      `SELECT g.id AS grant_id, g.patient_id, p.full_name_fa, g.relationship_fa, g.scopes_json, p.clinic_id, g.active, g.created_at
+       FROM caregiver_grants g
+       JOIN patients p ON p.id = g.patient_id
+       WHERE g.caregiver_phone_hash = $1 AND g.active = true AND g.revoked_at IS NULL
+       ORDER BY g.created_at DESC`,
+      [caregiverPhoneHash]
+    );
+    return res.rows.map((r) => ({
+      grantId: r.grant_id,
+      patientId: r.patient_id,
+      patientNameFa: r.full_name_fa,
+      relationshipFa: r.relationship_fa,
+      scopes: r.scopes_json,
+      clinicId: r.clinic_id,
+      active: r.active,
+      createdAt: r.created_at,
+    }));
   }
 
   async revokeCaregiverGrant(tx: DbTx, grantId: string, patientId: string, revokedAt: Date): Promise<boolean> {

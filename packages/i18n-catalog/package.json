@@ -1,0 +1,15 @@
+{
+  "name": "@bina/i18n-catalog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./fa-IR": "./catalog/fa-IR.json"
+  }
+}

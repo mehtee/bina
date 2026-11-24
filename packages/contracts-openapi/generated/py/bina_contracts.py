@@ -115,6 +115,17 @@ class ClinicProfile(BinaContractModel):
     calendarMode: str
     emergencyPhone: str
     staffedHoursFa: str
+    todayJalali: str | None = Field(default=None)
+    currentlyStaffed: bool | None = Field(default=None)
+
+
+class StaffStepUpRequest(BinaContractModel):
+    stepUpCode: str
+
+
+class StaffStepUpResponse(BinaContractModel):
+    accessToken: str
+    stepUpVerified: bool
 
 
 class StaffSessionRequest(BinaContractModel):
@@ -135,6 +146,7 @@ class StaffSessionResponse(BinaContractModel):
 class PatientOtpRequest(BinaContractModel):
     phoneNumber: str
     clinicId: str
+    tenantId: str | None = Field(default=None)
 
 
 class OtpDispatchResponse(BinaContractModel):
@@ -148,14 +160,72 @@ class PatientOtpVerifyRequest(BinaContractModel):
     otpCode: str
     consentAccepted: bool
     consentVersion: str
+    phoneNumber: str
+    tenantId: str | None = Field(default=None)
 
 
 class PatientSessionResponse(BinaContractModel):
     accessToken: str
     patientId: str
     tenantId: str
+    clinicId: str | None = Field(default=None)
     locale: str
     calendarMode: str
+
+
+class CaregiverOtpVerifyRequest(BinaContractModel):
+    challengeId: str
+    otpCode: str
+    tenantId: str | None = Field(default=None)
+    patientId: str | None = Field(default=None)
+
+
+class CaregiverPatientLink(BinaContractModel):
+    grantId: str
+    patientId: str
+    patientNameFa: str
+    relationshipFa: str
+    scopes: list[str]
+    clinicId: str
+    active: bool
+    createdAt: str
+
+
+class CaregiverSessionResponse(BinaContractModel):
+    accessToken: str
+    grantId: str
+    patientId: str
+    tenantId: str
+    clinicId: str
+    locale: str
+    calendarMode: str
+    patients: list[CaregiverPatientLink]
+
+
+class CaregiverPatientListResponse(BinaContractModel):
+    items: list[CaregiverPatientLink]
+
+
+class CaregiverGrantListResponse(BinaContractModel):
+    items: list[CaregiverGrant]
+
+
+class ConsentRecord(BinaContractModel):
+    consentId: str
+    consentVersion: str
+    locale: str
+    acceptedAt: str
+
+
+class PatientProfileResponse(BinaContractModel):
+    patientId: str
+    tenantId: str
+    clinicId: str
+    fullNameFa: str
+    phoneMasked: str
+    preferredLocale: str
+    accessMode: AccessMode
+    consents: list[ConsentRecord]
 
 
 class CaregiverGrantRequest(BinaContractModel):
@@ -256,11 +326,25 @@ class AdherenceEventResponse(BinaContractModel):
     recordedAt: str
 
 
+class PatientEpisodeWithPrescription(BinaContractModel):
+    episode: CareEpisode
+    activePrescription: PrescriptionVersion | None = Field(default=None)
+
+
+class PatientEpisodeListResponse(BinaContractModel):
+    items: list[PatientEpisodeWithPrescription]
+
+
+class AdherenceEventListResponse(BinaContractModel):
+    items: list[AdherenceEventResponse]
+
+
 class SymptomReportRequest(BinaContractModel):
     eyeLaterality: EyeLaterality
     severePain: bool
     suddenVisionLoss: bool
     purulentDischarge: bool
+    flashesOrCurtain: bool | None = Field(default=None)
     freeTextFa: str
 
 
@@ -483,6 +567,102 @@ class PatientDiagnosticSummary(BinaContractModel):
 
 class PatientDiagnosticSummaryList(BinaContractModel):
     items: list[PatientDiagnosticSummary]
+
+
+class CalibrationProfileRequest(BinaContractModel):
+    patientId: str
+    clinicId: str | None = Field(default=None)
+    deviceFingerprintSha256: str
+    screenWidthMm: float
+    viewingDistanceCm: float
+    calibratedBy: str
+    verified: bool | None = Field(default=None)
+
+
+class CalibrationProfileResponse(BinaContractModel):
+    calibrationProfileId: str
+    patientId: str
+    screenWidthMm: float
+    viewingDistanceCm: float
+    calibratedBy: str
+    verified: bool
+    createdAt: str
+
+
+class HomeVisionTestRequest(BinaContractModel):
+    patientId: str | None = Field(default=None)
+    calibrationProfileId: str | None = Field(default=None)
+    eyeLaterality: EyeLaterality
+    testType: str
+    vaLogmar: float | None = Field(default=None)
+    amslerDistortionScore: float | None = Field(default=None)
+    amslerCentralScotoma: bool | None = Field(default=None)
+    viewingDistanceCm: float
+    ambientLux: float
+    deviceTiltDeg: float
+    glareDetected: bool | None = Field(default=None)
+
+
+class HomeVisionTestResponse(BinaContractModel):
+    testId: str
+    eyeLaterality: EyeLaterality
+    eyeLabelFa: str
+    testType: str
+    qualityPassed: bool
+    qualityIssuesFa: list[str]
+    triggeredTriageCaseId: str | None = Field(default=None)
+    guidanceFa: str
+
+
+class VisionTrendPoint(BinaContractModel):
+    testId: str
+    testType: str
+    eyeLaterality: EyeLaterality
+    vaLogmar: float | None = Field(default=None)
+    amslerDistortionScore: float | None = Field(default=None)
+    recordedAt: str
+
+
+class PatientVisionTrendsResponse(BinaContractModel):
+    patientId: str
+    od: list[VisionTrendPoint]
+    os: list[VisionTrendPoint]
+
+
+class IcareHome2ReadingRequest(BinaContractModel):
+    patientId: str | None = Field(default=None)
+    deviceSerial: str
+    eyeLaterality: EyeLaterality
+    iopMmHg: float
+    qualityScore: float
+    measuredAtIso: str
+
+
+class IcareHome2ReadingResponse(BinaContractModel):
+    readingId: str
+    accepted: bool
+    alertTier: UrgencyTier
+    summaryFa: str
+
+
+class ReportSectionInput(BinaContractModel):
+    headingFa: str
+    linesFa: list[str]
+
+
+class CreateReportRequest(BinaContractModel):
+    reportType: str
+    patientId: str
+    sourceRefId: str
+    titleFa: str
+    sections: list[ReportSectionInput]
+
+
+class CreateReportResponse(BinaContractModel):
+    reportId: str
+    reportType: str
+    sourceSha256: str
+    pdfSha256: str
 
 
 class AiEngineQcRequest(BinaContractModel):

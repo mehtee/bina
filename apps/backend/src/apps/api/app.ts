@@ -129,6 +129,38 @@ export function buildApp(config: AppConfig, deps?: AppDependencies): FastifyInst
     logger: config.NODE_ENV === "test" ? false : { level: config.LOG_LEVEL },
   });
 
+  const allowedOrigins = new Set(
+    config.CORS_ALLOWED_ORIGINS.split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+  );
+  const isOriginAllowed = (origin: string | undefined): string | null => {
+    if (!origin) return null;
+    if (allowedOrigins.has(origin)) return origin;
+    if (
+      config.NODE_ENV !== "production" &&
+      /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)
+    ) {
+      return origin;
+    }
+    return null;
+  };
+
+  app.addHook("onRequest", async (req, reply) => {
+    const allowed = isOriginAllowed(req.headers.origin);
+    if (allowed) {
+      reply.header("Access-Control-Allow-Origin", allowed);
+      reply.header("Vary", "Origin");
+      reply.header("Access-Control-Allow-Credentials", "true");
+      reply.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+      reply.header("Access-Control-Allow-Headers", "Authorization,Content-Type,Idempotency-Key,X-Tenant-Id");
+      reply.header("Access-Control-Expose-Headers", "X-Source-Sha256");
+    }
+    if (req.method === "OPTIONS") {
+      return reply.status(204).send();
+    }
+  });
+
   app.setErrorHandler((err: unknown, _req: FastifyRequest, reply: FastifyReply) => {
     if (err instanceof ZodError) {
       return reply.status(400).send({
@@ -337,13 +369,15 @@ export function buildApp(config: AppConfig, deps?: AppDependencies): FastifyInst
         consentAccepted: z.boolean(),
         consentVersion: z.string().min(1),
         phoneNumber: z.string().min(10),
-        tenantId: z.string().uuid(),
+        tenantId: z.string().uuid().optional(),
       })
       .parse(req.body);
+    const headerTid = typeof req.headers["x-tenant-id"] === "string" ? req.headers["x-tenant-id"].trim() : "";
+    const tenantId = z.string().uuid().parse(body.tenantId ?? headerTid);
 
-    return withTenantTransaction(deps.appPool, body.tenantId, (tx) =>
+    return withTenantTransaction(deps.appPool, tenantId, (tx) =>
       enrollmentService.verifyPatientOtp(tx, {
-        tenantId: body.tenantId,
+        tenantId,
         challengeId: body.challengeId,
         otpCode: body.otpCode,
         consentAccepted: body.consentAccepted,
@@ -351,6 +385,98 @@ export function buildApp(config: AppConfig, deps?: AppDependencies): FastifyInst
         phoneNumberForMask: body.phoneNumber,
       })
     );
+  });
+
+  app.post("/v1/auth/caregiver/otp/verify", async (req) => {
+    const body = z
+      .object({
+        challengeId: z.string().uuid(),
+        otpCode: z.string().min(4),
+        tenantId: z.string().uuid().optional(),
+        patientId: z.string().uuid().optional(),
+      })
+      .parse(req.body);
+    const headerTid = typeof req.headers["x-tenant-id"] === "string" ? req.headers["x-tenant-id"].trim() : "";
+    const tenantId = z.string().uuid().parse(body.tenantId ?? headerTid);
+
+    const res = await withTenantTransaction(deps.appPool, tenantId, (tx) =>
+      enrollmentService.verifyCaregiverOtp(tx, {
+        tenantId,
+        challengeId: body.challengeId,
+        otpCode: body.otpCode,
+        patientId: body.patientId,
+      })
+    );
+    return {
+      ...res,
+      patients: res.patients.map((p) => ({
+        ...p,
+        createdAt: p.createdAt.toISOString(),
+      })),
+    };
+  });
+
+  app.get("/v1/caregiver/patients", async (req) => {
+    const claims = requireClaims(req, config.AUTH_SIGNING_SECRET);
+    if (claims.actorType !== "caregiver") {
+      throw new EnrollmentHttpError(403, "CAREGIVER_TOKEN_REQUIRED", "این مسیر مخصوص همراه بیمار است.");
+    }
+    const items = await withTenantTransaction(deps.appPool, claims.tenantId, (tx) =>
+      enrollmentService.listCaregiverPatients(tx, claims.sub)
+    );
+    return {
+      items: items.map((p) => ({
+        ...p,
+        createdAt: p.createdAt.toISOString(),
+      })),
+    };
+  });
+
+  app.get("/v1/patient/profile", async (req) => {
+    const claims = requireClaims(req, config.AUTH_SIGNING_SECRET);
+    const query = z.object({ patientId: z.string().uuid().optional() }).parse(req.query ?? {});
+    const targetPatientId = claims.actorType === "patient" ? claims.sub : (query.patientId ?? claims.sub);
+
+    const profile = await withTenantTransaction(deps.appPool, claims.tenantId, async (tx) => {
+      if (claims.actorType === "caregiver") {
+        if (!claims.grantId) {
+          throw new EnrollmentHttpError(403, "CAREGIVER_REVOKED", "دسترسی همراه معتبر نیست.");
+        }
+        await enrollmentService.assertCaregiverActive(tx, claims.grantId, targetPatientId);
+      }
+      return enrollmentService.getPatientProfile(tx, targetPatientId);
+    });
+    return {
+      ...profile,
+      consents: profile.consents.map((c) => ({
+        consentId: c.id,
+        consentVersion: c.consentVersion,
+        locale: c.locale,
+        acceptedAt: c.acceptedAt.toISOString(),
+      })),
+    };
+  });
+
+  app.get("/v1/patients/:patientId/caregivers", async (req) => {
+    const claims = requireClaims(req, config.AUTH_SIGNING_SECRET);
+    const params = z.object({ patientId: z.string().uuid() }).parse(req.params);
+    if (claims.actorType === "patient" && claims.sub !== params.patientId) {
+      throw new EnrollmentHttpError(403, "FORBIDDEN", "دسترسی به فهرست همراهان بیمار دیگر مجاز نیست.");
+    }
+    const grants = await withTenantTransaction(deps.appPool, claims.tenantId, (tx) =>
+      enrollmentService.listCaregiversForPatient(tx, params.patientId)
+    );
+    return {
+      items: grants.map((grant) => ({
+        grantId: grant.id,
+        patientId: grant.patientId,
+        caregiverPhone: "***",
+        relationshipFa: grant.relationshipFa,
+        scopes: grant.scopes,
+        active: grant.active,
+        createdAt: grant.createdAt.toISOString(),
+      })),
+    };
   });
 
   app.post("/v1/patients/:patientId/caregivers", async (req, reply) => {
@@ -478,6 +604,51 @@ export function buildApp(config: AppConfig, deps?: AppDependencies): FastifyInst
       }
       return careEpisodeService.getPatientTodayPlan(tx, targetPatientId, claims.clinicId);
     });
+  });
+
+  app.get("/v1/patient/episodes", async (req) => {
+    const claims = requireClaims(req, config.AUTH_SIGNING_SECRET);
+    const query = z.object({ patientId: z.string().uuid().optional() }).parse(req.query ?? {});
+    const targetPatientId = claims.actorType === "patient" ? claims.sub : (query.patientId ?? claims.sub);
+
+    const pairs = await withTenantTransaction(deps.appPool, claims.tenantId, async (tx) => {
+      if (claims.actorType === "caregiver") {
+        if (!claims.grantId) {
+          throw new EnrollmentHttpError(403, "CAREGIVER_REVOKED", "دسترسی همراه معتبر نیست.");
+        }
+        await enrollmentService.assertCaregiverActive(tx, claims.grantId, targetPatientId);
+      }
+      return careEpisodeService.listPatientEpisodes(tx, targetPatientId);
+    });
+    return {
+      items: pairs.map(({ episode, prescription }) => ({
+        episode: {
+          ...episode,
+          anchorAt: episode.anchorAt.toISOString(),
+        },
+        activePrescription: prescription
+          ? {
+              ...prescription,
+              publishedAt: prescription.publishedAt.toISOString(),
+            }
+          : null,
+      })),
+    };
+  });
+
+  app.get("/v1/episodes/:episodeId/adherence", async (req) => {
+    const claims = requireClaims(req, config.AUTH_SIGNING_SECRET);
+    const params = z.object({ episodeId: z.string().uuid() }).parse(req.params);
+    const query = z.object({ limit: z.coerce.number().int().min(1).max(200).optional() }).parse(req.query ?? {});
+    const items = await withTenantTransaction(deps.appPool, claims.tenantId, (tx) =>
+      careEpisodeService.listEpisodeAdherence(tx, params.episodeId, query.limit ?? 50)
+    );
+    return {
+      items: items.map((e) => ({
+        ...e,
+        recordedAt: e.recordedAt.toISOString(),
+      })),
+    };
   });
 
   app.post("/v1/episodes/:episodeId/adherence", async (req, reply) => {

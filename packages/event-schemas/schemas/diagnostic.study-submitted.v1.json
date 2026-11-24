@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bina.ir/schemas/events/diagnostic.study-submitted.v1.json",
+  "title": "DiagnosticStudySubmittedV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["studyId", "jobId", "patientId", "clinicId", "eyeLaterality", "assetCount"],
+  "properties": {
+    "studyId": { "type": "string", "format": "uuid" },
+    "jobId": { "type": "string", "format": "uuid" },
+    "patientId": { "type": "string", "format": "uuid" },
+    "clinicId": { "type": "string", "format": "uuid" },
+    "eyeLaterality": { "type": "string", "enum": ["OD", "OS", "OU"] },
+    "assetCount": { "type": "integer", "minimum": 1 }
+  }
+}

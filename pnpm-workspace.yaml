@@ -1,0 +1,9 @@
+packages:
+  - "packages/*"
+  - "apps/*"
+  - "tests"
+
+allowBuilds:
+  "@scarf/scarf": false
+  core-js: false
+  esbuild: true

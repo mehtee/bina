@@ -1,0 +1,186 @@
+name: binaai
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "2"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["core", "app", "full"]
+    mem_limit: 256m
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bina}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bina_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-bina_dev}
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-15432}:5432"
+    volumes:
+      - bina_pg_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - bina_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bina} -d ${POSTGRES_DB:-bina_dev}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.4-alpine
+    profiles: ["core", "app", "full"]
+    mem_limit: 128m
+    restart: unless-stopped
+    logging: *default-logging
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "96mb", "--maxmemory-policy", "noeviction"]
+    ports:
+      - "127.0.0.1:${REDIS_HOST_PORT:-16379}:6379"
+    volumes:
+      - bina_redis_data:/data
+    networks:
+      - bina_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: cgr.dev/chainguard/minio:latest
+    profiles: ["storage", "full"]
+    mem_limit: 256m
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
+    command: ["server", "/data", "--console-address", ":9001"]
+    ports:
+      - "127.0.0.1:${MINIO_API_HOST_PORT:-19000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_HOST_PORT:-19001}:9001"
+    volumes:
+      - bina_minio_data:/data
+    networks:
+      - bina_net
+
+  ai-engine:
+    build:
+      context: ../apps/ai-engine
+      dockerfile: Dockerfile
+    image: binaai/ai-engine:dev
+    profiles: ["app", "full"]
+    mem_limit: 384m
+    restart: unless-stopped
+    logging: *default-logging
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      AI_ENGINE_MODE: ${AI_ENGINE_MODE:-cpu_stub}
+      FOUNDATION_BACKBONE: ${FOUNDATION_BACKBONE:-dinov2_apache2}
+      ALLOW_RESEARCH_BACKBONE: ${ALLOW_RESEARCH_BACKBONE:-false}
+      AI_ARTIFACTS_DIR: /app/artifacts
+      REDIS_URL: redis://redis:6379
+      AI_QUEUE_KEY: bina:ai:jobs
+    volumes:
+      - ../ml/registry/artifacts:/app/artifacts:ro
+    ports:
+      - "127.0.0.1:${AI_ENGINE_HOST_PORT:-18000}:8000"
+    networks:
+      - bina_net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  ai-worker:
+    image: binaai/ai-engine:dev
+    profiles: ["app", "full"]
+    mem_limit: 256m
+    restart: unless-stopped
+    logging: *default-logging
+    depends_on:
+      redis:
+        condition: service_healthy
+      ai-engine:
+        condition: service_started
+    environment:
+      AI_ENGINE_MODE: ${AI_ENGINE_MODE:-cpu_stub}
+      FOUNDATION_BACKBONE: ${FOUNDATION_BACKBONE:-dinov2_apache2}
+      ALLOW_RESEARCH_BACKBONE: ${ALLOW_RESEARCH_BACKBONE:-false}
+      AI_ARTIFACTS_DIR: /app/artifacts
+      REDIS_URL: redis://redis:6379
+      AI_QUEUE_KEY: bina:ai:jobs
+    volumes:
+      - ../ml/registry/artifacts:/app/artifacts:ro
+    command: ["python", "-m", "bina_ai_engine.worker.consumer"]
+    networks:
+      - bina_net
+
+  backend:
+    build:
+      context: ..
+      dockerfile: apps/backend/Dockerfile
+    image: binaai/backend:dev
+    profiles: ["app", "full"]
+    mem_limit: 384m
+    restart: unless-stopped
+    logging: *default-logging
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai-engine:
+        condition: service_healthy
+    environment:
+      APP_BRAND_NAME_FA: ${APP_BRAND_NAME_FA:-بینا}
+      APP_BRAND_NAME_EN: ${APP_BRAND_NAME_EN:-Bina AI}
+      NODE_ENV: production
+      PORT: 3000
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DEFAULT_JURISDICTION: ${DEFAULT_JURISDICTION:-IR}
+      DATA_RESIDENCY_REGION: ${DATA_RESIDENCY_REGION:-IR}
+      DEFAULT_LOCALE: ${DEFAULT_LOCALE:-fa-IR}
+      DEFAULT_CALENDAR: ${DEFAULT_CALENDAR:-jalali}
+      DEFAULT_COUNTRY_CODE: ${DEFAULT_COUNTRY_CODE:-+98}
+      SELF_HOST_WEB_ASSETS: ${SELF_HOST_WEB_ASSETS:-true}
+      DATABASE_URL: postgresql://bina_app:bina_app_dev@postgres:5432/bina_dev
+      DATABASE_ADMIN_URL: postgresql://bina:bina_dev@postgres:5432/bina_dev
+      AUTO_MIGRATE: "true"
+      REDIS_URL: redis://redis:6379
+      AUTH_SIGNING_SECRET: ${AUTH_SIGNING_SECRET:-dev_only_signing_secret_change_in_prod}
+      PHONE_HASH_SALT: ${PHONE_HASH_SALT:-dev_only_phone_salt_change_in_prod}
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_NAMESPACE: ${TEMPORAL_NAMESPACE:-default}
+      AI_ENGINE_URL: http://ai-engine:8000
+      AI_ENGINE_MODE: ${AI_ENGINE_MODE:-cpu_stub}
+      AI_ENGINE_TRANSPORT: ${AI_ENGINE_TRANSPORT:-http}
+      FOUNDATION_BACKBONE: ${FOUNDATION_BACKBONE:-dinov2_apache2}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai_compatible}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://openrouter.ai/api/v1}
+      LLM_MODEL: ${LLM_MODEL:-thinkingmachines/inkling-2-mini}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+    ports:
+      - "127.0.0.1:${BACKEND_HOST_PORT:-3000}:3000"
+    networks:
+      - bina_net
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  bina_pg_data:
+  bina_redis_data:
+  bina_minio_data:
+
+networks:
+  bina_net:
+    driver: bridge

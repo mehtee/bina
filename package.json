@@ -1,0 +1,33 @@
+{
+  "name": "binaai-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.8.1",
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "preflight": "bash infra/scripts/check-resources.sh",
+    "preflight:docker": "bash infra/scripts/check-resources.sh --docker",
+    "check:arch": "node infra/scripts/check-architecture.mjs",
+    "check:rls": "node infra/scripts/check-rls-migrations.mjs",
+    "test:infra": "node --test infra/scripts/__tests__/*.test.mjs",
+    "lint:openapi": "pnpm --filter @bina/contracts-openapi lint",
+    "generate:contracts": "pnpm --filter @bina/contracts-openapi generate",
+    "mock:openapi": "pnpm --filter @bina/contracts-openapi mock",
+    "test:events": "pnpm --filter @bina/event-schemas test",
+    "typecheck:backend": "pnpm --filter @bina/backend typecheck",
+    "build:backend": "pnpm --filter @bina/backend build",
+    "test:backend": "pnpm --filter @bina/backend test",
+    "test:security": "pnpm --filter @bina/tests test:security",
+    "test:process": "pnpm --filter @bina/tests test:process",
+    "test:ai-engine": "cd apps/ai-engine && uv run pytest"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.8"
+  }
+}

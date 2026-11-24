@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bina.ir/schemas/events/diagnostic.clinician-signed-off.v1.json",
+  "title": "DiagnosticClinicianSignedOffV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["signoffId", "studyId", "ophthalmologistId", "action", "finalUrgency", "signedAt"],
+  "properties": {
+    "signoffId": { "type": "string", "format": "uuid" },
+    "studyId": { "type": "string", "format": "uuid" },
+    "ophthalmologistId": { "type": "string", "format": "uuid" },
+    "action": { "type": "string", "enum": ["approved", "edited_approved", "rejected"] },
+    "finalUrgency": { "type": "string", "enum": ["routine", "followup_3_6m", "urgent"] },
+    "signedAt": { "type": "string", "format": "date-time" }
+  }
+}

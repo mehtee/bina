@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bina.ir/schemas/events/episode.prescription-published.v1.json",
+  "title": "EpisodePrescriptionPublishedV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["episodeId", "patientId", "prescriptionVersion", "eyeLaterality", "publishedByUserId", "itemCount"],
+  "properties": {
+    "episodeId": { "type": "string", "format": "uuid" },
+    "patientId": { "type": "string", "format": "uuid" },
+    "prescriptionVersion": { "type": "integer", "minimum": 1 },
+    "eyeLaterality": { "type": "string", "enum": ["OD", "OS"] },
+    "publishedByUserId": { "type": "string", "format": "uuid" },
+    "itemCount": { "type": "integer", "minimum": 1 }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "id": "mahdirasouli00778/bina-ai-oct-monai-anterior-vf-tabular",
+  "title": "Bina AI OCT MONAI Anterior VF Tabular",
+  "code_file": "train.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": [],
+  "dataset_sources": [
+    "paultimothymooney/kermany2018",
+    "elmehdi12/keratoconus-detection",
+    "snehakurmi/tabular-dataset-for-keratoconus",
+    "orvile/eye-diseases-classification",
+    "iammustafatz/diabetes-prediction-dataset",
+    "teamincribo/glaucoma-detection-dataset"
+  ],
+  "competition_sources": [],
+  "kernel_sources": []
+}

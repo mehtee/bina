@@ -1,0 +1,19 @@
+{
+  "id": "mahdirasouli00778/bina-ai-l1-router-qc-and-fundus-dinov2",
+  "title": "Bina AI L1 Router QC and Fundus DINOv2",
+  "code_file": "train.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_internet": true,
+  "accelerator": "nvidiaTeslaT4",
+  "dataset_sources": [
+    "gunavenkatdoddi/preprocessed-eye-diseases-fundus-images",
+    "paultimothymooney/kermany2018",
+    "elmehdi12/keratoconus-detection",
+    "orvile/eye-diseases-classification"
+  ],
+  "competition_sources": [],
+  "kernel_sources": []
+}

@@ -1,0 +1,1522 @@
+openapi: 3.1.0
+info:
+  title: Bina AI Platform API
+  version: 1.0.0
+  description: >
+    Canonical OpenAPI 3.1 contract for Bina AI — Unified Iranian Persian-First (fa-IR / Jalali)
+    Ophthalmology Care-Operations (Pillar 1) and 6-Layer Multimodal Clinical Diagnostic & Triage AI (Pillar 2).
+servers:
+  - url: http://127.0.0.1:3000
+    description: Local Docker / Backend API
+  - url: http://127.0.0.1:4010
+    description: Prism Contract Mock Server
+
+tags:
+  - name: System
+  - name: Auth
+  - name: CareOperations
+  - name: Triage
+  - name: DiagnosticsAI
+  - name: Reports
+  - name: AiEngineInternal
+
+paths:
+  /health:
+    get:
+      tags: [System]
+      operationId: getHealth
+      summary: Platform health and runtime profile
+      responses:
+        "200":
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /v1/clinics/current:
+    get:
+      tags: [System]
+      operationId: getCurrentClinic
+      summary: Current clinic metadata (Iran, fa-IR, Jalali, staffed hours, hotline)
+      responses:
+        "200":
+          description: Active clinic profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicProfile"
+
+  /v1/auth/staff/session:
+    post:
+      tags: [Auth]
+      operationId: createStaffSession
+      summary: Staff OIDC/MFA session exchange
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffSessionRequest"
+      responses:
+        "200":
+          description: Staff session established
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffSessionResponse"
+
+  /v1/auth/patient/otp/request:
+    post:
+      tags: [Auth]
+      operationId: requestPatientOtp
+      summary: Request +98 SMS OTP for patient or caregiver login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientOtpRequest"
+      responses:
+        "202":
+          description: OTP queued via domestic Iranian SMS gateway
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OtpDispatchResponse"
+
+  /v1/auth/patient/otp/verify:
+    post:
+      tags: [Auth]
+      operationId: verifyPatientOtp
+      summary: Verify +98 SMS OTP and accept Persian consent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientOtpVerifyRequest"
+      responses:
+        "200":
+          description: Patient session granted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientSessionResponse"
+
+  /v1/patients/{patientId}/caregivers:
+    post:
+      tags: [CareOperations]
+      operationId: grantCaregiverAccess
+      summary: Grant scoped caregiver access to a patient
+      parameters:
+        - $ref: "#/components/parameters/PatientIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CaregiverGrantRequest"
+      responses:
+        "201":
+          description: Caregiver grant created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaregiverGrant"
+
+  /v1/patients/{patientId}/caregivers/{grantId}:
+    delete:
+      tags: [CareOperations]
+      operationId: revokeCaregiverAccess
+      summary: Immediately revoke caregiver access (<1s 403 enforcement)
+      parameters:
+        - $ref: "#/components/parameters/PatientIdParam"
+        - $ref: "#/components/parameters/GrantIdParam"
+      responses:
+        "204":
+          description: Caregiver access revoked
+
+  /v1/episodes:
+    post:
+      tags: [CareOperations]
+      operationId: createCareEpisode
+      summary: Create eye-specific (OD or OS) surgical/care episode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEpisodeRequest"
+      responses:
+        "201":
+          description: Care episode created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareEpisode"
+
+  /v1/episodes/{episodeId}:
+    get:
+      tags: [CareOperations]
+      operationId: getCareEpisode
+      summary: Get single eye-isolated care episode
+      parameters:
+        - $ref: "#/components/parameters/EpisodeIdParam"
+      responses:
+        "200":
+          description: Care episode details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareEpisode"
+
+  /v1/episodes/{episodeId}/prescriptions:
+    post:
+      tags: [CareOperations]
+      operationId: publishEpisodePrescription
+      summary: Publish immutable versioned eye drop prescription (v1..vN)
+      parameters:
+        - $ref: "#/components/parameters/EpisodeIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishPrescriptionRequest"
+      responses:
+        "201":
+          description: Prescription version published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrescriptionVersion"
+
+  /v1/patient/today:
+    get:
+      tags: [CareOperations]
+      operationId: getPatientTodayPlan
+      summary: Get eye-separated Persian Today medication schedule and offline hotline
+      responses:
+        "200":
+          description: Eye-separated daily drop schedule in fa-IR & Jalali
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientTodayResponse"
+
+  /v1/episodes/{episodeId}/adherence:
+    post:
+      tags: [CareOperations]
+      operationId: recordMedicationAdherence
+      summary: Record idempotent 4-state medication adherence event
+      parameters:
+        - $ref: "#/components/parameters/EpisodeIdParam"
+        - $ref: "#/components/parameters/IdempotencyKeyHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdherenceEventRequest"
+      responses:
+        "201":
+          description: Adherence event recorded (or deduplicated replay)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdherenceEventResponse"
+
+  /v1/episodes/{episodeId}/symptoms:
+    post:
+      tags: [CareOperations]
+      operationId: submitSymptomReport
+      summary: Submit post-op structured red-flag or Persian symptom report
+      parameters:
+        - $ref: "#/components/parameters/EpisodeIdParam"
+        - $ref: "#/components/parameters/IdempotencyKeyHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SymptomReportRequest"
+      responses:
+        "201":
+          description: Symptom evaluated by deterministic clinical rules
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SymptomReportResponse"
+
+  /v1/triage/cases:
+    get:
+      tags: [Triage]
+      operationId: listTriageCases
+      summary: List unified Pillar 1 care-ops and Pillar 2 3-tier urgency triage queue
+      responses:
+        "200":
+          description: Prioritized triage queue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriageCaseListResponse"
+
+  /v1/triage/cases/{caseId}/claim:
+    post:
+      tags: [Triage]
+      operationId: claimTriageCase
+      summary: Claim triage case for active clinician/coordinator ownership
+      parameters:
+        - $ref: "#/components/parameters/CaseIdParam"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaimTriageCaseRequest"
+      responses:
+        "200":
+          description: Triage case claimed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriageCase"
+
+  /v1/triage/cases/{caseId}/handoff:
+    post:
+      tags: [Triage]
+      operationId: handoffTriageCase
+      summary: Shift handoff with Persian note
+      parameters:
+        - $ref: "#/components/parameters/CaseIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShiftHandoffRequest"
+      responses:
+        "200":
+          description: Triage case handed off
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriageCase"
+
+  /v1/triage/cases/{caseId}/referrals:
+    post:
+      tags: [Triage]
+      operationId: createClosedLoopReferral
+      summary: Record closed-loop referral dispatch and attendance tracking
+      parameters:
+        - $ref: "#/components/parameters/CaseIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReferralRequest"
+      responses:
+        "201":
+          description: Referral tracked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralRecord"
+
+  /v1/diagnostic-studies:
+    post:
+      tags: [DiagnosticsAI]
+      operationId: submitDiagnosticStudy
+      summary: Ingest multimodal diagnostic study and enqueue async 6-layer AI analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitDiagnosticStudyRequest"
+      responses:
+        "202":
+          description: Study accepted and queued for Layer 1-4 AI pipeline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitDiagnosticStudyResponse"
+
+  /v1/diagnostic-studies/{studyId}:
+    get:
+      tags: [DiagnosticsAI]
+      operationId: getDiagnosticStudy
+      summary: Retrieve full 6-layer multimodal study results, masks, auxiliary Grad-CAM, Persian LLM draft, and HITL state
+      parameters:
+        - $ref: "#/components/parameters/StudyIdParam"
+      responses:
+        "200":
+          description: Multimodal diagnostic study record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiagnosticStudyDetail"
+
+  /v1/diagnostic-studies/{studyId}/signoff:
+    post:
+      tags: [DiagnosticsAI]
+      operationId: signOffDiagnosticStudy
+      summary: Mandatory Ophthalmologist HITL sign-off and feedback capture
+      parameters:
+        - $ref: "#/components/parameters/StudyIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClinicianSignoffRequest"
+      responses:
+        "200":
+          description: Diagnostic study signed by ophthalmologist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicianSignoffResponse"
+
+  /v1/patient/diagnostic-summaries:
+    get:
+      tags: [DiagnosticsAI]
+      operationId: listPatientDiagnosticSummaries
+      summary: List ophthalmologist-signed patient-safe Persian diagnostic summaries only
+      responses:
+        "200":
+          description: Signed patient-safe summaries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientDiagnosticSummaryList"
+
+  /v1/reports/{reportId}/pdf:
+    get:
+      tags: [Reports]
+      operationId: downloadPersianPdfReport
+      summary: Download deterministic Vazirmatn Persian PDF with source_sha256 manifest
+      parameters:
+        - $ref: "#/components/parameters/ReportIdParam"
+      responses:
+        "200":
+          description: Deterministic Persian PDF binary
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /v1/ai-engine/qc:
+    post:
+      tags: [AiEngineInternal]
+      operationId: runAiEngineQc
+      summary: Internal AI Engine Layer 1 Modality Router and Quality Gate check
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiEngineQcRequest"
+      responses:
+        "200":
+          description: Layer 1 QC evaluation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QcDecision"
+
+  /v1/ai-engine/analyze-study:
+    post:
+      tags: [AiEngineInternal]
+      operationId: runAiEngineAnalysis
+      summary: Internal AI Engine Layers 1-4 synchronous execution endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiEngineAnalyzeRequest"
+      responses:
+        "200":
+          description: Complete Layer 1-4 AI engine output
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiEngineAnalyzeResponse"
+
+components:
+  parameters:
+    PatientIdParam:
+      name: patientId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    GrantIdParam:
+      name: grantId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    EpisodeIdParam:
+      name: episodeId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CaseIdParam:
+      name: caseId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    StudyIdParam:
+      name: studyId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ReportIdParam:
+      name: reportId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKeyHeader:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    EyeLaterality:
+      type: string
+      enum: ["OD", "OS"]
+      description: Strict single-eye laterality (OD = چشم راست, OS = چشم چپ)
+
+    StudyLaterality:
+      type: string
+      enum: ["OD", "OS", "OU"]
+
+    AccessMode:
+      type: string
+      enum: ["app", "caregiver", "print_phone"]
+
+    StaffRole:
+      type: string
+      enum: ["ophthalmologist", "optometrist", "technician", "coordinator", "admin"]
+
+    UrgencyTier:
+      type: string
+      enum: ["routine", "followup_3_6m", "urgent"]
+
+    SeverityGrade:
+      type: string
+      enum: ["mild", "moderate", "severe", "urgent"]
+
+    DiagnosticModality:
+      type: string
+      enum: ["fundus", "oct", "octa", "slit_lamp", "topography", "visual_field", "tabular_labs", "unknown"]
+
+    AdherenceState:
+      type: string
+      enum: ["taken", "missed_with_reason", "unavailable", "no_response"]
+
+    StudyStatus:
+      type: string
+      enum: ["ingested", "qc_failed", "queued", "analyzed", "pending_hitl", "signed_off"]
+
+    SignoffAction:
+      type: string
+      enum: ["approved", "edited_approved", "rejected"]
+
+    QcRejectionCode:
+      type: string
+      enum: ["blur", "lighting", "wrong_eye", "modality_mismatch"]
+
+    AiEngineMode:
+      type: string
+      enum: ["cpu_stub", "onnx_cpu", "gpu_full"]
+
+    HealthStatus:
+      type: object
+      required: [status, service, locale, calendar, jurisdiction, aiEngineMode, llmProvider, llmModel, llmConfigured, timestamp]
+      properties:
+        status:
+          type: string
+          example: ok
+        service:
+          type: string
+          example: bina-backend
+        locale:
+          type: string
+          example: fa-IR
+        calendar:
+          type: string
+          example: jalali
+        jurisdiction:
+          type: string
+          example: IR
+        aiEngineMode:
+          $ref: "#/components/schemas/AiEngineMode"
+        llmProvider:
+          type: string
+          example: openai_compatible
+        llmModel:
+          type: string
+          example: thinkingmachines/inkling-2-mini
+        llmConfigured:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+
+    ClinicProfile:
+      type: object
+      required: [clinicId, tenantId, nameFa, locale, calendarMode, emergencyPhone, staffedHoursFa]
+      properties:
+        clinicId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        nameFa:
+          type: string
+          example: کلینیک فوق‌تخصصی چشم نور تهران
+        locale:
+          type: string
+          example: fa-IR
+        calendarMode:
+          type: string
+          example: jalali
+        emergencyPhone:
+          type: string
+          example: "+982182400000"
+        staffedHoursFa:
+          type: string
+          example: شنبه تا چهارشنبه ۸ تا ۲۰ — پنج‌شنبه ۸ تا ۱۴
+
+    StaffSessionRequest:
+      type: object
+      required: [oidcToken, clinicId]
+      properties:
+        oidcToken:
+          type: string
+        clinicId:
+          type: string
+          format: uuid
+        mfaCode:
+          type: string
+
+    StaffSessionResponse:
+      type: object
+      required: [accessToken, role, mfaVerified, userId, clinicId, tenantId]
+      properties:
+        accessToken:
+          type: string
+        role:
+          $ref: "#/components/schemas/StaffRole"
+        mfaVerified:
+          type: boolean
+        userId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+
+    PatientOtpRequest:
+      type: object
+      required: [phoneNumber, clinicId]
+      properties:
+        phoneNumber:
+          type: string
+          pattern: "^\\+989\\d{9}$"
+          example: "+989123456789"
+        clinicId:
+          type: string
+          format: uuid
+
+    OtpDispatchResponse:
+      type: object
+      required: [challengeId, expiresInSeconds, maskedPhone]
+      properties:
+        challengeId:
+          type: string
+          format: uuid
+        expiresInSeconds:
+          type: integer
+        maskedPhone:
+          type: string
+          example: "+98912***6789"
+
+    PatientOtpVerifyRequest:
+      type: object
+      required: [challengeId, otpCode, consentAccepted, consentVersion]
+      properties:
+        challengeId:
+          type: string
+          format: uuid
+        otpCode:
+          type: string
+          example: "482910"
+        consentAccepted:
+          type: boolean
+        consentVersion:
+          type: string
+          example: fa-IR-v1.0
+
+    PatientSessionResponse:
+      type: object
+      required: [accessToken, patientId, tenantId, locale, calendarMode]
+      properties:
+        accessToken:
+          type: string
+        patientId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        locale:
+          type: string
+          example: fa-IR
+        calendarMode:
+          type: string
+          example: jalali
+
+    CaregiverGrantRequest:
+      type: object
+      required: [caregiverPhone, relationshipFa, scopes]
+      properties:
+        caregiverPhone:
+          type: string
+          pattern: "^\\+989\\d{9}$"
+          example: "+989129876543"
+        relationshipFa:
+          type: string
+          example: فرزند بیمار
+        scopes:
+          type: array
+          items:
+            type: string
+
+    CaregiverGrant:
+      type: object
+      required: [grantId, patientId, caregiverPhone, relationshipFa, scopes, active, createdAt]
+      properties:
+        grantId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        caregiverPhone:
+          type: string
+          example: "+989129876543"
+        relationshipFa:
+          type: string
+          example: فرزند بیمار
+        scopes:
+          type: array
+          items:
+            type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateEpisodeRequest:
+      type: object
+      required: [patientId, protocolType, eyeLaterality, surgeonId, accessMode, anchorAt]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        protocolType:
+          type: string
+          example: post_cataract
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        surgeonId:
+          type: string
+          format: uuid
+        accessMode:
+          $ref: "#/components/schemas/AccessMode"
+        anchorAt:
+          type: string
+          format: date-time
+
+    CareEpisode:
+      type: object
+      required: [episodeId, tenantId, patientId, protocolType, eyeLaterality, eyeLabelFa, accessMode, activePrescriptionVersion, status, anchorAt]
+      properties:
+        episodeId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        protocolType:
+          type: string
+          example: post_cataract
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        eyeLabelFa:
+          type: string
+          example: چشم راست
+        accessMode:
+          $ref: "#/components/schemas/AccessMode"
+        activePrescriptionVersion:
+          type: integer
+        status:
+          type: string
+          example: active
+        anchorAt:
+          type: string
+          format: date-time
+
+    DropItemInput:
+      type: object
+      required: [drugNameFa, genericName, bottleCapColorFa, frequencyPerDay, durationDays]
+      properties:
+        drugNameFa:
+          type: string
+          example: قطره بتامتازون چشمی ۰.۱٪
+        genericName:
+          type: string
+          example: Betamethasone 0.1%
+        bottleCapColorFa:
+          type: string
+          example: درِ صورتی
+        frequencyPerDay:
+          type: integer
+        durationDays:
+          type: integer
+        instructionsFa:
+          type: string
+          example: هر ۴ ساعت یک قطره در چشم راست ریخته شود
+
+    PublishPrescriptionRequest:
+      type: object
+      required: [eyeLaterality, items, reasonFa]
+      properties:
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DropItemInput"
+        reasonFa:
+          type: string
+          example: کاهش التهاب هفته اول پس از جراحی فیکو
+
+    PrescriptionVersion:
+      type: object
+      required: [prescriptionId, episodeId, version, eyeLaterality, eyeLabelFa, items, publishedAt]
+      properties:
+        prescriptionId:
+          type: string
+          format: uuid
+        episodeId:
+          type: string
+          format: uuid
+        version:
+          type: integer
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        eyeLabelFa:
+          type: string
+          example: چشم راست
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DropItemInput"
+        publishedAt:
+          type: string
+          format: date-time
+
+    PatientTodayDropCard:
+      type: object
+      required: [episodeId, prescriptionVersion, eyeLaterality, eyeLabelFa, drugNameFa, bottleCapColorFa, scheduledTimeJalali, instructionsFa, taken]
+      properties:
+        episodeId:
+          type: string
+          format: uuid
+        prescriptionVersion:
+          type: integer
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        eyeLabelFa:
+          type: string
+          example: چشم راست
+        drugNameFa:
+          type: string
+          example: قطره سیپروفلوکساسین ۰.۳٪
+        bottleCapColorFa:
+          type: string
+          example: درِ سفید
+        scheduledTimeJalali:
+          type: string
+          example: "۱۴۰۵/۰۹/۰۲ — ۱۴:۰۰"
+        instructionsFa:
+          type: string
+          example: یک قطره در چشم راست، ۵ دقیقه فاصله با قطره بعدی
+        taken:
+          type: boolean
+
+    PatientTodayResponse:
+      type: object
+      required: [todayJalali, emergencyHotlinePhone, clinicStaffedHoursFa, scheduleItems]
+      properties:
+        todayJalali:
+          type: string
+          example: "۱۴۰۵/۰۹/۰۲"
+        emergencyHotlinePhone:
+          type: string
+          example: "+982182400000"
+        clinicStaffedHoursFa:
+          type: string
+          example: همه‌روزه ۸ تا ۲۰؛ در ساعات غیرکاری به اورژانس چشم مراجعه کنید
+        scheduleItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/PatientTodayDropCard"
+
+    AdherenceEventRequest:
+      type: object
+      required: [eyeLaterality, prescriptionVersion, state, occurredAt]
+      properties:
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        prescriptionVersion:
+          type: integer
+        state:
+          $ref: "#/components/schemas/AdherenceState"
+        reasonFa:
+          type: string
+          example: فراموشی نوبت ظهر
+        occurredAt:
+          type: string
+          format: date-time
+
+    AdherenceEventResponse:
+      type: object
+      required: [eventId, episodeId, state, deduplicated, recordedAt]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        episodeId:
+          type: string
+          format: uuid
+        state:
+          $ref: "#/components/schemas/AdherenceState"
+        deduplicated:
+          type: boolean
+        recordedAt:
+          type: string
+          format: date-time
+
+    SymptomReportRequest:
+      type: object
+      required: [eyeLaterality, severePain, suddenVisionLoss, purulentDischarge, freeTextFa]
+      properties:
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        severePain:
+          type: boolean
+        suddenVisionLoss:
+          type: boolean
+        purulentDischarge:
+          type: boolean
+        freeTextFa:
+          type: string
+          example: قرمزی شدید و درد ناگهانی در چشم راست از دیشب
+
+    SymptomReportResponse:
+      type: object
+      required: [reportId, urgencyTier, urgencyLabelFa, triggeredTriageCaseId, guidanceFa]
+      properties:
+        reportId:
+          type: string
+          format: uuid
+        urgencyTier:
+          $ref: "#/components/schemas/UrgencyTier"
+        urgencyLabelFa:
+          type: string
+          example: ارجاع فوری
+        triggeredTriageCaseId:
+          type: ["string", "null"]
+          format: uuid
+        guidanceFa:
+          type: string
+          example: لطفاً فوراً با شماره اورژانس کلینیک تماس بگیرید و به اورژانس چشم مراجعه کنید.
+
+    TriageCase:
+      type: object
+      required: [caseId, sourcePillar, patientId, eyeLaterality, eyeLabelFa, status, urgencyTier, urgencyLabelFa, slaDueAt, ownerId]
+      properties:
+        caseId:
+          type: string
+          format: uuid
+        sourcePillar:
+          type: string
+          enum: ["pillar1_care", "pillar2_diagnostic"]
+        patientId:
+          type: string
+          format: uuid
+        eyeLaterality:
+          $ref: "#/components/schemas/StudyLaterality"
+        eyeLabelFa:
+          type: string
+          example: چشم راست
+        status:
+          type: string
+          enum: ["New", "OwnerAssigned", "ContactAttempted", "ContactEstablished", "Escalated", "Referred", "Closed"]
+        urgencyTier:
+          $ref: "#/components/schemas/UrgencyTier"
+        urgencyLabelFa:
+          type: string
+          example: ارجاع فوری
+        slaDueAt:
+          type: string
+          format: date-time
+        ownerId:
+          type: ["string", "null"]
+          format: uuid
+
+    TriageCaseListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TriageCase"
+        total:
+          type: integer
+
+    ClaimTriageCaseRequest:
+      type: object
+      properties:
+        noteFa:
+          type: string
+
+    ShiftHandoffRequest:
+      type: object
+      required: [targetStaffUserId, handoffNoteFa]
+      properties:
+        targetStaffUserId:
+          type: string
+          format: uuid
+        handoffNoteFa:
+          type: string
+          example: بیمار در شیفت صبح تماس پاسخ نداد؛ پیگیری مجدد ساعت ۱۶ انجام شود.
+
+    ReferralRequest:
+      type: object
+      required: [destinationHospitalFa, reasonFa, urgent]
+      properties:
+        destinationHospitalFa:
+          type: string
+          example: بیمارستان تخصصی چشم فارابی
+        reasonFa:
+          type: string
+          example: شک به کراتیت عفونی نیازمند ارزیابی فوری قرنیه
+        urgent:
+          type: boolean
+
+    ReferralRecord:
+      type: object
+      required: [referralId, caseId, destinationHospitalFa, status, createdAt]
+      properties:
+        referralId:
+          type: string
+          format: uuid
+        caseId:
+          type: string
+          format: uuid
+        destinationHospitalFa:
+          type: string
+          example: بیمارستان تخصصی چشم فارابی
+        status:
+          type: string
+          enum: ["dispatched", "attended", "missed"]
+        createdAt:
+          type: string
+          format: date-time
+
+    StudyAssetInput:
+      type: object
+      required: [assetId, s3ObjectKey, declaredModality, declaredEye]
+      properties:
+        assetId:
+          type: string
+          format: uuid
+        s3ObjectKey:
+          type: string
+          example: studies/study-001/fundus_od_blur_test.png
+        declaredModality:
+          $ref: "#/components/schemas/DiagnosticModality"
+        declaredEye:
+          $ref: "#/components/schemas/EyeLaterality"
+        dicomStudyUid:
+          type: ["string", "null"]
+        blurScoreHint:
+          type: ["number", "null"]
+        lightingScoreHint:
+          type: ["number", "null"]
+        detectedEyeHint:
+          type: ["string", "null"]
+        conditionHints:
+          type: array
+          items:
+            type: string
+
+    ClinicalLabsInput:
+      type: object
+      properties:
+        ageYears:
+          type: integer
+        hba1cPercent:
+          type: number
+        iopMmHg:
+          type: number
+        centralCornealThicknessUm:
+          type: number
+        diabetesDurationYears:
+          type: integer
+        systolicBpMmHg:
+          type: integer
+        kmaxDiopters:
+          type: number
+        thinnestPachymetryUm:
+          type: number
+        vfMdDb:
+          type: number
+        vfMdSlopeDbPerYear:
+          type: number
+        clinicalNotesFa:
+          type: string
+
+    SubmitDiagnosticStudyRequest:
+      type: object
+      required: [patientId, clinicId, eyeLaterality, assets]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        eyeLaterality:
+          $ref: "#/components/schemas/StudyLaterality"
+        assets:
+          type: array
+          items:
+            $ref: "#/components/schemas/StudyAssetInput"
+        labs:
+          $ref: "#/components/schemas/ClinicalLabsInput"
+
+    SubmitDiagnosticStudyResponse:
+      type: object
+      required: [studyId, jobId, status, acceptedAt]
+      properties:
+        studyId:
+          type: string
+          format: uuid
+        jobId:
+          type: string
+          format: uuid
+        status:
+          $ref: "#/components/schemas/StudyStatus"
+        acceptedAt:
+          type: string
+          format: date-time
+
+    ModalityPrediction:
+      type: object
+      required: [assetId, declaredModality, detectedModality, confidence, matchesDeclared]
+      properties:
+        assetId:
+          type: string
+          format: uuid
+        declaredModality:
+          $ref: "#/components/schemas/DiagnosticModality"
+        detectedModality:
+          $ref: "#/components/schemas/DiagnosticModality"
+        confidence:
+          type: number
+        matchesDeclared:
+          type: boolean
+
+    QcDecision:
+      type: object
+      required: [assetId, modalityPrediction, passed, rejectionCodes, rejectionReasonsFa]
+      properties:
+        assetId:
+          type: string
+          format: uuid
+        modalityPrediction:
+          $ref: "#/components/schemas/ModalityPrediction"
+        passed:
+          type: boolean
+        rejectionCodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/QcRejectionCode"
+        rejectionReasonsFa:
+          type: array
+          items:
+            type: string
+        recaptureInstructionFa:
+          type: ["string", "null"]
+          example: تصویر چشم راست تار است؛ لطفاً با فوکوس مجدد تصویربرداری را تکرار کنید.
+
+    SpecialistOutput:
+      type: object
+      required: [specialistId, backboneId, eyeLaterality, probabilities, biomarkers, summaryFa]
+      properties:
+        specialistId:
+          type: string
+          enum: ["fundus", "oct", "anterior", "visual_field", "tabular_xgb"]
+        backboneId:
+          type: string
+          example: dinov2_apache2
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        probabilities:
+          type: object
+          additionalProperties:
+            type: number
+        biomarkers:
+          type: object
+          additionalProperties:
+            type: number
+        summaryFa:
+          type: string
+
+    DifferentialItem:
+      type: object
+      required: [conditionCode, conditionNameFa, confidence, confidenceIntervalLower, confidenceIntervalUpper, severity, supportingModalities]
+      properties:
+        conditionCode:
+          type: string
+          example: glaucomatous_optic_neuropathy
+        conditionNameFa:
+          type: string
+          example: نوروپاتی گلوکوماتوز عصب بینایی
+        confidence:
+          type: number
+        confidenceIntervalLower:
+          type: number
+        confidenceIntervalUpper:
+          type: number
+        severity:
+          $ref: "#/components/schemas/SeverityGrade"
+        supportingModalities:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiagnosticModality"
+
+    FusionResult:
+      type: object
+      required: [eyeLaterality, availableModalities, missingModalities, missingModalityNoticeFa, differential, discordanceFlagsFa, recommendedUrgency, recommendedUrgencyLabelFa]
+      properties:
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        availableModalities:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiagnosticModality"
+        missingModalities:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiagnosticModality"
+        missingModalityNoticeFa:
+          type: string
+          example: تست میدان بینایی در این ویزیت موجود نبود؛ ارزیابی بر پایه فاندوس، OCT و فشار چشم انجام شد.
+        differential:
+          type: array
+          items:
+            $ref: "#/components/schemas/DifferentialItem"
+        discordanceFlagsFa:
+          type: array
+          items:
+            type: string
+        recommendedUrgency:
+          $ref: "#/components/schemas/UrgencyTier"
+        recommendedUrgencyLabelFa:
+          type: string
+          example: پیگیری ۳ تا ۶ ماه
+
+    SegmentationMaskOverlay:
+      type: object
+      required: [overlayId, assetId, anatomicalStructureFa, maskS3Key, quantitativeMetricName, quantitativeValue, quantitativeUnit, isPrimaryExplainability]
+      properties:
+        overlayId:
+          type: string
+        assetId:
+          type: string
+          format: uuid
+        anatomicalStructureFa:
+          type: string
+          example: مایع داخل‌شبکیه‌ای (IRF) و ضخامت RNFL
+        maskS3Key:
+          type: string
+          example: masks/study-001/oct_irf_mask.png
+        quantitativeMetricName:
+          type: string
+          example: irf_volume_nl
+        quantitativeValue:
+          type: number
+        quantitativeUnit:
+          type: string
+          example: nL
+        isPrimaryExplainability:
+          type: boolean
+
+    AuxiliaryGradCamOverlay:
+      type: object
+      required: [overlayId, assetId, targetConditionCode, heatmapS3Key, isAuxiliaryOnly, warningFa]
+      properties:
+        overlayId:
+          type: string
+        assetId:
+          type: string
+          format: uuid
+        targetConditionCode:
+          type: string
+        heatmapS3Key:
+          type: string
+        isAuxiliaryOnly:
+          type: boolean
+        warningFa:
+          type: string
+          example: راهنمای توجه مدل — غیرقابل استفاده به‌جای سگمنتیشن دقیق
+
+    ExplainabilityOutput:
+      type: object
+      required: [primarySegmentationMasks, auxiliaryGradCams]
+      properties:
+        primarySegmentationMasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/SegmentationMaskOverlay"
+        auxiliaryGradCams:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuxiliaryGradCamOverlay"
+
+    PersianReportDraft:
+      type: object
+      required: [modelProvider, modelId, titleFa, modalityFindingsFa, differentialSummaryFa, crossModalCorrelationFa, followUpPlanFa, urgencyTier, urgencyLabelFa, evidenceIds, validationPassed]
+      properties:
+        modelProvider:
+          type: string
+          example: openai_compatible
+        modelId:
+          type: string
+          example: thinkingmachines/inkling-2-mini
+        titleFa:
+          type: string
+          example: پیش‌نویس گزارش بالینی چندوجهی چشم‌پزشکی — چشم راست
+        modalityFindingsFa:
+          type: string
+        differentialSummaryFa:
+          type: string
+        crossModalCorrelationFa:
+          type: string
+        followUpPlanFa:
+          type: string
+        urgencyTier:
+          $ref: "#/components/schemas/UrgencyTier"
+        urgencyLabelFa:
+          type: string
+          example: پیگیری ۳ تا ۶ ماه
+        evidenceIds:
+          type: array
+          items:
+            type: string
+        validationPassed:
+          type: boolean
+
+    ClinicianSignoffRequest:
+      type: object
+      required: [action, finalUrgency, finalReportTextFa]
+      properties:
+        action:
+          $ref: "#/components/schemas/SignoffAction"
+        finalUrgency:
+          $ref: "#/components/schemas/UrgencyTier"
+        finalReportTextFa:
+          type: string
+        overrideReasonFa:
+          type: ["string", "null"]
+
+    ClinicianSignoffResponse:
+      type: object
+      required: [signoffId, studyId, ophthalmologistId, action, finalUrgency, finalUrgencyLabelFa, signedAt]
+      properties:
+        signoffId:
+          type: string
+          format: uuid
+        studyId:
+          type: string
+          format: uuid
+        ophthalmologistId:
+          type: string
+          format: uuid
+        action:
+          $ref: "#/components/schemas/SignoffAction"
+        finalUrgency:
+          $ref: "#/components/schemas/UrgencyTier"
+        finalUrgencyLabelFa:
+          type: string
+        signedAt:
+          type: string
+          format: date-time
+
+    DiagnosticStudyDetail:
+      type: object
+      required: [studyId, patientId, clinicId, eyeLaterality, status, qcDecisions, specialistOutputs]
+      properties:
+        studyId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        eyeLaterality:
+          $ref: "#/components/schemas/StudyLaterality"
+        status:
+          $ref: "#/components/schemas/StudyStatus"
+        qcDecisions:
+          type: array
+          items:
+            $ref: "#/components/schemas/QcDecision"
+        specialistOutputs:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpecialistOutput"
+        fusionResult:
+          $ref: "#/components/schemas/FusionResult"
+        explainability:
+          $ref: "#/components/schemas/ExplainabilityOutput"
+        persianReportDraft:
+          $ref: "#/components/schemas/PersianReportDraft"
+        signoff:
+          $ref: "#/components/schemas/ClinicianSignoffResponse"
+
+    PatientDiagnosticSummary:
+      type: object
+      required: [studyId, signedAtJalali, eyeLabelFa, urgencyTier, urgencyLabelFa, patientGuidanceFa, nextStepFa]
+      properties:
+        studyId:
+          type: string
+          format: uuid
+        signedAtJalali:
+          type: string
+          example: "۱۴۰۵/۰۹/۰۲"
+        eyeLabelFa:
+          type: string
+          example: چشم راست
+        urgencyTier:
+          $ref: "#/components/schemas/UrgencyTier"
+        urgencyLabelFa:
+          type: string
+          example: پیگیری ۳ تا ۶ ماه
+        patientGuidanceFa:
+          type: string
+          example: معاینه شبکیه شما توسط پزشک بررسی شد؛ نیاز به پیگیری منظم طی ۳ ماه آینده دارید.
+        nextStepFa:
+          type: string
+          example: هماهنگی نوبت معاینه بعدی با پذیرش کلینیک
+
+    PatientDiagnosticSummaryList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PatientDiagnosticSummary"
+
+    AiEngineQcRequest:
+      type: object
+      required: [assets]
+      properties:
+        assets:
+          type: array
+          items:
+            $ref: "#/components/schemas/StudyAssetInput"
+
+    AiEngineAnalyzeRequest:
+      type: object
+      required: [studyId, jobId, eyeLaterality, assets]
+      properties:
+        studyId:
+          type: string
+          format: uuid
+        jobId:
+          type: string
+          format: uuid
+        eyeLaterality:
+          $ref: "#/components/schemas/StudyLaterality"
+        assets:
+          type: array
+          items:
+            $ref: "#/components/schemas/StudyAssetInput"
+        labs:
+          $ref: "#/components/schemas/ClinicalLabsInput"
+
+    AiEngineAnalyzeResponse:
+      type: object
+      required: [studyId, jobId, engineMode, status, qcDecisions, specialistOutputs]
+      properties:
+        studyId:
+          type: string
+          format: uuid
+        jobId:
+          type: string
+          format: uuid
+        engineMode:
+          $ref: "#/components/schemas/AiEngineMode"
+        status:
+          type: string
+          enum: ["qc_failed", "analyzed"]
+        qcDecisions:
+          type: array
+          items:
+            $ref: "#/components/schemas/QcDecision"
+        specialistOutputs:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpecialistOutput"
+        fusionResult:
+          $ref: "#/components/schemas/FusionResult"
+        explainability:
+          $ref: "#/components/schemas/ExplainabilityOutput"

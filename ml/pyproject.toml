@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bina-ml"
+version = "0.1.0"
+description = "Bina AI lightweight CPU ML tooling, dataset splitters, DICOM anonymizer, and Kaggle GPU runner"
+requires-python = ">=3.12"
+dependencies = [
+  "numpy>=2.1.0,<3.0.0",
+  "pydantic>=2.9.0,<3.0.0",
+  "pydicom>=3.0.0,<4.0.0",
+  "pillow>=11.0.0,<13.0.0",
+  "scikit-learn>=1.6.0,<2.0.0",
+  "onnxruntime>=1.20.0,<2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bina_ml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

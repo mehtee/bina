@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bina.ir/schemas/events/triage.urgent-triggered.v1.json",
+  "title": "TriageUrgentTriggeredV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["caseId", "patientId", "sourcePillar", "eyeLaterality", "urgencyTier", "ruleCode"],
+  "properties": {
+    "caseId": { "type": "string", "format": "uuid" },
+    "patientId": { "type": "string", "format": "uuid" },
+    "sourcePillar": { "type": "string", "enum": ["pillar1_care", "pillar2_diagnostic"] },
+    "eyeLaterality": { "type": "string", "enum": ["OD", "OS", "OU"] },
+    "urgencyTier": { "const": "urgent" },
+    "ruleCode": { "type": "string", "minLength": 2 }
+  }
+}

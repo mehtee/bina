@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bina.ir/schemas/events/diagnostic.analysis-completed.v1.json",
+  "title": "DiagnosticAnalysisCompletedV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["studyId", "jobId", "engineMode", "recommendedUrgency", "specialistsExecuted"],
+  "properties": {
+    "studyId": { "type": "string", "format": "uuid" },
+    "jobId": { "type": "string", "format": "uuid" },
+    "engineMode": { "type": "string", "enum": ["cpu_stub", "onnx_cpu", "gpu_full"] },
+    "recommendedUrgency": { "type": "string", "enum": ["routine", "followup_3_6m", "urgent"] },
+    "specialistsExecuted": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "enum": ["fundus", "oct", "anterior", "visual_field", "tabular_xgb"] }
+    }
+  }
+}

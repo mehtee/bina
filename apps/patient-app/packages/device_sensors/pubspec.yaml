@@ -1,0 +1,10 @@
+name: bina_device_sensors
+description: Platform sensor preflight and device qualification ports for Bina AI (zero UI dependencies).
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+
+dependencies:
+  meta: any

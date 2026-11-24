@@ -1,0 +1,53 @@
+name: bina_patient_app
+description: Bina AI Persian-first patient & caregiver mobile/Web app (Bina Clinical Glass v2.1).
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_riverpod: ^3.5.0
+  go_router: ^18.1.4
+  http: ^1.6.0
+  intl: ^0.20.3
+  uuid: ^4.6.0
+  bina_api_dtos:
+    path: ../../packages/contracts-openapi/generated/dart
+  bina_design_system:
+    path: packages/design_system
+  bina_offline_store:
+    path: packages/offline_store
+  bina_device_sensors:
+    path: packages/device_sensors
+  bina_clinical_renderer:
+    path: packages/clinical_renderer
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  # Register ONLY light/dark runtime derivatives, bundled contract JSONs, and local Vazirmatn fonts.
+  # Source PNGs in assets/design/source/ MUST remain excluded from the release bundle (Spec v2.1 §4.4.1).
+  assets:
+    - assets/design/runtime/
+    - assets/contracts/
+  fonts:
+    - family: Vazirmatn
+      fonts:
+        - asset: assets/fonts/Vazirmatn-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Vazirmatn-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Vazirmatn-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Vazirmatn-Bold.ttf
+          weight: 700

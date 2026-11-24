@@ -1,0 +1,12 @@
+name: bina_design_system
+description: Bina Clinical Glass v2.1 tokens, themes, brand config, art resolver, and components.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter

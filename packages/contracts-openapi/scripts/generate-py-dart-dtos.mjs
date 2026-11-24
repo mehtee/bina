@@ -5,7 +5,7 @@ import YAML from "yaml";
 
 const specPath = path.resolve(process.cwd(), "openapi.yaml");
 const pyOut = path.resolve(process.cwd(), "generated/py/bina_contracts.py");
-const dartOut = path.resolve(process.cwd(), "generated/dart/bina_api_dtos.dart");
+const dartOut = path.resolve(process.cwd(), "generated/dart/lib/bina_api_dtos.dart");
 
 const doc = YAML.parse(fs.readFileSync(specPath, "utf8"));
 const schemas = doc.components?.schemas ?? {};

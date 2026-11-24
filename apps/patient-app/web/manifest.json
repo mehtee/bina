@@ -1,0 +1,17 @@
+{
+  "name": "مراقبت چشمی",
+  "short_name": "مراقبت چشمی",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ECF8F9",
+  "theme_color": "#006C66",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icons/Icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

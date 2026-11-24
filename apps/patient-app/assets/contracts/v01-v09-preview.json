@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "1.0.0",
+  "syntheticNotice": "100% synthetic golden clinical fixtures for V01-V09 preview harness and R1/W3/W4 tests. Zero real PHI.",
+  "clinic": {
+    "clinicId": "11111111-1111-4111-8111-111111111111",
+    "tenantId": "00000000-0000-4000-8000-000000000001",
+    "nameFa": "کلینیک فوق‌تخصصی چشم نور تهران",
+    "locale": "fa-IR",
+    "calendarMode": "jalali",
+    "emergencyPhone": "+982182400000",
+    "staffedHoursFa": "شنبه تا چهارشنبه ۸ تا ۲۰ — پنج‌شنبه ۸ تا ۱۴",
+    "todayJalali": "۱۴۰۵/۰۹/۰۲",
+    "currentlyStaffed": true
+  },
+  "patient": {
+    "patientId": "22222222-2222-4222-8222-222222222222",
+    "fullNameFa": "علی رضایی (نمونه)",
+    "phoneMasked": "+98912***6789",
+    "preferredLocale": "fa-IR",
+    "accessMode": "app"
+  },
+  "todayPlan": {
+    "todayJalali": "۱۴۰۵/۰۹/۰۲",
+    "emergencyHotlinePhone": "+982182400000",
+    "clinicStaffedHoursFa": "همه‌روزه ۸ تا ۲۰؛ در ساعات غیرکاری به اورژانس چشم مراجعه کنید",
+    "scheduleItems": [
+      {
+        "episodeId": "33333333-3333-4333-8333-333333333331",
+        "prescriptionVersion": 2,
+        "eyeLaterality": "OD",
+        "eyeLabelFa": "چشم راست",
+        "drugNameFa": "قطره بتامتازون چشمی ۰.۱٪",
+        "bottleCapColorFa": "درِ صورتی",
+        "scheduledTimeJalali": "۱۴۰۵/۰۹/۰۲ — ۱۴:۰۰",
+        "instructionsFa": "یک قطره در چشم راست، ۵ دقیقه فاصله با قطره بعدی",
+        "taken": false
+      },
+      {
+        "episodeId": "33333333-3333-4333-8333-333333333331",
+        "prescriptionVersion": 2,
+        "eyeLaterality": "OD",
+        "eyeLabelFa": "چشم راست",
+        "drugNameFa": "قطره سیپروفلوکساسین ۰.۳٪",
+        "bottleCapColorFa": "درِ سفید",
+        "scheduledTimeJalali": "۱۴۰۵/۰۹/۰۲ — ۱۴:۰۵",
+        "instructionsFa": "یک قطره در چشم راست (۴ بار در روز)",
+        "taken": true
+      },
+      {
+        "episodeId": "33333333-3333-4333-8333-333333333332",
+        "prescriptionVersion": 1,
+        "eyeLaterality": "OS",
+        "eyeLabelFa": "چشم چپ",
+        "drugNameFa": "قطره اشک مصنوعی بدون نگهدارنده",
+        "bottleCapColorFa": "درِ آبی",
+        "scheduledTimeJalali": "۱۴۰۵/۰۹/۰۲ — ۱۶:۰۰",
+        "instructionsFa": "یک قطره در چشم چپ در صورت خشکی",
+        "taken": false
+      }
+    ]
+  },
+  "caregivers": [
+    {
+      "grantId": "44444444-4444-4444-8444-444444444441",
+      "patientId": "22222222-2222-4222-8222-222222222222",
+      "caregiverPhone": "***",
+      "relationshipFa": "فرزند بیمار",
+      "scopes": ["care_plan:read", "adherence:write"],
+      "active": true,
+      "createdAt": "2026-11-20T08:30:00.000Z"
+    }
+  ],
+  "diagnosticSummaries": [
+    {
+      "studyId": "55555555-5555-4555-8555-555555555551",
+      "signedAtJalali": "۱۴۰۵/۰۸/۲۹",
+      "eyeLabelFa": "چشم راست",
+      "urgencyTier": "followup_3_6m",
+      "urgencyLabelFa": "پیگیری ۳ تا ۶ ماه",
+      "patientGuidanceFa": "تصویربرداری شبکیه و OCT شما توسط چشم‌پزشک بررسی و تایید شد. وضعیت فعلی پایدار است و معاینه کنترلی طی ۳ ماه آینده توصیه می‌شود.",
+      "nextStepFa": "هماهنگی نوبت ویزیت سه‌ماهه با پذیرش کلینیک"
+    }
+  ],
+  "r2Trends": {
+    "patientId": "22222222-2222-4222-8222-222222222222",
+    "od": [
+      {
+        "testId": "66666666-6666-4666-8666-666666666661",
+        "testType": "landolt_c",
+        "eyeLaterality": "OD",
+        "vaLogmar": 0.1,
+        "amslerDistortionScore": null,
+        "recordedAt": "2026-11-18T09:00:00.000Z"
+      },
+      {
+        "testId": "66666666-6666-4666-8666-666666666662",
+        "testType": "landolt_c",
+        "eyeLaterality": "OD",
+        "vaLogmar": 0.08,
+        "amslerDistortionScore": null,
+        "recordedAt": "2026-11-23T09:15:00.000Z"
+      }
+    ],
+    "os": [
+      {
+        "testId": "66666666-6666-4666-8666-666666666663",
+        "testType": "amsler",
+        "eyeLaterality": "OS",
+        "vaLogmar": null,
+        "amslerDistortionScore": 0.0,
+        "recordedAt": "2026-11-23T09:20:00.000Z"
+      }
+    ]
+  }
+}

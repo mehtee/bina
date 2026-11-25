@@ -20,6 +20,7 @@ Bina AI is a unified two-pillar Iranian ophthalmology platform built on a multi-
 | [docs/PRD.md](file:///home/mahdi/projects/binaai/docs/PRD.md) | Unified Product Requirements Document (`v3.0`, Waves 0–4, Pillar 1 + Pillar 2 requirements, datasets `D1–D5`, KPIs, hazards `HAZ-001..012`) |
 | [docs/ADR.md](file:///home/mahdi/projects/binaai/docs/ADR.md) | Architecture Decision Records (`ADR-001`–`ADR-054`), monorepo topology, 34-table Postgres RLS schema, and 2-Track (`Track A` / `Track B`) task plan |
 | [docs/BINA_AI_PATIENT_APP_UI_UX_SPEC_V2_1.md](file:///home/mahdi/projects/binaai/docs/BINA_AI_PATIENT_APP_UI_UX_SPEC_V2_1.md) | **Authoritative Flutter Patient App UI/UX Source of Truth (`v2.1` — Bina Clinical Glass):** Light + Dark color/gradient/shadow tokens, typography, geometry, floating dock, `V01–V09` reference specs, `V10` + §9.1–§9.8 unpictured routes, `A01–A04` asset derivative rules, isolated `clinical_renderer`, accessibility & QA checklists (`ADR-054`) |
+| [docs/flutter_missing.md](file:///home/mahdi/projects/binaai/docs/flutter_missing.md) | Patient App gap closure inventory covering first-run onboarding, motion system, Web `localStorage` persistence, spec components, gated routes, and demo profile flags |
 | [docs/patient-app-ui-designs/](file:///home/mahdi/projects/binaai/docs/patient-app-ui-designs/) | 9 approved Light-mode Patient App reference renders (`01-Today.png` .. `09-My-Account.png`, 1122×1402 PNG; original archive: [Bina-AI-UI-Designs.zip](file:///home/mahdi/projects/binaai/docs/Bina-AI-UI-Designs.zip)) |
 | [docs/patient-app-visual-assets/](file:///home/mahdi/projects/binaai/docs/patient-app-visual-assets/) | 4 canonical standalone raster visual sources (`A01–A04`: iris, glossy eye logo, broad footer wave, compact header wave; original archive: [Bina-AI-Visual-Assets.zip](file:///home/mahdi/projects/binaai/docs/Bina-AI-Visual-Assets.zip)) |
 | [docs/bina-ai-executive-summary-fa.md](file:///home/mahdi/projects/binaai/docs/bina-ai-executive-summary-fa.md) | Persian executive & technical summary of the unified platform and 51-task two-track roadmap |
@@ -80,3 +81,58 @@ export NODE_OPTIONS="--max-old-space-size=1024"
 pnpm run typecheck:backend && pnpm run test:backend
 pnpm run test:ai-engine
 ```
+
+---
+
+## Flutter Patient App (`apps/patient-app`)
+
+Built around **Bina Clinical Glass (`v2.1`)** with modular workspace packages under `apps/patient-app/packages/`:
+* `design_system`: Light/Dark/High-Contrast tokens, RTL typography, floating dock/rail (`BinaShellLayout`), motion helpers (`BinaMotion`, `BinaFadeSlideIn`, `BinaAnimatedScaleReveal`, `buildBinaRouteTransition`) with persistent OS & in-app `reduceMotion` support, plus spec components (`BinaStepHeader`, `showBinaBottomSheet`, `BinaPermissionPanel`, `BinaIOPChart`, `BinaVFMap`, `BinaTimeline`, `BinaVectorArt`).
+* `offline_store`: Partitioned outbox & preference store with `localStorage` backing on Web (`app_prefs` always persisted; clinical payloads cached on Web only when `allowClinicalPayloads` is enabled in mock/demo mode).
+* `device_sensors` & `clinical_renderer`: Isolated R2 preflight adapters and ISO 8596 `Landolt C` / `Amsler` renderers immune to Dark Theme inversion, RTL mirroring, outer `TextScaler`, and route/card animations.
+* Key flows: interactive 4-slide RTL onboarding (`/onboarding`, replayable from Help), dual-eye (`چشم راست`/`چشم چپ`) drop plans & stale-Rx reminder guard (`CARE-13`), offline SOS (`/help/urgent`), caregiver delegation & revocation, education audio timer (`EDU-03`), signed reports & `RES-06` modal, baseline/paired `iCare HOME2` (`TEST-14`, `TEST-16..18`), and system gates (`AUTH-10`, `SYS-05`, `SYS-06`).
+
+### Analyze & Test (Linux Host — No Native Android/iOS Builds)
+
+```bash
+bash infra/scripts/check-resources.sh
+(cd apps/patient-app/packages/design_system && flutter analyze && flutter test --concurrency=1)
+(cd apps/patient-app/packages/offline_store && dart analyze)
+(cd apps/patient-app/packages/device_sensors && dart analyze)
+(cd apps/patient-app/packages/clinical_renderer && dart analyze)
+(cd apps/patient-app && flutter analyze && flutter test --concurrency=1)
+```
+
+### Self-Hosted Flutter Web Build & Nginx Deployment (`bina-flutter.mehtea.ir`)
+
+Build a zero-CDN self-hosted Web bundle (`canvaskit/` + local `Vazirmatn` + `assets/design/runtime/` only):
+
+```bash
+# Full 5-tab demo bundle (onboarding + W3 Results + W4 Tests + Web Lab + V01–V09 preview)
+(cd apps/patient-app && flutter build web --release --no-wasm-dry-run \
+  --dart-define=BINA_DATA_MODE=mock \
+  --dart-define=ENABLE_WAVE3_RESULTS=true \
+  --dart-define=ENABLE_WAVE4_TESTS=true \
+  --dart-define=ENABLE_WEB_LAB_MODE=true \
+  --dart-define=ENABLE_ONBOARDING=true \
+  --dart-define=ALLOW_DEMO_PREVIEW=true \
+  --dart-define=ENABLE_PREVIEW_HARNESS=true)
+```
+
+Deploy or rebuild & sync to Nginx (`/var/www/bina-flutter.mehtea.ir` using [infra/nginx/bina-flutter.mehtea.ir.conf](infra/nginx/bina-flutter.mehtea.ir.conf)):
+
+```bash
+sudo bash infra/scripts/deploy-patient-web.sh --profile=demo          # sync prebuilt demo bundle
+sudo bash infra/scripts/deploy-patient-web.sh --profile=demo --build  # check RAM/disk, rebuild, sync
+sudo bash infra/scripts/deploy-patient-web.sh --profile=prod --build  # strict R1 production profile
+```
+
+---
+
+## Exported ML Artifacts (`ml/registry/artifacts/`)
+
+Trained Kaggle GPU (`T4 x2`) ONNX models, evaluation metrics (`metrics_kernel*.json`), model cards (`MODEL_CARD_KERNEL*.md`), and run logs are committed for offline verification in `onnx_cpu` / `cpu_stub` mode:
+* **Kernel 1 (`kernel1/`):** `modality_router.onnx`, `qc_gate.onnx`, `fundus_dinov2.onnx`
+* **Kernel 2 (`kernel2/`):** `oct_monai.onnx`, `anterior_vision.onnx`, `masked_fusion.onnx`, `visual_field_prog.onnx`, `tabular_diabetes.onnx`, `tabular_glaucoma.onnx`
+* **Kernel 3 (`kernel3/`):** `persian_symptom_nlp.onnx`, `home_risk_r2.onnx`
+

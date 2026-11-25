@@ -1,0 +1,99 @@
+{
+  "kernel": "bina-oct-anterior-vf-tabular",
+  "device": "cpu",
+  "duration_seconds": 170.49,
+  "commercial_license_compliant": true,
+  "models": {
+    "oct": {
+      "model_file": "oct_monai.onnx",
+      "backbone": "MONAI_UNet_Apache2",
+      "license": "Apache-2.0",
+      "classes": [
+        "normal",
+        "drusen",
+        "dme",
+        "cnv"
+      ],
+      "input_size": [
+        1,
+        128,
+        128
+      ],
+      "size_mb": 1.612,
+      "train_samples": 570,
+      "test_samples": 150,
+      "heldout_accuracy": 0.4867,
+      "heldout_macro_f1": 0.3752,
+      "heldout_macro_auroc": 0.8274,
+      "heldout_seg_dice": 0.8811
+    },
+    "anterior": {
+      "vision_model": {
+        "model_file": "anterior_vision.onnx",
+        "backbone": "mobilenetv3_small_100",
+        "license": "Apache-2.0 / BSD-compatible",
+        "classes": [
+          "normal",
+          "keratoconus",
+          "suspect_kc",
+          "cataract",
+          "anterior_inflammatory"
+        ],
+        "input_size": [
+          3,
+          160,
+          160
+        ],
+        "size_mb": 5.817,
+        "heldout_accuracy": 0.9367,
+        "heldout_macro_f1": 0.9166
+      },
+      "tabular_keratoconus": {}
+    },
+    "tabular_diabetes": {
+      "model_file": "tabular_diabetes.onnx",
+      "features": [
+        "age_years",
+        "hba1c_percent",
+        "systolic_bp_mm_hg",
+        "blood_glucose_proxy"
+      ],
+      "feature_importance": {
+        "age_years": 0.0,
+        "hba1c_percent": 0.0597,
+        "systolic_bp_mm_hg": 0.0,
+        "blood_glucose_proxy": 0.0394
+      },
+      "size_mb": 0.039,
+      "heldout_auroc": 0.9716
+    },
+    "tabular_glaucoma": {
+      "model_file": "tabular_glaucoma.onnx",
+      "features": [
+        "age_years",
+        "iop_mm_hg",
+        "central_corneal_thickness_um",
+        "cup_to_disc_ratio"
+      ],
+      "size_mb": 0.042,
+      "heldout_auroc": 0.5038
+    },
+    "visual_field": {
+      "model_file": "visual_field_prog.onnx",
+      "features": [
+        "vf_md_db",
+        "vf_md_slope_db_per_year",
+        "iop_mm_hg",
+        "age_years"
+      ],
+      "size_mb": 0.004,
+      "heldout_auroc": 0.9999,
+      "heldout_fast_progressor_f1": 0.9918
+    },
+    "masked_fusion": {
+      "model_file": "masked_fusion.onnx",
+      "size_mb": 0.005,
+      "heldout_auroc_with_missing_modalities": 1.0
+    }
+  }
+}

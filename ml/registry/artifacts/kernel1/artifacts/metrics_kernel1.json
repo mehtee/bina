@@ -1,0 +1,70 @@
+{
+  "kernel": "bina-l1-router-qc-fundus-dinov2",
+  "device": "cpu",
+  "duration_seconds": 205.24,
+  "commercial_license_compliant": true,
+  "retfound_bundled": false,
+  "zero_patient_leakage_verified": true,
+  "models": {
+    "modality_router": {
+      "model_file": "modality_router.onnx",
+      "backbone": "mobilenetv3_small_100",
+      "license": "Apache-2.0 / BSD-compatible",
+      "classes": [
+        "fundus",
+        "oct",
+        "topography",
+        "slit_lamp"
+      ],
+      "input_size": [
+        3,
+        160,
+        160
+      ],
+      "size_mb": 5.813,
+      "train_samples": 911,
+      "test_samples": 314,
+      "heldout_accuracy": 1.0,
+      "heldout_macro_f1": 1.0
+    },
+    "qc_gate": {
+      "model_file": "qc_gate.onnx",
+      "outputs": [
+        "blur_prob_logit",
+        "bad_light_prob_logit",
+        "od_laterality_prob_logit"
+      ],
+      "input_size": [
+        3,
+        128,
+        128
+      ],
+      "size_mb": 5.809,
+      "heldout_blur_auroc": 0.9799,
+      "heldout_lighting_auroc": 0.8125,
+      "heldout_od_os_accuracy": 0.6034
+    },
+    "fundus": {
+      "model_file": "fundus_dinov2.onnx",
+      "backbone": "vit_small_patch14_dinov2.lvd142m",
+      "license": "Apache-2.0",
+      "classes": [
+        "normal",
+        "cataract",
+        "dr",
+        "glaucoma"
+      ],
+      "input_size": [
+        3,
+        224,
+        224
+      ],
+      "size_mb": 22.014,
+      "train_samples": 333,
+      "test_samples": 76,
+      "heldout_accuracy": 0.7763,
+      "heldout_macro_f1": 0.7811,
+      "heldout_macro_auroc": 0.9077
+    }
+  }
+}

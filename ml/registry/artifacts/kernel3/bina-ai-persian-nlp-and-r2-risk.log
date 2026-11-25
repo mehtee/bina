@@ -1,0 +1,42 @@
+[{"stream_name":"stdout","time":18.514342497,"data":"KERNEL 3 DONE: {\n"}
+,{"stream_name":"stdout","time":18.514458366,"data":"  \"kernel\": \"bina-ai-persian-nlp-and-r2-risk\",\n"}
+,{"stream_name":"stdout","time":18.51446678,"data":"  \"duration_seconds\": 1.17,\n"}
+,{"stream_name":"stdout","time":18.514471225,"data":"  \"commercial_license_compliant\": true,\n"}
+,{"stream_name":"stdout","time":18.51448416,"data":"  \"zero_patient_leakage_verified\": true,\n"}
+,{"stream_name":"stdout","time":18.514488386,"data":"  \"models\": {\n"}
+,{"stream_name":"stdout","time":18.514492713,"data":"    \"persian_symptom_nlp\": {\n"}
+,{"stream_name":"stdout","time":18.514496746,"data":"      \"model_file\": \"persian_symptom_nlp.onnx\",\n"}
+,{"stream_name":"stdout","time":18.514500881,"data":"      \"feature_dim\": 256,\n"}
+,{"stream_name":"stdout","time":18.514504749,"data":"      \"classes\": [\n"}
+,{"stream_name":"stdout","time":18.514508575,"data":"        \"routine\",\n"}
+,{"stream_name":"stdout","time":18.514511041,"data":"        \"moderate\",\n"}
+,{"stream_name":"stdout","time":18.514518172,"data":"        \"red_flag\"\n"}
+,{"stream_name":"stdout","time":18.514520732,"data":"      ],\n"}
+,{"stream_name":"stdout","time":18.514524452,"data":"      \"size_mb\": 0.0748,\n"}
+,{"stream_name":"stdout","time":18.514528142,"data":"      \"train_samples\": 900,\n"}
+,{"stream_name":"stdout","time":18.514532018,"data":"      \"test_samples\": 300,\n"}
+,{"stream_name":"stdout","time":18.514536045,"data":"      \"heldout_red_flag_recall\": 1.0,\n"}
+,{"stream_name":"stdout","time":18.514540126,"data":"      \"heldout_red_flag_auroc\": 1.0\n"}
+,{"stream_name":"stdout","time":18.514544661,"data":"    },\n"}
+,{"stream_name":"stdout","time":18.514548478000002,"data":"    \"home_risk_r2\": {\n"}
+,{"stream_name":"stdout","time":18.5145527,"data":"      \"model_file\": \"home_risk_r2.onnx\",\n"}
+,{"stream_name":"stdout","time":18.514556892,"data":"      \"features\": [\n"}
+,{"stream_name":"stdout","time":18.514566063,"data":"        \"va_delta_logmar\",\n"}
+,{"stream_name":"stdout","time":18.514570122,"data":"        \"amsler_distortion_score\",\n"}
+,{"stream_name":"stdout","time":18.51457414,"data":"        \"adherence_7d_ratio\",\n"}
+,{"stream_name":"stdout","time":18.514578001,"data":"        \"iop_mmhg\",\n"}
+,{"stream_name":"stdout","time":18.514581822,"data":"        \"days_since_surgery\",\n"}
+,{"stream_name":"stdout","time":18.514585769,"data":"        \"consecutive_worsening_count\"\n"}
+,{"stream_name":"stdout","time":18.514589781,"data":"      ],\n"}
+,{"stream_name":"stdout","time":18.514593825,"data":"      \"size_mb\": 0.0411,\n"}
+,{"stream_name":"stdout","time":18.514597735,"data":"      \"heldout_auroc\": 0.9999\n"}
+,{"stream_name":"stdout","time":18.514601736,"data":"    }\n"}
+,{"stream_name":"stdout","time":18.514605395,"data":"  }\n"}
+,{"stream_name":"stdout","time":18.514609004,"data":"}\n"}
+,{"stream_name":"stderr","time":21.734966051,"data":"/usr/local/lib/python3.13/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":21.735004427,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":22.105317401,"data":"/usr/local/lib/python3.13/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":22.105350335,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":23.271993481,"data":"[NbConvertApp] Converting notebook __script__.ipynb to html\n"}
+,{"stream_name":"stderr","time":24.713864762,"data":"[NbConvertApp] Writing 315207 bytes to __results__.html\n"}
+]

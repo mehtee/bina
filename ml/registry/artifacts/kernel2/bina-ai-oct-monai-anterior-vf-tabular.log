@@ -1,0 +1,141 @@
+[{"stream_name":"stderr","time":48.29603029,"data":"WARNING: All log messages before absl::InitializeLog() is called are written to STDERR\n"}
+,{"stream_name":"stderr","time":48.296099426,"data":"I0000 00:00:1795470085.329846       7 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.\n"}
+,{"stream_name":"stderr","time":62.666140576,"data":"WARNING: All log messages before absl::InitializeLog() is called are written to STDERR\n"}
+,{"stream_name":"stderr","time":62.666169858,"data":"I0000 00:00:1795470099.701400       7 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.\n"}
+,{"stream_name":"stdout","time":70.289833858,"data":"\n"}
+,{"stream_name":"stdout","time":70.289917076,"data":"=== T-A19b: Training OCT MONAI U-Net Specialist ===\n"}
+,{"stream_name":"stdout","time":101.125799606,"data":"  OCT MONAI epoch 1/4 complete\n"}
+,{"stream_name":"stdout","time":114.740545333,"data":"  OCT MONAI epoch 2/4 complete\n"}
+,{"stream_name":"stdout","time":128.251369456,"data":"  OCT MONAI epoch 3/4 complete\n"}
+,{"stream_name":"stdout","time":141.596733794,"data":"  OCT MONAI epoch 4/4 complete\n"}
+,{"stream_name":"stderr","time":147.79953203,"data":"/kaggle/src/script.py:113: DeprecationWarning: You are using the legacy TorchScript-based ONNX export. Starting in PyTorch 2.9, the new torch.export-based ONNX exporter has become the default. Learn more about the new export logic: https://docs.pytorch.org/docs/stable/onnx_export.html. For exporting control flow: https://pytorch.org/tutorials/beginner/onnx/export_control_flow_model_to_onnx_tutorial.html\n"}
+,{"stream_name":"stderr","time":147.79958223,"data":"  torch.onnx.export(\n"}
+,{"stream_name":"stderr","time":148.151291588,"data":"/usr/local/lib/python3.13/dist-packages/torch/onnx/_internal/torchscript_exporter/symbolic_opset9.py:2822: UserWarning: ONNX export mode is set to TrainingMode.EVAL, but operator 'instance_norm' is set to train=True. Exporting with train=True.\n"}
+,{"stream_name":"stderr","time":148.151326747,"data":"  symbolic_helper.check_training_mode(use_input_stats, \"instance_norm\")\n"}
+,{"stream_name":"stdout","time":148.276520318,"data":"[ONNX] Verified oct_monai.onnx (1.61 MB)\n"}
+,{"stream_name":"stdout","time":148.296805391,"data":"\n"}
+,{"stream_name":"stdout","time":148.296839706,"data":"=== T-A21: Training Anterior \u0026 Corneal Topography Specialist ===\n"}
+,{"stream_name":"stdout","time":164.896867968,"data":"  Discovered 810 anterior/topography images\n"}
+,{"stream_name":"stderr","time":165.119103745,"data":"Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n"}
+,{"stream_name":"stdout","time":193.024216632,"data":"  Anterior epoch 1/4 complete\n"}
+,{"stream_name":"stdout","time":203.821049687,"data":"  Anterior epoch 2/4 complete\n"}
+,{"stream_name":"stdout","time":214.618587999,"data":"  Anterior epoch 3/4 complete\n"}
+,{"stream_name":"stdout","time":225.328119171,"data":"  Anterior epoch 4/4 complete\n"}
+,{"stream_name":"stderr","time":232.119639526,"data":"/kaggle/src/script.py:113: DeprecationWarning: You are using the legacy TorchScript-based ONNX export. Starting in PyTorch 2.9, the new torch.export-based ONNX exporter has become the default. Learn more about the new export logic: https://docs.pytorch.org/docs/stable/onnx_export.html. For exporting control flow: https://pytorch.org/tutorials/beginner/onnx/export_control_flow_model_to_onnx_tutorial.html\n"}
+,{"stream_name":"stderr","time":232.119702484,"data":"  torch.onnx.export(\n"}
+,{"stream_name":"stdout","time":232.628091359,"data":"[ONNX] Verified anterior_vision.onnx (5.82 MB)\n"}
+,{"stream_name":"stdout","time":233.45894485,"data":"\n"}
+,{"stream_name":"stdout","time":233.45899827,"data":"=== T-A19c \u0026 T-A22: Training Tabular Clinical Risk \u0026 Visual Field Progression ===\n"}
+,{"stream_name":"stdout","time":237.369038885,"data":"[ONNX] Verified sklearn tabular_diabetes.onnx (0.04 MB)\n"}
+,{"stream_name":"stdout","time":238.033184976,"data":"Glaucoma dataset columns: ['Patient ID', 'Age', 'Gender', 'Visual Acuity Measurements', 'Intraocular Pressure (IOP)', 'Cup-to-Disc Ratio (CDR)', 'Family History', 'Medical History', 'Medication Usage', 'Visual Field Test Results', 'Optical Coherence Tomography (OCT) Results', 'Pachymetry', 'Cataract Status', 'Angle Closure Status', 'Visual Symptoms', 'Diagnosis', 'Glaucoma Type']\n"}
+,{"stream_name":"stdout","time":238.9993352,"data":"[ONNX] Verified sklearn tabular_glaucoma.onnx (0.04 MB)\n"}
+,{"stream_name":"stderr","time":239.968294364,"data":"/usr/local/lib/python3.13/dist-packages/sklearn/neural_network/_multilayer_perceptron.py:691: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (150) reached and the optimization hasn't converged yet.\n"}
+,{"stream_name":"stderr","time":239.968363632,"data":"  warnings.warn(\n"}
+,{"stream_name":"stdout","time":240.009224114,"data":"[ONNX] Verified sklearn visual_field_prog.onnx (0.00 MB)\n"}
+,{"stream_name":"stdout","time":240.771025597,"data":"[ONNX] Verified sklearn masked_fusion.onnx (0.01 MB)\n"}
+,{"stream_name":"stdout","time":241.362155167,"data":"KERNEL 2 DONE: {\n"}
+,{"stream_name":"stdout","time":241.362188672,"data":"  \"kernel\": \"bina-oct-anterior-vf-tabular\",\n"}
+,{"stream_name":"stdout","time":241.362195733,"data":"  \"device\": \"cpu\",\n"}
+,{"stream_name":"stdout","time":241.362200107,"data":"  \"duration_seconds\": 170.49,\n"}
+,{"stream_name":"stdout","time":241.3622043,"data":"  \"commercial_license_compliant\": true,\n"}
+,{"stream_name":"stdout","time":241.362208393,"data":"  \"models\": {\n"}
+,{"stream_name":"stdout","time":241.362212385,"data":"    \"oct\": {\n"}
+,{"stream_name":"stdout","time":241.362216536,"data":"      \"model_file\": \"oct_monai.onnx\",\n"}
+,{"stream_name":"stdout","time":241.362221162,"data":"      \"backbone\": \"MONAI_UNet_Apache2\",\n"}
+,{"stream_name":"stdout","time":241.362232362,"data":"      \"license\": \"Apache-2.0\",\n"}
+,{"stream_name":"stdout","time":241.362235523,"data":"      \"classes\": [\n"}
+,{"stream_name":"stdout","time":241.36223831,"data":"        \"normal\",\n"}
+,{"stream_name":"stdout","time":241.362241089,"data":"        \"drusen\",\n"}
+,{"stream_name":"stdout","time":241.362243731,"data":"        \"dme\",\n"}
+,{"stream_name":"stdout","time":241.362247163,"data":"        \"cnv\"\n"}
+,{"stream_name":"stdout","time":241.362250057,"data":"      ],\n"}
+,{"stream_name":"stdout","time":241.362252846,"data":"      \"input_size\": [\n"}
+,{"stream_name":"stdout","time":241.362255575,"data":"        1,\n"}
+,{"stream_name":"stdout","time":241.362258166,"data":"        128,\n"}
+,{"stream_name":"stdout","time":241.36226086,"data":"        128\n"}
+,{"stream_name":"stdout","time":241.362263435,"data":"      ],\n"}
+,{"stream_name":"stdout","time":241.362266079,"data":"      \"size_mb\": 1.612,\n"}
+,{"stream_name":"stdout","time":241.362268752,"data":"      \"train_samples\": 570,\n"}
+,{"stream_name":"stdout","time":241.36227159,"data":"      \"test_samples\": 150,\n"}
+,{"stream_name":"stdout","time":241.362274279,"data":"      \"heldout_accuracy\": 0.4867,\n"}
+,{"stream_name":"stdout","time":241.362277076,"data":"      \"heldout_macro_f1\": 0.3752,\n"}
+,{"stream_name":"stdout","time":241.362279775,"data":"      \"heldout_macro_auroc\": 0.8274,\n"}
+,{"stream_name":"stdout","time":241.362282532,"data":"      \"heldout_seg_dice\": 0.8811\n"}
+,{"stream_name":"stdout","time":241.362296226,"data":"    },\n"}
+,{"stream_name":"stdout","time":241.362299064,"data":"    \"anterior\": {\n"}
+,{"stream_name":"stdout","time":241.362301785,"data":"      \"vision_model\": {\n"}
+,{"stream_name":"stdout","time":241.362304575,"data":"        \"model_file\": \"anterior_vision.onnx\",\n"}
+,{"stream_name":"stdout","time":241.362307407,"data":"        \"backbone\": \"mobilenetv3_small_100\",\n"}
+,{"stream_name":"stdout","time":241.362310414,"data":"        \"license\": \"Apache-2.0 / BSD-compatible\",\n"}
+,{"stream_name":"stdout","time":241.362313315,"data":"        \"classes\": [\n"}
+,{"stream_name":"stdout","time":241.362316086,"data":"          \"normal\",\n"}
+,{"stream_name":"stdout","time":241.362318794,"data":"          \"keratoconus\",\n"}
+,{"stream_name":"stdout","time":241.36232152,"data":"          \"suspect_kc\",\n"}
+,{"stream_name":"stdout","time":241.362324198,"data":"          \"cataract\",\n"}
+,{"stream_name":"stdout","time":241.362326992,"data":"          \"anterior_inflammatory\"\n"}
+,{"stream_name":"stdout","time":241.362329746,"data":"        ],\n"}
+,{"stream_name":"stdout","time":241.362332335,"data":"        \"input_size\": [\n"}
+,{"stream_name":"stdout","time":241.362335036,"data":"          3,\n"}
+,{"stream_name":"stdout","time":241.36233771,"data":"          160,\n"}
+,{"stream_name":"stdout","time":241.362340327,"data":"          160\n"}
+,{"stream_name":"stdout","time":241.362342912,"data":"        ],\n"}
+,{"stream_name":"stdout","time":241.362345495,"data":"        \"size_mb\": 5.817,\n"}
+,{"stream_name":"stdout","time":241.362348195,"data":"        \"heldout_accuracy\": 0.9367,\n"}
+,{"stream_name":"stdout","time":241.362350964,"data":"        \"heldout_macro_f1\": 0.9166\n"}
+,{"stream_name":"stdout","time":241.362353752,"data":"      },\n"}
+,{"stream_name":"stdout","time":241.362356857,"data":"      \"tabular_keratoconus\": {}\n"}
+,{"stream_name":"stdout","time":241.36236084,"data":"    },\n"}
+,{"stream_name":"stdout","time":241.362365006,"data":"    \"tabular_diabetes\": {\n"}
+,{"stream_name":"stdout","time":241.362367761,"data":"      \"model_file\": \"tabular_diabetes.onnx\",\n"}
+,{"stream_name":"stdout","time":241.362370547,"data":"      \"features\": [\n"}
+,{"stream_name":"stdout","time":241.362373238,"data":"        \"age_years\",\n"}
+,{"stream_name":"stdout","time":241.362375898,"data":"        \"hba1c_percent\",\n"}
+,{"stream_name":"stdout","time":241.362378556,"data":"        \"systolic_bp_mm_hg\",\n"}
+,{"stream_name":"stdout","time":241.362381281,"data":"        \"blood_glucose_proxy\"\n"}
+,{"stream_name":"stdout","time":241.36238399,"data":"      ],\n"}
+,{"stream_name":"stdout","time":241.362386559,"data":"      \"feature_importance\": {\n"}
+,{"stream_name":"stdout","time":241.362389254,"data":"        \"age_years\": 0.0,\n"}
+,{"stream_name":"stdout","time":241.362391952,"data":"        \"hba1c_percent\": 0.0597,\n"}
+,{"stream_name":"stdout","time":241.362394652,"data":"        \"systolic_bp_mm_hg\": 0.0,\n"}
+,{"stream_name":"stdout","time":241.36239739,"data":"        \"blood_glucose_proxy\": 0.0394\n"}
+,{"stream_name":"stdout","time":241.36240014,"data":"      },\n"}
+,{"stream_name":"stdout","time":241.362402742,"data":"      \"size_mb\": 0.039,\n"}
+,{"stream_name":"stdout","time":241.362405409,"data":"      \"heldout_auroc\": 0.9716\n"}
+,{"stream_name":"stdout","time":241.36240811,"data":"    },\n"}
+,{"stream_name":"stdout","time":241.362410669,"data":"    \"tabular_glaucoma\": {\n"}
+,{"stream_name":"stdout","time":241.362416865,"data":"      \"model_file\": \"tabular_glaucoma.onnx\",\n"}
+,{"stream_name":"stdout","time":241.362419767,"data":"      \"features\": [\n"}
+,{"stream_name":"stdout","time":241.362422441,"data":"        \"age_years\",\n"}
+,{"stream_name":"stdout","time":241.362425112,"data":"        \"iop_mm_hg\",\n"}
+,{"stream_name":"stdout","time":241.362427793,"data":"        \"central_corneal_thickness_um\",\n"}
+,{"stream_name":"stdout","time":241.362430555,"data":"        \"cup_to_disc_ratio\"\n"}
+,{"stream_name":"stdout","time":241.362445258,"data":"      ],\n"}
+,{"stream_name":"stdout","time":241.362447863,"data":"      \"size_mb\": 0.042,\n"}
+,{"stream_name":"stdout","time":241.362450662,"data":"      \"heldout_auroc\": 0.5038\n"}
+,{"stream_name":"stdout","time":241.362460646,"data":"    },\n"}
+,{"stream_name":"stdout","time":241.362463323,"data":"    \"visual_field\": {\n"}
+,{"stream_name":"stdout","time":241.362466144,"data":"      \"model_file\": \"visual_field_prog.onnx\",\n"}
+,{"stream_name":"stdout","time":241.36246904,"data":"      \"features\": [\n"}
+,{"stream_name":"stdout","time":241.362471729,"data":"        \"vf_md_db\",\n"}
+,{"stream_name":"stdout","time":241.362475404,"data":"        \"vf_md_slope_db_per_year\",\n"}
+,{"stream_name":"stdout","time":241.362478289,"data":"        \"iop_mm_hg\",\n"}
+,{"stream_name":"stdout","time":241.362480926,"data":"        \"age_years\"\n"}
+,{"stream_name":"stdout","time":241.362483675,"data":"      ],\n"}
+,{"stream_name":"stdout","time":241.362486267,"data":"      \"size_mb\": 0.004,\n"}
+,{"stream_name":"stdout","time":241.362489064,"data":"      \"heldout_auroc\": 0.9999,\n"}
+,{"stream_name":"stdout","time":241.362491803,"data":"      \"heldout_fast_progressor_f1\": 0.9918\n"}
+,{"stream_name":"stdout","time":241.362494675,"data":"    },\n"}
+,{"stream_name":"stdout","time":241.362497308,"data":"    \"masked_fusion\": {\n"}
+,{"stream_name":"stdout","time":241.362500175,"data":"      \"model_file\": \"masked_fusion.onnx\",\n"}
+,{"stream_name":"stdout","time":241.362502937,"data":"      \"size_mb\": 0.005,\n"}
+,{"stream_name":"stdout","time":241.362505735,"data":"      \"heldout_auroc_with_missing_modalities\": 1.0\n"}
+,{"stream_name":"stdout","time":241.362508533,"data":"    }\n"}
+,{"stream_name":"stdout","time":241.36251116,"data":"  }\n"}
+,{"stream_name":"stdout","time":241.362513743,"data":"}\n"}
+,{"stream_name":"stderr","time":247.145542132,"data":"/usr/local/lib/python3.13/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":247.145588532,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":247.411100151,"data":"/usr/local/lib/python3.13/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":247.411132219,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":248.342046472,"data":"[NbConvertApp] Converting notebook __script__.ipynb to html\n"}
+,{"stream_name":"stderr","time":249.121547809,"data":"[NbConvertApp] Writing 429522 bytes to __results__.html\n"}
+]

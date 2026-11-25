@@ -1,0 +1,104 @@
+[{"stream_name":"stdout","time":81.724394303,"data":"{'fundus': 720, 'oct': 500, 'topography': 500, 'slit_lamp': 500}\n"}
+,{"stream_name":"stdout","time":81.724487572,"data":"\n"}
+,{"stream_name":"stdout","time":81.724494463,"data":"=== T-A18a: Training Layer 1 Modality Router ===\n"}
+,{"stream_name":"stderr","time":82.121851784,"data":"Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.\n"}
+,{"stream_name":"stdout","time":105.552077109,"data":"  Router epoch 1/4 complete\n"}
+,{"stream_name":"stdout","time":120.218332142,"data":"  Router epoch 2/4 complete\n"}
+,{"stream_name":"stdout","time":134.938076651,"data":"  Router epoch 3/4 complete\n"}
+,{"stream_name":"stderr","time":141.774885719,"data":"/kaggle/src/script.py:329: DeprecationWarning: You are using the legacy TorchScript-based ONNX export. Starting in PyTorch 2.9, the new torch.export-based ONNX exporter has become the default. Learn more about the new export logic: https://docs.pytorch.org/docs/stable/onnx_export.html. For exporting control flow: https://pytorch.org/tutorials/beginner/onnx/export_control_flow_model_to_onnx_tutorial.html\n"}
+,{"stream_name":"stderr","time":141.774932449,"data":"  torch.onnx.export(\n"}
+,{"stream_name":"stdout","time":142.591154419,"data":"[ONNX] Exported modality_router.onnx (5.81 MB), max_diff=0.00002\n"}
+,{"stream_name":"stdout","time":142.598423846,"data":"\n"}
+,{"stream_name":"stdout","time":142.598462356,"data":"=== T-A18b: Training Layer 1 QC Gate (Blur / Lighting / OD-vs-OS) ===\n"}
+,{"stream_name":"stdout","time":149.425510847,"data":"  QC Gate epoch 1/5 complete\n"}
+,{"stream_name":"stdout","time":155.271273942,"data":"  QC Gate epoch 2/5 complete\n"}
+,{"stream_name":"stdout","time":161.007405208,"data":"  QC Gate epoch 3/5 complete\n"}
+,{"stream_name":"stderr","time":162.698238329,"data":"/kaggle/src/script.py:329: DeprecationWarning: You are using the legacy TorchScript-based ONNX export. Starting in PyTorch 2.9, the new torch.export-based ONNX exporter has become the default. Learn more about the new export logic: https://docs.pytorch.org/docs/stable/onnx_export.html. For exporting control flow: https://pytorch.org/tutorials/beginner/onnx/export_control_flow_model_to_onnx_tutorial.html\n"}
+,{"stream_name":"stderr","time":162.69827707,"data":"  torch.onnx.export(\n"}
+,{"stream_name":"stdout","time":163.268177311,"data":"[ONNX] Exported qc_gate.onnx (5.81 MB), max_diff=0.00101\n"}
+,{"stream_name":"stdout","time":163.27519419,"data":"\n"}
+,{"stream_name":"stdout","time":163.275234352,"data":"=== T-A19a: Training Layer 2 Fundus Specialist (Apache 2.0 DINOv2) ===\n"}
+,{"stream_name":"stdout","time":215.52613857,"data":"  Fundus DINOv2 probe 25/25 epochs complete\n"}
+,{"stream_name":"stderr","time":227.51995464,"data":"/kaggle/src/script.py:329: DeprecationWarning: You are using the legacy TorchScript-based ONNX export. Starting in PyTorch 2.9, the new torch.export-based ONNX exporter has become the default. Learn more about the new export logic: https://docs.pytorch.org/docs/stable/onnx_export.html. For exporting control flow: https://pytorch.org/tutorials/beginner/onnx/export_control_flow_model_to_onnx_tutorial.html\n"}
+,{"stream_name":"stderr","time":227.5200332,"data":"  torch.onnx.export(\n"}
+,{"stream_name":"stderr","time":227.530450524,"data":"/usr/local/lib/python3.13/dist-packages/torch/__init__.py:2253: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!\n"}
+,{"stream_name":"stderr","time":227.530497575,"data":"  if not condition:\n"}
+,{"stream_name":"stderr","time":229.559965189,"data":"WARNING:root:Please consider to run pre-processing before quantization. Refer to example: https://github.com/microsoft/onnxruntime-inference-examples/blob/main/quantization/image_classification/cpu/ReadMe.md \n"}
+,{"stream_name":"stdout","time":230.655746766,"data":"[ONNX] Exported fundus_dinov2.onnx (22.01 MB), max_diff=0.29244\n"}
+,{"stream_name":"stdout","time":231.34239379,"data":"KERNEL 1 DONE: {\n"}
+,{"stream_name":"stdout","time":231.342424103,"data":"  \"kernel\": \"bina-l1-router-qc-fundus-dinov2\",\n"}
+,{"stream_name":"stdout","time":231.342429501,"data":"  \"device\": \"cpu\",\n"}
+,{"stream_name":"stdout","time":231.342448599,"data":"  \"duration_seconds\": 205.24,\n"}
+,{"stream_name":"stdout","time":231.342452779,"data":"  \"commercial_license_compliant\": true,\n"}
+,{"stream_name":"stdout","time":231.342456896,"data":"  \"retfound_bundled\": false,\n"}
+,{"stream_name":"stdout","time":231.342460789,"data":"  \"zero_patient_leakage_verified\": true,\n"}
+,{"stream_name":"stdout","time":231.342464802,"data":"  \"models\": {\n"}
+,{"stream_name":"stdout","time":231.342468566,"data":"    \"modality_router\": {\n"}
+,{"stream_name":"stdout","time":231.342472848,"data":"      \"model_file\": \"modality_router.onnx\",\n"}
+,{"stream_name":"stdout","time":231.342476999,"data":"      \"backbone\": \"mobilenetv3_small_100\",\n"}
+,{"stream_name":"stdout","time":231.342481141,"data":"      \"license\": \"Apache-2.0 / BSD-compatible\",\n"}
+,{"stream_name":"stdout","time":231.342485263,"data":"      \"classes\": [\n"}
+,{"stream_name":"stdout","time":231.342488931,"data":"        \"fundus\",\n"}
+,{"stream_name":"stdout","time":231.342492583,"data":"        \"oct\",\n"}
+,{"stream_name":"stdout","time":231.342495968,"data":"        \"topography\",\n"}
+,{"stream_name":"stdout","time":231.342499923,"data":"        \"slit_lamp\"\n"}
+,{"stream_name":"stdout","time":231.342511965,"data":"      ],\n"}
+,{"stream_name":"stdout","time":231.342516141,"data":"      \"input_size\": [\n"}
+,{"stream_name":"stdout","time":231.342520004,"data":"        3,\n"}
+,{"stream_name":"stdout","time":231.342523721,"data":"        160,\n"}
+,{"stream_name":"stdout","time":231.342527579,"data":"        160\n"}
+,{"stream_name":"stdout","time":231.342531148,"data":"      ],\n"}
+,{"stream_name":"stdout","time":231.342534777,"data":"      \"size_mb\": 5.813,\n"}
+,{"stream_name":"stdout","time":231.342538363,"data":"      \"train_samples\": 911,\n"}
+,{"stream_name":"stdout","time":231.342542177,"data":"      \"test_samples\": 314,\n"}
+,{"stream_name":"stdout","time":231.342546018,"data":"      \"heldout_accuracy\": 1.0,\n"}
+,{"stream_name":"stdout","time":231.342550286,"data":"      \"heldout_macro_f1\": 1.0\n"}
+,{"stream_name":"stdout","time":231.342554161,"data":"    },\n"}
+,{"stream_name":"stdout","time":231.342558006,"data":"    \"qc_gate\": {\n"}
+,{"stream_name":"stdout","time":231.342561774,"data":"      \"model_file\": \"qc_gate.onnx\",\n"}
+,{"stream_name":"stdout","time":231.342565786,"data":"      \"outputs\": [\n"}
+,{"stream_name":"stdout","time":231.342569231,"data":"        \"blur_prob_logit\",\n"}
+,{"stream_name":"stdout","time":231.342572829,"data":"        \"bad_light_prob_logit\",\n"}
+,{"stream_name":"stdout","time":231.342577267,"data":"        \"od_laterality_prob_logit\"\n"}
+,{"stream_name":"stdout","time":231.342581043,"data":"      ],\n"}
+,{"stream_name":"stdout","time":231.342584509,"data":"      \"input_size\": [\n"}
+,{"stream_name":"stdout","time":231.342588235,"data":"        3,\n"}
+,{"stream_name":"stdout","time":231.342591953,"data":"        128,\n"}
+,{"stream_name":"stdout","time":231.342609722,"data":"        128\n"}
+,{"stream_name":"stdout","time":231.342613818,"data":"      ],\n"}
+,{"stream_name":"stdout","time":231.342617539,"data":"      \"size_mb\": 5.809,\n"}
+,{"stream_name":"stdout","time":231.342621456,"data":"      \"heldout_blur_auroc\": 0.9799,\n"}
+,{"stream_name":"stdout","time":231.34262538,"data":"      \"heldout_lighting_auroc\": 0.8125,\n"}
+,{"stream_name":"stdout","time":231.342629001,"data":"      \"heldout_od_os_accuracy\": 0.6034\n"}
+,{"stream_name":"stdout","time":231.34263308,"data":"    },\n"}
+,{"stream_name":"stdout","time":231.342636643,"data":"    \"fundus\": {\n"}
+,{"stream_name":"stdout","time":231.342640286,"data":"      \"model_file\": \"fundus_dinov2.onnx\",\n"}
+,{"stream_name":"stdout","time":231.342644069,"data":"      \"backbone\": \"vit_small_patch14_dinov2.lvd142m\",\n"}
+,{"stream_name":"stdout","time":231.342648081,"data":"      \"license\": \"Apache-2.0\",\n"}
+,{"stream_name":"stdout","time":231.34265221,"data":"      \"classes\": [\n"}
+,{"stream_name":"stdout","time":231.342656083,"data":"        \"normal\",\n"}
+,{"stream_name":"stdout","time":231.34265971600001,"data":"        \"cataract\",\n"}
+,{"stream_name":"stdout","time":231.342663935,"data":"        \"dr\",\n"}
+,{"stream_name":"stdout","time":231.342668223,"data":"        \"glaucoma\"\n"}
+,{"stream_name":"stdout","time":231.342671633,"data":"      ],\n"}
+,{"stream_name":"stdout","time":231.342675071,"data":"      \"input_size\": [\n"}
+,{"stream_name":"stdout","time":231.342678726,"data":"        3,\n"}
+,{"stream_name":"stdout","time":231.342682716,"data":"        224,\n"}
+,{"stream_name":"stdout","time":231.342686127,"data":"        224\n"}
+,{"stream_name":"stdout","time":231.342689703,"data":"      ],\n"}
+,{"stream_name":"stdout","time":231.342693682,"data":"      \"size_mb\": 22.014,\n"}
+,{"stream_name":"stdout","time":231.342697384,"data":"      \"train_samples\": 333,\n"}
+,{"stream_name":"stdout","time":231.342701043,"data":"      \"test_samples\": 76,\n"}
+,{"stream_name":"stdout","time":231.342704609,"data":"      \"heldout_accuracy\": 0.7763,\n"}
+,{"stream_name":"stdout","time":231.34270843,"data":"      \"heldout_macro_f1\": 0.7811,\n"}
+,{"stream_name":"stdout","time":231.342712148,"data":"      \"heldout_macro_auroc\": 0.9077\n"}
+,{"stream_name":"stdout","time":231.342716197,"data":"    }\n"}
+,{"stream_name":"stdout","time":231.342719672,"data":"  }\n"}
+,{"stream_name":"stdout","time":231.34272279,"data":"}\n"}
+,{"stream_name":"stderr","time":236.107756528,"data":"/usr/local/lib/python3.13/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":236.107797782,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":236.416307833,"data":"/usr/local/lib/python3.13/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":236.416340606,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":237.414667374,"data":"[NbConvertApp] Converting notebook __script__.ipynb to html\n"}
+,{"stream_name":"stderr","time":238.961508358,"data":"[NbConvertApp] Writing 415281 bytes to __results__.html\n"}
+]

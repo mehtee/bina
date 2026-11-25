@@ -1,0 +1,35 @@
+{
+  "kernel": "bina-ai-persian-nlp-and-r2-risk",
+  "duration_seconds": 1.17,
+  "commercial_license_compliant": true,
+  "zero_patient_leakage_verified": true,
+  "models": {
+    "persian_symptom_nlp": {
+      "model_file": "persian_symptom_nlp.onnx",
+      "feature_dim": 256,
+      "classes": [
+        "routine",
+        "moderate",
+        "red_flag"
+      ],
+      "size_mb": 0.0748,
+      "train_samples": 900,
+      "test_samples": 300,
+      "heldout_red_flag_recall": 1.0,
+      "heldout_red_flag_auroc": 1.0
+    },
+    "home_risk_r2": {
+      "model_file": "home_risk_r2.onnx",
+      "features": [
+        "va_delta_logmar",
+        "amsler_distortion_score",
+        "adherence_7d_ratio",
+        "iop_mmhg",
+        "days_since_surgery",
+        "consecutive_worsening_count"
+      ],
+      "size_mb": 0.0411,
+      "heldout_auroc": 0.9999
+    }
+  }
+}

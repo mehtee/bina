@@ -11,6 +11,7 @@ import '../features/auth_onboarding/auth_screens.dart';
 import '../features/care_plan/care_screens.dart';
 import '../features/care_plan/today_screen.dart';
 import '../features/caregiver/caregiver_screens.dart';
+import '../features/diagnostic_results/diagnostic_results_screens.dart';
 import '../features/education/education_screens.dart';
 import '../features/preview_harness/preview_harness_screen.dart';
 import '../features/symptoms_sos/sos_screens.dart';
@@ -117,6 +118,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/caregiver/accept', builder: (_, _) => const CaregiverAcceptScreen()),
       GoRoute(path: '/caregiver/patients', builder: (_, _) => const CaregiverPatientsScreen()),
       GoRoute(path: '/caregiver/revoked', builder: (_, _) => const CaregiverRevokedScreen()),
+      GoRoute(
+        path: '/results/:signedReportId',
+        builder: (_, state) => SignedReportDetailScreen(
+          signedReportId: state.pathParameters['signedReportId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/results/:signedReportId/follow-up',
+        builder: (_, state) => ReportFollowUpScreen(
+          signedReportId: state.pathParameters['signedReportId']!,
+        ),
+      ),
       GoRoute(path: '/account/profile', builder: (_, _) => const ProfileScreen()),
       GoRoute(path: '/account/settings', builder: (_, _) => const SettingsScreen()),
       GoRoute(path: '/account/appearance', builder: (_, _) => const AppearanceScreen()),
@@ -194,11 +207,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               routes: [
                 GoRoute(
                   path: BinaDestinationId.results.path,
-                  builder: (context, state) => const Wave0PlaceholderPage(
-                    routeId: 'RES-01 (V04)',
-                    titleFa: 'نتایج',
-                    subtitleFa: 'خلاصه تشخیصی تأییدشده پزشک (T-B19)',
-                  ),
+                  builder: (_, _) => const ResultsScreen(),
                 ),
               ],
             ),

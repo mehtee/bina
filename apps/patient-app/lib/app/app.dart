@@ -12,6 +12,7 @@ class BinaPatientApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final highContrast = ref.watch(highContrastProvider);
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
@@ -26,18 +27,9 @@ class BinaPatientApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       themeMode: themeMode,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.light,
-        fontFamily: 'Vazirmatn',
-        scaffoldBackgroundColor: const Color(0xFFECF8F9),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        fontFamily: 'Vazirmatn',
-        scaffoldBackgroundColor: const Color(0xFF091B20),
-      ),
+      themeAnimationDuration: BinaMotion.expand,
+      theme: buildBinaTheme(Brightness.light, highContrast: highContrast),
+      darkTheme: buildBinaTheme(Brightness.dark, highContrast: highContrast),
       routerConfig: router,
     );
   }

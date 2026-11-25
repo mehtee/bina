@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/config/app_config.dart';
 import '../core/data/http_outbox_transport.dart';
 import '../core/data/patient_gateway.dart';
+import '../core/data/session_cache_repository.dart';
 import '../core/i18n/bina_i18n.dart';
 
 final appConfigProvider = Provider<AppConfig>((ref) => AppConfig.fromEnvironment());
@@ -45,16 +46,16 @@ class SessionNotifier extends Notifier<AuthSessionContext?> {
 
   void setSession(AuthSessionContext? session) => state = session;
 
-  Future<void> signOutAndPurge(OfflineStorePort store, OutboxQueuePort outbox) async {
+  Future<void> signOutAndPurge() async {
     final current = state;
     if (current != null) {
-      final partition = StoragePartitionKey(
-        tenantId: current.tenantId,
-        patientId: current.patientId,
-        actorId: current.actorPartitionId,
-      );
-      await store.purgePartition(partition);
-      await outbox.purgePartition(partition);
+      final partition = SessionCacheRepository.partitionFor(current);
+      await ref.read(offlineStoreProvider).purgePartition(partition);
+      await ref.read(outboxQueueProvider).purgePartition(partition);
+      await ref.read(localReminderPortProvider).cancelForPatient(
+            tenantId: current.tenantId,
+            patientId: current.patientId,
+          );
     }
     state = null;
   }
@@ -76,14 +77,24 @@ final patientGatewayProvider = Provider<PatientGatewayPort>((ref) {
 
 final offlineStoreProvider = Provider<OfflineStorePort>((ref) => InMemoryOfflineStore());
 
+final sessionCacheRepositoryProvider = Provider<SessionCacheRepository>(
+  (ref) => SessionCacheRepository(ref.watch(offlineStoreProvider)),
+);
+
 final outboxQueueProvider = Provider<OutboxQueuePort>((ref) {
   final gateway = ref.watch(patientGatewayProvider);
-  return InMemoryOutboxQueue(
+  final store = ref.watch(offlineStoreProvider);
+  return PersistentOutboxQueue(
+    store: store,
     transport: PatientOutboxTransport(
       gateway: gateway,
       sessionProvider: () => ref.read(sessionProvider),
     ),
   );
+});
+
+final localReminderPortProvider = Provider<LocalReminderPort>((ref) {
+  return InMemoryLocalReminderAdapter();
 });
 
 final sensorPortProvider = Provider<SensorPreflightPort>((ref) {

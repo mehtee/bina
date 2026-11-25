@@ -63,6 +63,50 @@ class OutboxEntry {
       failureReasonFa: failureReasonFa ?? this.failureReasonFa,
     );
   }
+
+  Map<String, Object?> toJson() => <String, Object?>{
+        'idempotencyKey': idempotencyKey,
+        'tenantId': partition.tenantId,
+        'patientId': partition.patientId,
+        'actorId': partition.actorId,
+        'operationType': operationType,
+        'endpointPath': endpointPath,
+        'payloadJson': payloadJson,
+        'createdAtUtc': createdAtUtc.toUtc().toIso8601String(),
+        'status': status.name,
+        'eyeLaterality': eyeLaterality,
+        'prescriptionVersion': prescriptionVersion,
+        'attemptCount': attemptCount,
+        'acknowledgedAtUtc': acknowledgedAtUtc?.toUtc().toIso8601String(),
+        'failureReasonFa': failureReasonFa,
+      };
+
+  static OutboxEntry fromJson(Map<String, Object?> json) {
+    final statusName = json['status']! as String;
+    final statusVal = OutboxSyncStatus.values.firstWhere(
+      (s) => s.name == statusName,
+      orElse: () => OutboxSyncStatus.pendingUpload,
+    );
+    final ackRaw = json['acknowledgedAtUtc'] as String?;
+    return OutboxEntry(
+      idempotencyKey: json['idempotencyKey']! as String,
+      partition: StoragePartitionKey(
+        tenantId: json['tenantId']! as String,
+        patientId: json['patientId']! as String,
+        actorId: json['actorId']! as String,
+      ),
+      operationType: json['operationType']! as String,
+      endpointPath: json['endpointPath']! as String,
+      payloadJson: json['payloadJson']! as String,
+      createdAtUtc: DateTime.parse(json['createdAtUtc']! as String).toUtc(),
+      status: statusVal,
+      eyeLaterality: json['eyeLaterality'] as String?,
+      prescriptionVersion: (json['prescriptionVersion'] as num?)?.toInt(),
+      attemptCount: (json['attemptCount'] as num?)?.toInt() ?? 0,
+      acknowledgedAtUtc: ackRaw != null ? DateTime.parse(ackRaw).toUtc() : null,
+      failureReasonFa: json['failureReasonFa'] as String?,
+    );
+  }
 }
 
 typedef OutboxStatusValue = OutboxSyncStatus;

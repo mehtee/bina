@@ -55,6 +55,18 @@ final class PatientOutboxTransport implements OutboxTransportPort {
           acknowledgedAtUtc: DateTime.now().toUtc(),
         );
       }
+      if (entry.operationType == 'home_vision_test') {
+        final req = HomeVisionTestRequest.fromJson(decoded['request']! as Map<String, Object?>);
+        await gateway.submitHomeVisionTest(
+          session: session,
+          idempotencyKey: entry.idempotencyKey,
+          request: req,
+        );
+        return OutboxDispatchResult(
+          status: OutboxSyncStatus.acknowledged,
+          acknowledgedAtUtc: DateTime.now().toUtc(),
+        );
+      }
       return const OutboxDispatchResult(
         status: OutboxSyncStatus.conflictOrRejected,
         failureReasonFa: 'نوع عملیات پشتیبانی نمی‌شود.',

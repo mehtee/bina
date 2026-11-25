@@ -124,6 +124,10 @@ final localReminderPortProvider = Provider<LocalReminderPort>((ref) {
   return InMemoryLocalReminderAdapter();
 });
 
+final deviceQualificationPortProvider = Provider<DeviceQualificationPort>((ref) {
+  return const WebVerificationSensorAdapter();
+});
+
 final sensorPortProvider = Provider<SensorPreflightPort>((ref) {
   return const WebVerificationSensorAdapter();
 });

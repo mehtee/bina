@@ -97,6 +97,17 @@ abstract interface class PatientGatewayPort {
 
   Future<PatientDiagnosticSummaryList> listDiagnosticSummaries(AuthSessionContext session);
 
+  Future<CalibrationProfileResponse> registerCalibrationProfile({
+    required AuthSessionContext session,
+    required CalibrationProfileRequest request,
+  });
+
+  Future<HomeVisionTestResponse> submitHomeVisionTest({
+    required AuthSessionContext session,
+    required String idempotencyKey,
+    required HomeVisionTestRequest request,
+  });
+
   Future<PatientVisionTrendsResponse> getVisionTrends(AuthSessionContext session);
 }
 
@@ -493,6 +504,46 @@ class MockPatientGateway implements PatientGatewayPort {
   }
 
   @override
+  Future<CalibrationProfileResponse> registerCalibrationProfile({
+    required AuthSessionContext session,
+    required CalibrationProfileRequest request,
+  }) async {
+    return CalibrationProfileResponse(
+      calibrationProfileId: 'cal-${session.patientId}-v1',
+      patientId: session.patientId,
+      screenWidthMm: request.screenWidthMm,
+      viewingDistanceCm: request.viewingDistanceCm,
+      calibratedBy: request.calibratedBy,
+      verified: request.verified ?? true,
+      createdAt: DateTime.now().toUtc().toIso8601String(),
+    );
+  }
+
+  @override
+  Future<HomeVisionTestResponse> submitHomeVisionTest({
+    required AuthSessionContext session,
+    required String idempotencyKey,
+    required HomeVisionTestRequest request,
+  }) async {
+    final qcOk = request.viewingDistanceCm >= 25.0 &&
+        request.ambientLux >= 50.0 &&
+        request.deviceTiltDeg <= 25.0 &&
+        !(request.glareDetected ?? false);
+    return HomeVisionTestResponse(
+      testId: idempotencyKey,
+      eyeLaterality: request.eyeLaterality,
+      eyeLabelFa: request.eyeLaterality == EyeLaterality.oD ? 'چشم راست' : 'چشم چپ',
+      testType: request.testType,
+      qualityPassed: qcOk,
+      qualityIssuesFa: qcOk ? const <String>[] : const <String>['شرایط نور، فاصله یا ثبات دستگاه کافی نبود'],
+      triggeredTriageCaseId: null,
+      guidanceFa: qcOk
+          ? 'نتیجه آزمون با کیفیت قابل قبول ثبت شد و برای بررسی تیم درمان در دسترس است.'
+          : 'کیفیت آزمون تأیید نشد؛ لطفاً در شرایط نوری و فاصله مناسب دوباره آزمون دهید.',
+    );
+  }
+
+  @override
   Future<PatientVisionTrendsResponse> getVisionTrends(AuthSessionContext session) async {
     final json = await _loadFixture();
     return PatientVisionTrendsResponse.fromJson(json['r2Trends']! as Map<String, Object?>);
@@ -701,6 +752,33 @@ final class HttpPatientGateway implements PatientGatewayPort {
       headers: _headers(session: session),
     );
     return PatientDiagnosticSummaryList.fromJson(_decodeJson(res));
+  }
+
+  @override
+  Future<CalibrationProfileResponse> registerCalibrationProfile({
+    required AuthSessionContext session,
+    required CalibrationProfileRequest request,
+  }) async {
+    final res = await _client.post(
+      _uri('/v1/r2/calibration-profiles'),
+      headers: _headers(session: session),
+      body: jsonEncode(request.toJson()),
+    );
+    return CalibrationProfileResponse.fromJson(_decodeJson(res));
+  }
+
+  @override
+  Future<HomeVisionTestResponse> submitHomeVisionTest({
+    required AuthSessionContext session,
+    required String idempotencyKey,
+    required HomeVisionTestRequest request,
+  }) async {
+    final res = await _client.post(
+      _uri('/v1/r2/home-tests'),
+      headers: _headers(session: session, idempotencyKey: idempotencyKey),
+      body: jsonEncode(request.toJson()),
+    );
+    return HomeVisionTestResponse.fromJson(_decodeJson(res));
   }
 
   @override

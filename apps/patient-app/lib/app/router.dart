@@ -15,6 +15,7 @@ import '../features/diagnostic_results/diagnostic_results_screens.dart';
 import '../features/education/education_screens.dart';
 import '../features/preview_harness/preview_harness_screen.dart';
 import '../features/symptoms_sos/sos_screens.dart';
+import '../features/vision_testing/vision_testing_screens.dart';
 import '../shared/scaffold_placeholder.dart';
 import 'providers.dart';
 
@@ -130,6 +131,43 @@ final routerProvider = Provider<GoRouter>((ref) {
           signedReportId: state.pathParameters['signedReportId']!,
         ),
       ),
+      GoRoute(path: '/tests/history', builder: (_, _) => const TestHistoryScreen()),
+      GoRoute(
+        path: '/tests/:assignmentId/eligibility',
+        builder: (_, state) => TestEligibilityScreen(assignmentId: state.pathParameters['assignmentId']!),
+      ),
+      GoRoute(
+        path: '/tests/:assignmentId/eye',
+        builder: (_, state) => TestEyeConfirmScreen(assignmentId: state.pathParameters['assignmentId']!),
+      ),
+      GoRoute(
+        path: '/tests/:assignmentId/instructions',
+        builder: (_, state) => TestInstructionsScreen(assignmentId: state.pathParameters['assignmentId']!),
+      ),
+      GoRoute(
+        path: '/tests/:assignmentId/calibration',
+        builder: (_, state) => TestCalibrationScreen(assignmentId: state.pathParameters['assignmentId']!),
+      ),
+      GoRoute(
+        path: '/tests/:assignmentId/practice',
+        builder: (_, state) => TestPracticeScreen(assignmentId: state.pathParameters['assignmentId']!),
+      ),
+      GoRoute(
+        path: '/tests/:assignmentId/preflight',
+        builder: (_, state) => TestPreflightScreen(assignmentId: state.pathParameters['assignmentId']!),
+      ),
+      GoRoute(
+        path: '/tests/:assignmentId/run/landolt',
+        builder: (_, state) => LandoltSessionScreen(assignmentId: state.pathParameters['assignmentId']!),
+      ),
+      GoRoute(
+        path: '/tests/:assignmentId/run/amsler',
+        builder: (_, state) => AmslerSessionScreen(assignmentId: state.pathParameters['assignmentId']!),
+      ),
+      GoRoute(
+        path: '/tests/:assignmentId/receipt',
+        builder: (_, state) => TestQualityReceiptScreen(assignmentId: state.pathParameters['assignmentId']!),
+      ),
       GoRoute(path: '/account/profile', builder: (_, _) => const ProfileScreen()),
       GoRoute(path: '/account/settings', builder: (_, _) => const SettingsScreen()),
       GoRoute(path: '/account/appearance', builder: (_, _) => const AppearanceScreen()),
@@ -194,11 +232,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               routes: [
                 GoRoute(
                   path: BinaDestinationId.tests.path,
-                  builder: (context, state) => const Wave0PlaceholderPage(
-                    routeId: 'TEST-01 (V03)',
-                    titleFa: 'آزمون‌ها',
-                    subtitleFa: 'آزمون‌های بینایی خانگی کالیبره‌شده (T-B22)',
-                  ),
+                  builder: (_, _) => const TestsHubScreen(),
                 ),
               ],
             ),

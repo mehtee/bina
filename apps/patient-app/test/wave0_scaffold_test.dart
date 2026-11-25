@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:bina_api_dtos/bina_api_dtos.dart';
@@ -61,6 +62,7 @@ void main() {
     final appFix = File('assets/contracts/v01-v09-preview.json').readAsStringSync();
     final pkgFix = File('../../packages/clinical-fixtures/fixtures/v01-v09-preview.json').readAsStringSync();
     expect(appFix, pkgFix);
+    expect(MockPatientGateway.defaultPreviewFixtureJson, equals(jsonDecode(appFix)));
   });
 
   test('BinaBrand & BinaI18nCatalog centralize brand and normalize fa-IR / +98 / OD-OS', () async {
@@ -222,7 +224,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('امروز'), findsWidgets);
-    expect(find.text('کمک فوری'), findsOneWidget);
+    expect(find.text('کمک فوری'), findsWidgets);
 
     await tester.tap(find.text('پیش‌نمایش V01–V09'));
     await tester.pumpAndSettle();

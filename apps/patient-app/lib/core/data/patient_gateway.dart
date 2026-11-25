@@ -60,6 +60,11 @@ abstract interface class PatientGatewayPort {
 
   Future<PatientEpisodeListResponse> listPatientEpisodes(AuthSessionContext session);
 
+  Future<AdherenceEventListResponse> listMedicationAdherence({
+    required AuthSessionContext session,
+    required String episodeId,
+  });
+
   Future<AdherenceEventResponse> recordMedicationAdherence({
     required AuthSessionContext session,
     required String episodeId,
@@ -93,18 +98,146 @@ abstract interface class PatientGatewayPort {
   Future<PatientVisionTrendsResponse> getVisionTrends(AuthSessionContext session);
 }
 
-/// Deterministic contract mock adapter reading `assets/contracts/v01-v09-preview.json`.
-final class MockPatientGateway implements PatientGatewayPort {
-  MockPatientGateway({AssetBundle? bundle, String fixturePath = 'assets/contracts/v01-v09-preview.json'})
-      : _bundle = bundle,
+/// Deterministic contract mock adapter reading `assets/contracts/v01-v09-preview.json`
+/// or resolving [defaultPreviewFixtureJson] synchronously without blocking FakeAsync tests.
+class MockPatientGateway implements PatientGatewayPort {
+  MockPatientGateway({
+    AssetBundle? bundle,
+    bool useAssetBundle = false,
+    String fixturePath = 'assets/contracts/v01-v09-preview.json',
+  })  : _bundle = bundle,
+        _useAssetBundle = useAssetBundle,
         _fixturePath = fixturePath;
 
   final AssetBundle? _bundle;
+  final bool _useAssetBundle;
   final String _fixturePath;
   Map<String, Object?>? _cachedJson;
 
+  static const Map<String, Object?> defaultPreviewFixtureJson = <String, Object?>{
+    'schemaVersion': '1.0.0',
+    'syntheticNotice':
+        '100% synthetic golden clinical fixtures for V01-V09 preview harness and R1/W3/W4 tests. Zero real PHI.',
+    'clinic': <String, Object?>{
+      'clinicId': '11111111-1111-4111-8111-111111111111',
+      'tenantId': '00000000-0000-4000-8000-000000000001',
+      'nameFa': 'کلینیک فوق‌تخصصی چشم نور تهران',
+      'locale': 'fa-IR',
+      'calendarMode': 'jalali',
+      'emergencyPhone': '+982182400000',
+      'staffedHoursFa': 'شنبه تا چهارشنبه ۸ تا ۲۰ — پنج‌شنبه ۸ تا ۱۴',
+      'todayJalali': '۱۴۰۵/۰۹/۰۲',
+      'currentlyStaffed': true,
+    },
+    'patient': <String, Object?>{
+      'patientId': '22222222-2222-4222-8222-222222222222',
+      'fullNameFa': 'علی رضایی (نمونه)',
+      'phoneMasked': '+98912***6789',
+      'preferredLocale': 'fa-IR',
+      'accessMode': 'app',
+    },
+    'todayPlan': <String, Object?>{
+      'todayJalali': '۱۴۰۵/۰۹/۰۲',
+      'emergencyHotlinePhone': '+982182400000',
+      'clinicStaffedHoursFa': 'همه‌روزه ۸ تا ۲۰؛ در ساعات غیرکاری به اورژانس چشم مراجعه کنید',
+      'scheduleItems': <Object?>[
+        <String, Object?>{
+          'episodeId': '33333333-3333-4333-8333-333333333331',
+          'prescriptionVersion': 2,
+          'eyeLaterality': 'OD',
+          'eyeLabelFa': 'چشم راست',
+          'drugNameFa': 'قطره بتامتازون چشمی ۰.۱٪',
+          'bottleCapColorFa': 'درِ صورتی',
+          'scheduledTimeJalali': '۱۴۰۵/۰۹/۰۲ — ۱۴:۰۰',
+          'instructionsFa': 'یک قطره در چشم راست، ۵ دقیقه فاصله با قطره بعدی',
+          'taken': false,
+        },
+        <String, Object?>{
+          'episodeId': '33333333-3333-4333-8333-333333333331',
+          'prescriptionVersion': 2,
+          'eyeLaterality': 'OD',
+          'eyeLabelFa': 'چشم راست',
+          'drugNameFa': 'قطره سیپروفلوکساسین ۰.۳٪',
+          'bottleCapColorFa': 'درِ سفید',
+          'scheduledTimeJalali': '۱۴۰۵/۰۹/۰۲ — ۱۴:۰۵',
+          'instructionsFa': 'یک قطره در چشم راست (۴ بار در روز)',
+          'taken': true,
+        },
+        <String, Object?>{
+          'episodeId': '33333333-3333-4333-8333-333333333332',
+          'prescriptionVersion': 1,
+          'eyeLaterality': 'OS',
+          'eyeLabelFa': 'چشم چپ',
+          'drugNameFa': 'قطره اشک مصنوعی بدون نگهدارنده',
+          'bottleCapColorFa': 'درِ آبی',
+          'scheduledTimeJalali': '۱۴۰۵/۰۹/۰۲ — ۱۶:۰۰',
+          'instructionsFa': 'یک قطره در چشم چپ در صورت خشکی',
+          'taken': false,
+        },
+      ],
+    },
+    'caregivers': <Object?>[
+      <String, Object?>{
+        'grantId': '44444444-4444-4444-8444-444444444441',
+        'patientId': '22222222-2222-4222-8222-222222222222',
+        'caregiverPhone': '***',
+        'relationshipFa': 'فرزند بیمار',
+        'scopes': <Object?>['care_plan:read', 'adherence:write'],
+        'active': true,
+        'createdAt': '2026-11-20T08:30:00.000Z',
+      },
+    ],
+    'diagnosticSummaries': <Object?>[
+      <String, Object?>{
+        'studyId': '55555555-5555-4555-8555-555555555551',
+        'signedAtJalali': '۱۴۰۵/۰۸/۲۹',
+        'eyeLabelFa': 'چشم راست',
+        'urgencyTier': 'followup_3_6m',
+        'urgencyLabelFa': 'پیگیری ۳ تا ۶ ماه',
+        'patientGuidanceFa':
+            'تصویربرداری شبکیه و OCT شما توسط چشم‌پزشک بررسی و تایید شد. وضعیت فعلی پایدار است و معاینه کنترلی طی ۳ ماه آینده توصیه می‌شود.',
+        'nextStepFa': 'هماهنگی نوبت ویزیت سه‌ماهه با پذیرش کلینیک',
+      },
+    ],
+    'r2Trends': <String, Object?>{
+      'patientId': '22222222-2222-4222-8222-222222222222',
+      'od': <Object?>[
+        <String, Object?>{
+          'testId': '66666666-6666-4666-8666-666666666661',
+          'testType': 'landolt_c',
+          'eyeLaterality': 'OD',
+          'vaLogmar': 0.1,
+          'amslerDistortionScore': null,
+          'recordedAt': '2026-11-18T09:00:00.000Z',
+        },
+        <String, Object?>{
+          'testId': '66666666-6666-4666-8666-666666666662',
+          'testType': 'landolt_c',
+          'eyeLaterality': 'OD',
+          'vaLogmar': 0.08,
+          'amslerDistortionScore': null,
+          'recordedAt': '2026-11-23T09:15:00.000Z',
+        },
+      ],
+      'os': <Object?>[
+        <String, Object?>{
+          'testId': '66666666-6666-4666-8666-666666666663',
+          'testType': 'amsler',
+          'eyeLaterality': 'OS',
+          'vaLogmar': null,
+          'amslerDistortionScore': 0.0,
+          'recordedAt': '2026-11-23T09:20:00.000Z',
+        },
+      ],
+    },
+  };
+
   Future<Map<String, Object?>> _loadFixture() async {
     if (_cachedJson != null) return _cachedJson!;
+    if (_bundle == null && !_useAssetBundle) {
+      _cachedJson = defaultPreviewFixtureJson;
+      return _cachedJson!;
+    }
     final raw = await (_bundle ?? rootBundle).loadString(_fixturePath);
     _cachedJson = jsonDecode(raw) as Map<String, Object?>;
     return _cachedJson!;
@@ -235,6 +368,24 @@ final class MockPatientGateway implements PatientGatewayPort {
             ],
             publishedAt: '2026-11-19T08:00:00.000Z',
           ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Future<AdherenceEventListResponse> listMedicationAdherence({
+    required AuthSessionContext session,
+    required String episodeId,
+  }) async {
+    return AdherenceEventListResponse(
+      items: <AdherenceEventResponse>[
+        AdherenceEventResponse(
+          eventId: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1',
+          episodeId: episodeId,
+          state: AdherenceState.taken,
+          deduplicated: false,
+          recordedAt: '2026-11-24T10:30:00.000Z',
         ),
       ],
     );
@@ -454,6 +605,18 @@ final class HttpPatientGateway implements PatientGatewayPort {
       headers: _headers(session: session),
     );
     return PatientEpisodeListResponse.fromJson(_decodeJson(res));
+  }
+
+  @override
+  Future<AdherenceEventListResponse> listMedicationAdherence({
+    required AuthSessionContext session,
+    required String episodeId,
+  }) async {
+    final res = await _client.get(
+      _uri('/v1/episodes/$episodeId/adherence'),
+      headers: _headers(session: session),
+    );
+    return AdherenceEventListResponse.fromJson(_decodeJson(res));
   }
 
   @override

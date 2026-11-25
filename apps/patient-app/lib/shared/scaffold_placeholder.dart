@@ -19,35 +19,24 @@ class Wave0ShellScaffold extends ConsumerWidget {
     final destinations = BinaDestinationId.enabledFor(config);
     final currentIndex = navigationShell.currentIndex.clamp(0, destinations.length - 1);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(BinaBrand.appNameFa),
-        actions: <Widget>[
+    return BinaShellLayout(
+      navItems: destinations.map((d) => d.toNavItem()).toList(growable: false),
+      selectedIndex: currentIndex,
+      onSelectTab: (idx) {
+        navigationShell.goBranch(idx, initialLocation: idx == navigationShell.currentIndex);
+      },
+      body: Column(
+        children: <Widget>[
           if (config.enablePreviewHarness)
-            TextButton(
-              onPressed: () => context.push('/__preview'),
-              child: const Text('پیش‌نمایش V01–V09'),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                onPressed: () => context.push('/__preview'),
+                icon: const Icon(Icons.preview_outlined, size: 18),
+                label: const Text('پیش‌نمایش V01–V09'),
+              ),
             ),
-          TextButton.icon(
-            onPressed: () => context.push('/help/urgent'),
-            icon: const Icon(Icons.phone_in_talk_rounded),
-            label: const Text('کمک فوری'),
-          ),
-        ],
-      ),
-      body: SafeArea(child: navigationShell),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: currentIndex,
-        onDestinationSelected: (idx) {
-          navigationShell.goBranch(idx, initialLocation: idx == navigationShell.currentIndex);
-        },
-        destinations: <NavigationDestination>[
-          for (final dest in destinations)
-            NavigationDestination(
-              icon: Icon(dest.icon),
-              selectedIcon: Icon(dest.selectedIcon),
-              label: dest.labelFa,
-            ),
+          Expanded(child: navigationShell),
         ],
       ),
     );

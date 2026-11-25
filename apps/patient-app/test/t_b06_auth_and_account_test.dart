@@ -131,7 +131,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(AccountScreen), findsOneWidget);
 
-    await tester.scrollUntilVisible(find.text('خروج از حساب'), 200);
+    final accScroll = find.descendant(
+      of: find.byType(AccountScreen),
+      matching: find.byType(Scrollable),
+    );
+    await tester.scrollUntilVisible(find.text('خروج از حساب'), 200, scrollable: accScroll);
     await tester.tap(find.text('خروج از حساب'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('خروج'));

@@ -1,4 +1,5 @@
 import 'package:bina_design_system/bina_design_system.dart';
+import 'package:bina_offline_store/bina_offline_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,8 @@ import '../core/config/app_config.dart';
 import '../core/data/patient_gateway.dart';
 import '../features/account/account_screens.dart';
 import '../features/auth_onboarding/auth_screens.dart';
+import '../features/care_plan/care_screens.dart';
+import '../features/care_plan/today_screen.dart';
 import '../features/preview_harness/preview_harness_screen.dart';
 import '../shared/scaffold_placeholder.dart';
 import 'providers.dart';
@@ -85,6 +88,33 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/account/sync', builder: (_, _) => const SyncStatusScreen()),
       GoRoute(path: '/account/clinic', builder: (_, _) => const ClinicInfoScreen()),
       GoRoute(path: '/account/help', builder: (_, _) => const AppHelpScreen()),
+      GoRoute(path: '/care/medications', builder: (_, _) => const MedicationsListScreen()),
+      GoRoute(
+        path: '/care/episode/:episodeId',
+        builder: (_, state) => EpisodeDetailScreen(episodeId: state.pathParameters['episodeId']!),
+      ),
+      GoRoute(
+        path: '/care/dose/:doseId',
+        builder: (_, state) => MedicationDetailScreen(doseOrMedicationKey: state.pathParameters['doseId']!),
+      ),
+      GoRoute(
+        path: '/care/medication/:medicationId',
+        builder: (_, state) =>
+            MedicationDetailScreen(doseOrMedicationKey: state.pathParameters['medicationId']!),
+      ),
+      GoRoute(
+        path: '/care/dose/:doseId/record',
+        builder: (_, state) => DoseRecordScreen(doseKey: state.pathParameters['doseId']!),
+      ),
+      GoRoute(
+        path: '/care/receipt/:eventId',
+        builder: (_, state) => DoseReceiptScreen(
+          eventId: state.pathParameters['eventId']!,
+          entry: state.extra is OutboxEntry ? state.extra! as OutboxEntry : null,
+        ),
+      ),
+      GoRoute(path: '/care/history', builder: (_, _) => const AdherenceHistoryScreen()),
+      GoRoute(path: '/care/instructions', builder: (_, _) => const CareInstructionsScreen()),
       if (config.enablePreviewHarness)
         GoRoute(path: '/__preview', builder: (_, _) => const PreviewHarnessScreen()),
       StatefulShellRoute.indexedStack(
@@ -96,11 +126,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: BinaDestinationId.today.path,
-                builder: (context, state) => const Wave0PlaceholderPage(
-                  routeId: 'CARE-01 (V01)',
-                  titleFa: 'امروز',
-                  subtitleFa: 'اسکفولد آماده است — پیاده‌سازی کامل در T-B07',
-                ),
+                builder: (_, _) => const TodayScreen(),
               ),
             ],
           ),
@@ -108,11 +134,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: BinaDestinationId.care.path,
-                builder: (context, state) => const Wave0PlaceholderPage(
-                  routeId: 'CARE-02 (V02)',
-                  titleFa: 'مراقبت',
-                  subtitleFa: 'فهرست داروها، برنامه درمان و آموزش فارسی (T-B07/T-B08)',
-                ),
+                builder: (_, _) => const CareHubScreen(),
               ),
             ],
           ),

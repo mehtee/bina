@@ -156,35 +156,45 @@ class _TestsHubScreenState extends ConsumerState<TestsHubScreen> {
             onChanged: (v) => setState(() => _previewEye = v),
           ),
           const SizedBox(height: 16),
-          const Row(
-            children: <Widget>[
-              Expanded(
-                child: BinaMetricTile(
-                  label: 'فشار چشم (IOP)',
-                  value: 'اندازه‌گیری',
-                  footer: 'خانگی (مرجع بصری)',
-                  leadingStatus: BinaIconWell(
-                    kind: BinaWellKind.test,
-                    icon: Icons.speed_rounded,
-                    size: 44,
-                  ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final stackTiles =
+                  constraints.maxWidth < 340 || MediaQuery.textScalerOf(context).scale(16) >= 24;
+              const t1 = BinaMetricTile(
+                label: 'فشار چشم (IOP)',
+                value: 'اندازه‌گیری',
+                footer: 'خانگی (مرجع بصری)',
+                leadingStatus: BinaIconWell(
+                  kind: BinaWellKind.test,
+                  icon: Icons.speed_rounded,
+                  size: 44,
                 ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: BinaMetricTile(
-                  label: 'میدان بینایی (VF)',
-                  value: 'آزمون',
-                  mintAccent: true,
-                  footer: 'خانگی (مرجع بصری)',
-                  leadingStatus: BinaIconWell(
-                    kind: BinaWellKind.plan,
-                    icon: Icons.grid_view_rounded,
-                    size: 44,
-                  ),
+              );
+              const t2 = BinaMetricTile(
+                label: 'میدان بینایی (VF)',
+                value: 'آزمون',
+                mintAccent: true,
+                footer: 'خانگی (مرجع بصری)',
+                leadingStatus: BinaIconWell(
+                  kind: BinaWellKind.plan,
+                  icon: Icons.grid_view_rounded,
+                  size: 44,
                 ),
-              ),
-            ],
+              );
+              if (stackTiles) {
+                return const Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[t1, SizedBox(height: 12), t2],
+                );
+              }
+              return const Row(
+                children: <Widget>[
+                  Expanded(child: t1),
+                  SizedBox(width: 12),
+                  Expanded(child: t2),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 20),
           Text('آزمون‌های برنامه‌ریزی‌شده', style: Theme.of(context).textTheme.headlineSmall),

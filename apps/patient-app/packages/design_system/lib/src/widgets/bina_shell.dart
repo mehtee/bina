@@ -111,14 +111,17 @@ class _DockTabButton extends StatelessWidget {
                   children: <Widget>[
                     Icon(selected ? item.selectedIcon : item.icon, size: 24, color: fg),
                     const SizedBox(height: 3),
-                    Text(
-                      item.labelFa,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: fg,
-                            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                          ),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        item.labelFa,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: fg,
+                              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                            ),
+                      ),
                     ),
                   ],
                 ),

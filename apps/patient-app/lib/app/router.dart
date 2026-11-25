@@ -16,7 +16,7 @@ import '../features/education/education_screens.dart';
 import '../features/preview_harness/preview_harness_screen.dart';
 import '../features/symptoms_sos/sos_screens.dart';
 import '../features/vision_testing/vision_testing_screens.dart';
-import '../shared/scaffold_placeholder.dart';
+import '../shared/app_shell.dart';
 import 'providers.dart';
 
 /// Canonical shell destinations matching `BINA_AI_PATIENT_APP_UI_UX_SPEC_V2_1.md` §3.1.
@@ -74,7 +74,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
       return null;
     },
-    errorBuilder: (context, state) => Wave0MissingRouteScreen(location: state.uri.toString()),
+    errorBuilder: (context, state) => BinaMissingRouteScreen(location: state.uri.toString()),
     routes: <RouteBase>[
       GoRoute(path: '/bootstrap', builder: (_, _) => const BootstrapScreen()),
       GoRoute(path: '/auth/welcome', builder: (_, _) => const WelcomeScreen()),
@@ -208,7 +208,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         GoRoute(path: '/__preview', builder: (_, _) => const PreviewHarnessScreen()),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
-          return Wave0ShellScaffold(navigationShell: navigationShell);
+          return BinaAppShell(navigationShell: navigationShell);
         },
         branches: <StatefulShellBranch>[
           StatefulShellBranch(

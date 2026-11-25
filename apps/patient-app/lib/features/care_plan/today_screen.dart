@@ -274,39 +274,49 @@ class TodayScreen extends ConsumerWidget {
             subtitle: 'مقادیر در محدوده هدف هستند.',
           ),
           const SizedBox(height: 12),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: BinaMetricTile(
-                  label: 'فشار چشم (IOP)',
-                  value: '۱۸٫۰',
-                  unit: 'mmHg',
-                  leadingStatus: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(color: p.successIcon, shape: BoxShape.circle),
-                    child: const Icon(Icons.check, size: 15, color: Colors.white),
-                  ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final stackTiles =
+                  constraints.maxWidth < 340 || MediaQuery.textScalerOf(context).scale(16) >= 24;
+              final tile1 = BinaMetricTile(
+                label: 'فشار چشم (IOP)',
+                value: '۱۸٫۰',
+                unit: 'mmHg',
+                leadingStatus: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(color: p.successIcon, shape: BoxShape.circle),
+                  child: const Icon(Icons.check, size: 15, color: Colors.white),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: BinaMetricTile(
-                  label: 'میدان بینایی (VF)',
-                  value: '',
-                  leadingStatus: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(color: p.successIcon, shape: BoxShape.circle),
-                    child: const Icon(Icons.check, size: 15, color: Colors.white),
-                  ),
-                  trailingVisual: const BinaSparkline(
-                    samples: <double>[17.2, 18.0, 17.8, 18.4, 18.0],
-                    semanticLabel: 'نمودار نمونه میدان بینایی',
-                  ),
+              );
+              final tile2 = BinaMetricTile(
+                label: 'میدان بینایی (VF)',
+                value: '',
+                leadingStatus: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(color: p.successIcon, shape: BoxShape.circle),
+                  child: const Icon(Icons.check, size: 15, color: Colors.white),
                 ),
-              ),
-            ],
+                trailingVisual: const BinaSparkline(
+                  samples: <double>[17.2, 18.0, 17.8, 18.4, 18.0],
+                  semanticLabel: 'نمودار نمونه میدان بینایی',
+                ),
+              );
+              if (stackTiles) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[tile1, const SizedBox(height: 12), tile2],
+                );
+              }
+              return Row(
+                children: <Widget>[
+                  Expanded(child: tile1),
+                  const SizedBox(width: 12),
+                  Expanded(child: tile2),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 20),
           Text('برنامه امروز', style: Theme.of(context).textTheme.headlineSmall),
@@ -357,68 +367,107 @@ class _TodayTopHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = context.binaPalette;
-    return Row(
-      children: <Widget>[
-        InkWell(
-          onTap: onOpenAccount,
-          borderRadius: BorderRadius.circular(24),
-          child: BinaAvatar(size: 48, initials: isCaregiver ? 'ه' : 'ب'),
+    final textScale = MediaQuery.textScalerOf(context).scale(16);
+
+    final avatar = InkWell(
+      onTap: onOpenAccount,
+      borderRadius: BorderRadius.circular(24),
+      child: BinaAvatar(size: 48, initials: isCaregiver ? 'ه' : 'ب'),
+    );
+
+    final greeting = Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(greetingFa, style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            dateJalaliFa,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: p.onSurfaceVariant),
+          ),
+        ],
+      ),
+    );
+
+    final urgentBtn = Semantics(
+      button: true,
+      label: 'کمک فوری',
+      child: TextButton.icon(
+        onPressed: onOpenUrgent,
+        style: TextButton.styleFrom(
+          foregroundColor: p.urgentAction,
+          textStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: p.urgentAction,
+                decoration: TextDecoration.none,
+              ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        icon: const Icon(Icons.phone_in_talk_rounded, size: 18),
+        label: const Text('کمک فوری'),
+      ),
+    );
+
+    final bellBtn = SizedBox(
+      width: 48,
+      height: 48,
+      child: IconButton(
+        onPressed: onOpenNotifications,
+        tooltip: 'اعلان‌ها',
+        icon: Stack(
+          clipBehavior: Clip.none,
+          children: <Widget>[
+            const Icon(Icons.notifications_none_rounded, size: 24),
+            if (showNotificationDot)
+              Positioned(
+                top: -2,
+                left: -2,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(color: p.urgentAction, shape: BoxShape.circle),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wrapActions = constraints.maxWidth < 360 || textScale >= 22;
+        if (wrapActions) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text(greetingFa, style: Theme.of(context).textTheme.titleLarge),
-              Text(
-                dateJalaliFa,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: p.onSurfaceVariant),
+              Row(
+                children: <Widget>[
+                  avatar,
+                  const SizedBox(width: 12),
+                  greeting,
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  urgentBtn,
+                  const SizedBox(width: 4),
+                  bellBtn,
+                ],
               ),
             ],
-          ),
-        ),
-        Semantics(
-          button: true,
-          label: 'کمک فوری',
-          child: TextButton.icon(
-            onPressed: onOpenUrgent,
-            style: TextButton.styleFrom(
-              foregroundColor: p.urgentAction,
-              textStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: p.urgentAction,
-                    decoration: TextDecoration.none,
-                  ),
-            ),
-            icon: const Icon(Icons.phone_in_talk_rounded, size: 18),
-            label: const Text('کمک فوری'),
-          ),
-        ),
-        const SizedBox(width: 4),
-        SizedBox(
-          width: 48,
-          height: 48,
-          child: IconButton(
-            onPressed: onOpenNotifications,
-            tooltip: 'اعلان‌ها',
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: <Widget>[
-                const Icon(Icons.notifications_none_rounded, size: 24),
-                if (showNotificationDot)
-                  Positioned(
-                    top: -2,
-                    left: -2,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(color: p.urgentAction, shape: BoxShape.circle),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ],
+          );
+        }
+
+        return Row(
+          children: <Widget>[
+            avatar,
+            const SizedBox(width: 12),
+            greeting,
+            urgentBtn,
+            const SizedBox(width: 4),
+            bellBtn,
+          ],
+        );
+      },
     );
   }
 }

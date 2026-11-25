@@ -87,50 +87,57 @@ class AccountScreen extends ConsumerWidget {
           BinaSurface(
             variant: BinaSurfaceVariant.hero,
             padding: EdgeInsets.zero,
-            child: Directionality(
-              textDirection: TextDirection.ltr,
-              child: Row(
-                children: <Widget>[
-                  const ClipRRect(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(BinaRadii.hero),
-                      bottomLeft: Radius.circular(BinaRadii.hero),
-                    ),
-                    child: BinaIrisArtwork(width: 140, height: 144),
-                  ),
-                  Expanded(
-                    child: Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.all(14),
-                        child: Row(
-                          children: <Widget>[
-                            BinaAvatar(
-                              size: 68,
-                              initials: previewMode ? 'م' : 'ب',
-                              verified: previewMode,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(displayName, style: Theme.of(context).textTheme.headlineSmall),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    idSubtitle,
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final sem = context.bina;
+                final textScale = MediaQuery.textScalerOf(context).scale(16);
+                final showHeroArt = !sem.highContrast && textScale < 28 && constraints.maxWidth >= 320;
+                final identityRow = Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.all(14),
+                    child: Row(
+                      children: <Widget>[
+                        BinaAvatar(
+                          size: textScale >= 24 ? 52 : 68,
+                          initials: previewMode ? 'م' : 'ب',
+                          verified: previewMode,
                         ),
-                      ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(displayName, style: Theme.of(context).textTheme.headlineSmall),
+                              const SizedBox(height: 4),
+                              Text(
+                                idSubtitle,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                );
+                if (!showHeroArt) return identityRow;
+                return Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Row(
+                    children: <Widget>[
+                      const ClipRRect(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(BinaRadii.hero),
+                          bottomLeft: Radius.circular(BinaRadii.hero),
+                        ),
+                        child: BinaIrisArtwork(width: 120, height: 144),
+                      ),
+                      Expanded(child: identityRow),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
           const SizedBox(height: 16),

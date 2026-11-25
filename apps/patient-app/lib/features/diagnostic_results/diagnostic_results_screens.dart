@@ -345,34 +345,44 @@ class _ResultsScreenState extends ConsumerState<ResultsScreen> {
               children: <Widget>[
                 Text('خلاصه وضعیت (۳۰ روز اخیر)', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 12),
-                const Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: BinaMetricTile(
-                        label: 'فشار چشم (IOP)',
-                        value: '۱۸٫۰',
-                        unit: 'mmHg',
-                        footer: 'میانگین دوره',
-                        trailingVisual: BinaSparkline(
-                          samples: <double>[18.8, 18.2, 17.9, 18.4, 18.0],
-                          semanticLabel: 'روند فشار چشم',
-                        ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final stackTiles =
+                        constraints.maxWidth < 340 || MediaQuery.textScalerOf(context).scale(16) >= 24;
+                    const t1 = BinaMetricTile(
+                      label: 'فشار چشم (IOP)',
+                      value: '۱۸٫۰',
+                      unit: 'mmHg',
+                      footer: 'میانگین دوره',
+                      trailingVisual: BinaSparkline(
+                        samples: <double>[18.8, 18.2, 17.9, 18.4, 18.0],
+                        semanticLabel: 'روند فشار چشم',
                       ),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: BinaMetricTile(
-                        label: 'میدان بینایی (VF)',
-                        value: 'پایدار',
-                        mintAccent: true,
-                        footer: 'ارزیابی دوره‌ای',
-                        trailingVisual: BinaSparkline(
-                          samples: <double>[91, 92, 91.5, 92, 92],
-                          semanticLabel: 'روند میدان بینایی',
-                        ),
+                    );
+                    const t2 = BinaMetricTile(
+                      label: 'میدان بینایی (VF)',
+                      value: 'پایدار',
+                      mintAccent: true,
+                      footer: 'ارزیابی دوره‌ای',
+                      trailingVisual: BinaSparkline(
+                        samples: <double>[91, 92, 91.5, 92, 92],
+                        semanticLabel: 'روند میدان بینایی',
                       ),
-                    ),
-                  ],
+                    );
+                    if (stackTiles) {
+                      return const Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[t1, SizedBox(height: 12), t2],
+                      );
+                    }
+                    return const Row(
+                      children: <Widget>[
+                        Expanded(child: t1),
+                        SizedBox(width: 12),
+                        Expanded(child: t2),
+                      ],
+                    );
+                  },
                 ),
               ],
             ),
@@ -565,26 +575,36 @@ class _SignedReportDetailScreenState extends ConsumerState<SignedReportDetailScr
           const SizedBox(height: 20),
           Text('مقایسه با دوره قبل', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 12),
-          const Row(
-            children: <Widget>[
-              Expanded(
-                child: BinaMetricTile(
-                  label: 'میدان بینایی (MD)',
-                  value: '−۳٫۲',
-                  unit: 'dB',
-                  footer: 'تغییر: ±۰٫۱',
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: BinaMetricTile(
-                  label: 'فشار چشم (IOP)',
-                  value: '۱۸٫۰',
-                  unit: 'mmHg',
-                  footer: 'تغییر: −۰٫۵',
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final stackTiles =
+                  constraints.maxWidth < 340 || MediaQuery.textScalerOf(context).scale(16) >= 24;
+              const t1 = BinaMetricTile(
+                label: 'میدان بینایی (MD)',
+                value: '−۳٫۲',
+                unit: 'dB',
+                footer: 'تغییر: ±۰٫۱',
+              );
+              const t2 = BinaMetricTile(
+                label: 'فشار چشم (IOP)',
+                value: '۱۸٫۰',
+                unit: 'mmHg',
+                footer: 'تغییر: −۰٫۵',
+              );
+              if (stackTiles) {
+                return const Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[t1, SizedBox(height: 12), t2],
+                );
+              }
+              return const Row(
+                children: <Widget>[
+                  Expanded(child: t1),
+                  SizedBox(width: 12),
+                  Expanded(child: t2),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 24),
           BinaGradientButton(
@@ -806,35 +826,44 @@ class _IopDetailPreviewScreenState extends State<IopDetailPreviewScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          const Row(
-            children: <Widget>[
-              Expanded(
-                child: BinaStatTile(
-                  label: 'میانگین',
-                  value: '۱۸٫۰',
-                  unit: 'mmHg',
-                  icon: Icons.show_chart_rounded,
-                ),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: BinaStatTile(
-                  label: 'بیشترین',
-                  value: '۱۹٫۲',
-                  unit: 'mmHg',
-                  icon: Icons.arrow_upward_rounded,
-                ),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: BinaStatTile(
-                  label: 'کمترین',
-                  value: '۱۷٫۶',
-                  unit: 'mmHg',
-                  icon: Icons.arrow_downward_rounded,
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final stackStats =
+                  constraints.maxWidth < 340 || MediaQuery.textScalerOf(context).scale(16) >= 24;
+              const s1 = BinaStatTile(
+                label: 'میانگین',
+                value: '۱۸٫۰',
+                unit: 'mmHg',
+                icon: Icons.show_chart_rounded,
+              );
+              const s2 = BinaStatTile(
+                label: 'بیشترین',
+                value: '۱۹٫۲',
+                unit: 'mmHg',
+                icon: Icons.arrow_upward_rounded,
+              );
+              const s3 = BinaStatTile(
+                label: 'کمترین',
+                value: '۱۷٫۶',
+                unit: 'mmHg',
+                icon: Icons.arrow_downward_rounded,
+              );
+              if (stackStats) {
+                return const Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[s1, SizedBox(height: 8), s2, SizedBox(height: 8), s3],
+                );
+              }
+              return const Row(
+                children: <Widget>[
+                  Expanded(child: s1),
+                  SizedBox(width: 8),
+                  Expanded(child: s2),
+                  SizedBox(width: 8),
+                  Expanded(child: s3),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 16),
           const Align(

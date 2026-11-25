@@ -74,18 +74,22 @@ abstract final class BinaRadii {
 abstract final class BinaMotion {
   static const Duration instant = Duration.zero;
   static const Duration press = Duration(milliseconds: 100);
-  static const Duration tab = Duration(milliseconds: 120);
-  static const Duration select = Duration(milliseconds: 140);
-  static const Duration feedback = Duration(milliseconds: 160);
-  static const Duration expand = Duration(milliseconds: 180);
-  static const Duration route = Duration(milliseconds: 220);
-  static const Duration sheet = Duration(milliseconds: 220);
+  static const Duration tab = Duration(milliseconds: 150);
+  static const Duration select = Duration(milliseconds: 160);
+  static const Duration feedback = Duration(milliseconds: 180);
+  static const Duration expand = Duration(milliseconds: 220);
+  static const Duration entrance = Duration(milliseconds: 260);
+  static const Duration route = Duration(milliseconds: 240);
+  static const Duration sheet = Duration(milliseconds: 240);
+  static const Duration launch = Duration(milliseconds: 380);
 
   static const Curve curveStandard = Curves.easeOutCubic;
   static const Curve curvePress = Curves.easeOut;
   static const Curve curveExpand = Curves.easeInOutCubic;
 
   static bool isReduced(BuildContext context) {
+    final sem = Theme.of(context).extension<BinaSemanticColors>();
+    if (sem != null && sem.reduceMotion) return true;
     final mq = MediaQuery.maybeOf(context);
     if (mq == null) return false;
     return mq.disableAnimations || mq.accessibleNavigation;
@@ -102,10 +106,12 @@ class BinaSemanticColors extends ThemeExtension<BinaSemanticColors> {
   const BinaSemanticColors({
     required this.palette,
     this.highContrast = false,
+    this.reduceMotion = false,
   });
 
   final BinaPalette palette;
   final bool highContrast;
+  final bool reduceMotion;
 
   bool get isDark => palette.brightness == Brightness.dark;
 
@@ -261,10 +267,12 @@ class BinaSemanticColors extends ThemeExtension<BinaSemanticColors> {
   BinaSemanticColors copyWith({
     BinaPalette? palette,
     bool? highContrast,
+    bool? reduceMotion,
   }) {
     return BinaSemanticColors(
       palette: palette ?? this.palette,
       highContrast: highContrast ?? this.highContrast,
+      reduceMotion: reduceMotion ?? this.reduceMotion,
     );
   }
 
@@ -274,6 +282,7 @@ class BinaSemanticColors extends ThemeExtension<BinaSemanticColors> {
     return BinaSemanticColors(
       palette: t < 0.5 ? palette : other.palette,
       highContrast: t < 0.5 ? highContrast : other.highContrast,
+      reduceMotion: t < 0.5 ? reduceMotion : other.reduceMotion,
     );
   }
 }

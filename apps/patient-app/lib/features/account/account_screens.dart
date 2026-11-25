@@ -84,9 +84,10 @@ class AccountScreen extends ConsumerWidget {
                 ),
               ),
             ),
-          BinaSurface(
-            variant: BinaSurfaceVariant.hero,
-            padding: EdgeInsets.zero,
+          BinaFadeSlideIn(
+            child: BinaSurface(
+              variant: BinaSurfaceVariant.hero,
+              padding: EdgeInsets.zero,
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final sem = context.bina;
@@ -138,6 +139,7 @@ class AccountScreen extends ConsumerWidget {
                   ),
                 );
               },
+            ),
             ),
           ),
           const SizedBox(height: 16),
@@ -378,6 +380,7 @@ class AccessibilitySettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hc = ref.watch(highContrastProvider);
+    final rm = ref.watch(reduceMotionProvider);
     return AccountSubpageScaffold(
       title: 'دسترسی‌پذیری',
       child: Column(
@@ -390,6 +393,15 @@ class AccessibilitySettingsScreen extends ConsumerWidget {
             wellKind: BinaWellKind.profile,
             value: hc,
             onChanged: (v) => ref.read(highContrastProvider.notifier).setEnabled(v),
+          ),
+          const SizedBox(height: 12),
+          BinaSwitchRow(
+            title: 'کاهش انیمیشن و حرکت',
+            subtitle: 'جابه‌جایی فوری و بدون افکت بین صفحات و کارت‌ها',
+            icon: Icons.motion_photos_off_outlined,
+            wellKind: BinaWellKind.plan,
+            value: rm,
+            onChanged: (v) => ref.read(reduceMotionProvider.notifier).setEnabled(v),
           ),
           const SizedBox(height: 12),
           const BinaSurface(
@@ -542,7 +554,12 @@ class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
               for (final entry in entries) ...<Widget>[
                 BinaSurface(
                   child: ListTile(
-                    title: Text(entry.operationType == 'adherence' ? 'ثبت مصرف دارو' : 'گزارش علائم'),
+                    title: Text(switch (entry.operationType) {
+                      'adherence' => 'ثبت مصرف دارو',
+                      'symptoms' => 'گزارش علائم',
+                      'home_vision_test' => 'ثبت آزمون بینایی خانگی',
+                      _ => entry.operationType,
+                    }),
                     subtitle: Text(
                       'وضعیت: ${_statusFa(entry.status)}'
                       '${entry.eyeLaterality != null ? ' — ${entry.eyeLaterality == 'OD' ? 'چشم راست' : 'چشم چپ'}' : ''}',
@@ -605,11 +622,11 @@ class ClinicInfoScreen extends ConsumerWidget {
 }
 
 /// ACC-09 `/account/help`
-class AppHelpScreen extends StatelessWidget {
+class AppHelpScreen extends ConsumerWidget {
   const AppHelpScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return AccountSubpageScaffold(
       title: 'درباره برنامه و راهنما',
       child: Column(
@@ -631,6 +648,15 @@ class AppHelpScreen extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 14),
+          BinaSecondaryButton(
+            label: 'مرور دوباره راهنمای اولیه برنامه (Onboarding)',
+            icon: Icons.play_circle_outline_rounded,
+            onPressed: () async {
+              await ref.read(onboardingCompletedProvider.notifier).resetForReplay();
+              if (context.mounted) context.go('/onboarding');
+            },
           ),
         ],
       ),

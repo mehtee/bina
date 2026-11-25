@@ -8,11 +8,19 @@ import '../tokens/bina_typography.dart';
 ThemeData buildBinaTheme(
   Brightness brightness, {
   bool highContrast = false,
+  bool reduceMotion = false,
 }) {
   final p = BinaPalette.forBrightness(brightness);
   final scheme = p.toColorScheme();
   final textTheme = BinaTypography.buildTextTheme(p);
-  final sem = BinaSemanticColors(palette: p, highContrast: highContrast);
+  final sem = BinaSemanticColors(
+    palette: p,
+    highContrast: highContrast,
+    reduceMotion: reduceMotion,
+  );
+  final transitionBuilder = reduceMotion
+      ? const _InstantPageTransitionsBuilder()
+      : const FadeUpwardsPageTransitionsBuilder();
 
   return ThemeData(
     useMaterial3: true,
@@ -22,6 +30,16 @@ ThemeData buildBinaTheme(
     fontFamily: BinaTypography.fontFamily,
     visualDensity: VisualDensity.standard,
     materialTapTargetSize: MaterialTapTargetSize.padded,
+    pageTransitionsTheme: PageTransitionsTheme(
+      builders: <TargetPlatform, PageTransitionsBuilder>{
+        TargetPlatform.android: transitionBuilder,
+        TargetPlatform.iOS: transitionBuilder,
+        TargetPlatform.linux: transitionBuilder,
+        TargetPlatform.macOS: transitionBuilder,
+        TargetPlatform.windows: transitionBuilder,
+        TargetPlatform.fuchsia: transitionBuilder,
+      },
+    ),
     textTheme: textTheme,
     extensions: <ThemeExtension<dynamic>>[sem],
     appBarTheme: AppBarTheme(
@@ -179,4 +197,18 @@ ThemeData buildBinaTheme(
       unselectedLabelTextStyle: textTheme.labelSmall?.copyWith(color: p.onSurfaceVariant),
     ),
   );
+}
+
+class _InstantPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _InstantPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) =>
+      child;
 }

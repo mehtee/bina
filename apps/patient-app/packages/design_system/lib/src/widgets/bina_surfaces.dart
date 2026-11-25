@@ -893,11 +893,16 @@ class BinaCareProgress extends StatelessWidget {
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(BinaRadii.pill),
-            child: LinearProgressIndicator(
-              value: ratio,
-              minHeight: 8,
-              backgroundColor: p.surfaceSoft,
-              valueColor: AlwaysStoppedAnimation<Color>(p.primary),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.0, end: ratio),
+              duration: BinaMotion.resolve(context, BinaMotion.expand),
+              curve: BinaMotion.curveStandard,
+              builder: (context, animatedRatio, _) => LinearProgressIndicator(
+                value: animatedRatio,
+                minHeight: 8,
+                backgroundColor: p.surfaceSoft,
+                valueColor: AlwaysStoppedAnimation<Color>(p.primary),
+              ),
             ),
           ),
         ],

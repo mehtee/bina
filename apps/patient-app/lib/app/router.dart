@@ -8,6 +8,7 @@ import '../core/config/app_config.dart';
 import '../core/data/patient_gateway.dart';
 import '../features/account/account_screens.dart';
 import '../features/auth_onboarding/auth_screens.dart';
+import '../features/auth_onboarding/onboarding_screen.dart';
 import '../features/care_plan/care_screens.dart';
 import '../features/care_plan/today_screen.dart';
 import '../features/caregiver/caregiver_screens.dart';
@@ -15,9 +16,30 @@ import '../features/diagnostic_results/diagnostic_results_screens.dart';
 import '../features/education/education_screens.dart';
 import '../features/preview_harness/preview_harness_screen.dart';
 import '../features/symptoms_sos/sos_screens.dart';
+import '../features/system/system_screens.dart';
 import '../features/vision_testing/vision_testing_screens.dart';
 import '../shared/app_shell.dart';
 import 'providers.dart';
+
+/// Respects OS / in-app reduced motion while delivering smooth Android-grade
+/// slide+fade transitions across normal non-clinical routes (`v2.1 §8`).
+class BinaTransitionPage<T> extends CustomTransitionPage<T> {
+  BinaTransitionPage({
+    required super.key,
+    required super.child,
+    bool verticalModal = false,
+  }) : super(
+          transitionDuration: BinaMotion.route,
+          reverseTransitionDuration: BinaMotion.tab,
+          transitionsBuilder: (context, animation, _, routeChild) =>
+              buildBinaRouteTransition(
+            context,
+            animation,
+            routeChild,
+            verticalModal: verticalModal,
+          ),
+        );
+}
 
 /// Canonical shell destinations matching `BINA_AI_PATIENT_APP_UI_UX_SPEC_V2_1.md` §3.1.
 enum BinaDestinationId {
@@ -65,9 +87,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       final session = ref.read(sessionProvider);
       final loc = state.uri.path;
       final isPublic = loc == '/bootstrap' ||
+          loc == '/onboarding' ||
           loc.startsWith('/auth/') ||
           loc.startsWith('/help/urgent') ||
           loc == '/caregiver/revoked' ||
+          loc == '/system/update-required' ||
           (config.enablePreviewHarness && loc == '/__preview');
       if (session == null && !isPublic) {
         return '/auth/welcome';
@@ -77,7 +101,41 @@ final routerProvider = Provider<GoRouter>((ref) {
     errorBuilder: (context, state) => BinaMissingRouteScreen(location: state.uri.toString()),
     routes: <RouteBase>[
       GoRoute(path: '/bootstrap', builder: (_, _) => const BootstrapScreen()),
-      GoRoute(path: '/auth/welcome', builder: (_, _) => const WelcomeScreen()),
+      GoRoute(
+        path: '/onboarding',
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: const OnboardingScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/auth/welcome',
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: const WelcomeScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/auth/no-plan',
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: const EnrollmentUnavailableScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/system/update-required',
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: const RequiredUpdateScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/system/permissions',
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: const PermissionDeniedScreen(),
+        ),
+      ),
       GoRoute(path: '/auth/invitation', builder: (_, _) => const InvitationScreen()),
       GoRoute(path: '/auth/phone', builder: (_, _) => const PhoneEntryScreen()),
       GoRoute(path: '/auth/otp', builder: (_, _) => const OtpVerifyScreen()),
@@ -131,30 +189,68 @@ final routerProvider = Provider<GoRouter>((ref) {
           signedReportId: state.pathParameters['signedReportId']!,
         ),
       ),
-      GoRoute(path: '/tests/history', builder: (_, _) => const TestHistoryScreen()),
+      GoRoute(
+        path: '/tests/history',
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: const TestHistoryScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/tests/baseline',
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: const TestBaselineScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/tests/home-iop',
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: const HomeIopScreen(),
+        ),
+      ),
       GoRoute(
         path: '/tests/:assignmentId/eligibility',
-        builder: (_, state) => TestEligibilityScreen(assignmentId: state.pathParameters['assignmentId']!),
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: TestEligibilityScreen(assignmentId: state.pathParameters['assignmentId']!),
+        ),
       ),
       GoRoute(
         path: '/tests/:assignmentId/eye',
-        builder: (_, state) => TestEyeConfirmScreen(assignmentId: state.pathParameters['assignmentId']!),
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: TestEyeConfirmScreen(assignmentId: state.pathParameters['assignmentId']!),
+        ),
       ),
       GoRoute(
         path: '/tests/:assignmentId/instructions',
-        builder: (_, state) => TestInstructionsScreen(assignmentId: state.pathParameters['assignmentId']!),
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: TestInstructionsScreen(assignmentId: state.pathParameters['assignmentId']!),
+        ),
       ),
       GoRoute(
         path: '/tests/:assignmentId/calibration',
-        builder: (_, state) => TestCalibrationScreen(assignmentId: state.pathParameters['assignmentId']!),
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: TestCalibrationScreen(assignmentId: state.pathParameters['assignmentId']!),
+        ),
       ),
       GoRoute(
         path: '/tests/:assignmentId/practice',
-        builder: (_, state) => TestPracticeScreen(assignmentId: state.pathParameters['assignmentId']!),
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: TestPracticeScreen(assignmentId: state.pathParameters['assignmentId']!),
+        ),
       ),
       GoRoute(
         path: '/tests/:assignmentId/preflight',
-        builder: (_, state) => TestPreflightScreen(assignmentId: state.pathParameters['assignmentId']!),
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: TestPreflightScreen(assignmentId: state.pathParameters['assignmentId']!),
+        ),
       ),
       GoRoute(
         path: '/tests/:assignmentId/run/landolt',
@@ -166,7 +262,21 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/tests/:assignmentId/receipt',
-        builder: (_, state) => TestQualityReceiptScreen(assignmentId: state.pathParameters['assignmentId']!),
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: TestQualityReceiptScreen(assignmentId: state.pathParameters['assignmentId']!),
+        ),
+      ),
+      GoRoute(
+        path: '/care/reminder/:episodeId/:eye/:version',
+        pageBuilder: (_, state) => BinaTransitionPage<void>(
+          key: state.pageKey,
+          child: DoseReminderEntryScreen(
+            episodeId: state.pathParameters['episodeId']!,
+            eyeCode: state.pathParameters['eye']!,
+            notifiedVersion: int.tryParse(state.pathParameters['version'] ?? '') ?? 1,
+          ),
+        ),
       ),
       GoRoute(path: '/account/profile', builder: (_, _) => const ProfileScreen()),
       GoRoute(path: '/account/settings', builder: (_, _) => const SettingsScreen()),

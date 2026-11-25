@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:bina_design_system/bina_design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/i18n/bina_i18n.dart';
 import '../care_plan/care_screens.dart';
 
 @immutable
@@ -190,6 +192,41 @@ class EducationDetailScreen extends StatefulWidget {
 class _EducationDetailScreenState extends State<EducationDetailScreen> {
   // Never autoplays audio (`v2.1 §9.3`).
   bool _playing = false;
+  int _elapsedSeconds = 0;
+  Timer? _audioTimer;
+
+  @override
+  void dispose() {
+    _audioTimer?.cancel();
+    super.dispose();
+  }
+
+  void _toggleAudio() {
+    if (_playing) {
+      _audioTimer?.cancel();
+      setState(() => _playing = false);
+      return;
+    }
+    setState(() => _playing = true);
+    _audioTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      if (_elapsedSeconds >= 60) {
+        _audioTimer?.cancel();
+        setState(() {
+          _playing = false;
+          _elapsedSeconds = 0;
+        });
+      } else {
+        setState(() => _elapsedSeconds += 1);
+      }
+    });
+  }
+
+  String _formatElapsed(int seconds) {
+    final m = (seconds ~/ 60).toString().padLeft(2, '0');
+    final s = (seconds % 60).toString().padLeft(2, '0');
+    return BinaI18nCatalog.toPersianDigits('$m:$s');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -236,9 +273,11 @@ class _EducationDetailScreenState extends State<EducationDetailScreen> {
           Text(topic.summaryFa, style: readingStyle?.copyWith(fontWeight: FontWeight.w600)),
           const SizedBox(height: 16),
           BinaAudioPlayer(
-            title: 'نسخه صوتی: ${topic.titleFa} (${topic.audioDurationFa})',
+            title: _playing
+                ? '${topic.titleFa} (${_formatElapsed(_elapsedSeconds)} / ${topic.audioDurationFa})'
+                : 'نسخه صوتی: ${topic.titleFa} (${topic.audioDurationFa})',
             playing: _playing,
-            onTogglePlay: () => setState(() => _playing = !_playing),
+            onTogglePlay: _toggleAudio,
           ),
           const SizedBox(height: 16),
           // Core instructions ALWAYS visible — never hidden behind collapsed accordions (`v2.1 §9.3`).

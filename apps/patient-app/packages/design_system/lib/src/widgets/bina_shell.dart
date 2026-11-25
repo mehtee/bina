@@ -109,7 +109,12 @@ class _DockTabButton extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Icon(selected ? item.selectedIcon : item.icon, size: 24, color: fg),
+                    AnimatedScale(
+                      scale: selected ? 1.08 : 1.0,
+                      duration: BinaMotion.resolve(context, BinaMotion.select),
+                      curve: BinaMotion.curveStandard,
+                      child: Icon(selected ? item.selectedIcon : item.icon, size: 24, color: fg),
+                    ),
                     const SizedBox(height: 3),
                     FittedBox(
                       fit: BoxFit.scaleDown,

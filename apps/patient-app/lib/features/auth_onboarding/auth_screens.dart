@@ -6,7 +6,7 @@ import '../../app/providers.dart';
 import '../../core/i18n/bina_i18n.dart';
 import 'auth_controller.dart';
 
-/// AUTH-01 `/bootstrap` — resolves session immediately with zero artificial delay.
+/// AUTH-01 `/bootstrap` — smooth logo entrance then routes directly to onboarding, Today, or Welcome.
 class BootstrapScreen extends ConsumerStatefulWidget {
   const BootstrapScreen({super.key});
 
@@ -15,30 +15,54 @@ class BootstrapScreen extends ConsumerStatefulWidget {
 }
 
 class _BootstrapScreenState extends ConsumerState<BootstrapScreen> {
+  bool _navigated = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final session = ref.read(sessionProvider);
-      context.go(session != null ? '/today' : '/auth/welcome');
+      final completed = ref.read(onboardingCompletedProvider);
+      if (completed != null) {
+        _routeNow(completed);
+      }
     });
+  }
+
+  void _routeNow(bool onboardingCompleted) {
+    if (!mounted || _navigated) return;
+    _navigated = true;
+    final config = ref.read(appConfigProvider);
+    if (config.enableOnboarding && !onboardingCompleted) {
+      context.go('/onboarding');
+      return;
+    }
+    final session = ref.read(sessionProvider);
+    context.go(session != null ? '/today' : '/auth/welcome');
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<bool?>(onboardingCompletedProvider, (_, next) {
+      if (next != null) {
+        _routeNow(next);
+      }
+    });
+
     return const BinaCanvas(
       artVariant: BinaCanvasArtVariant.none,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              BinaBrandMark(full: false, height: 64, announceSemanticBrand: true),
-              SizedBox(height: 16),
-              Text('در حال آماده‌سازی برنامه...'),
-            ],
+          child: BinaAnimatedScaleReveal(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                BinaBrandMark(full: false, height: 64, announceSemanticBrand: true),
+                SizedBox(height: 16),
+                Text('در حال آماده‌سازی برنامه...'),
+              ],
+            ),
           ),
         ),
       ),
@@ -405,6 +429,7 @@ class AccessibilitySetupScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final highContrast = ref.watch(highContrastProvider);
+    final reduceMotion = ref.watch(reduceMotionProvider);
 
     return _AuthPageScaffold(
       title: 'تنظیمات نمایش و خوانایی',
@@ -425,6 +450,15 @@ class AccessibilitySetupScreen extends ConsumerWidget {
             wellKind: BinaWellKind.profile,
             value: highContrast,
             onChanged: (v) => ref.read(highContrastProvider.notifier).setEnabled(v),
+          ),
+          const SizedBox(height: 12),
+          BinaSwitchRow(
+            title: 'کاهش انیمیشن و حرکت',
+            subtitle: 'جابه‌جایی فوری و بدون انیمیشن بین صفحات',
+            icon: Icons.motion_photos_off_outlined,
+            wellKind: BinaWellKind.plan,
+            value: reduceMotion,
+            onChanged: (v) => ref.read(reduceMotionProvider.notifier).setEnabled(v),
           ),
           const SizedBox(height: 12),
           BinaSurface(
@@ -468,6 +502,41 @@ class AuthHelpScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// AUTH-10 `/auth/no-plan`: Authenticated clinic-linked patient with zero active episodes.
+class EnrollmentUnavailableScreen extends StatelessWidget {
+  const EnrollmentUnavailableScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _AuthPageScaffold(
+      title: 'پرونده بدون برنامه فعال',
+      showBack: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          const BinaEmptyState(
+            icon: Icons.event_note_outlined,
+            title: 'هنوز برنامه درمانی فعالی ثبت نشده است',
+            message:
+                'حساب شما به کلینیک متصل است اما هنوز نسخه یا برنامه مراقبتی برای شما فعال نشده است. در صورت نیاز با پذیرش کلینیک تماس بگیرید.',
+          ),
+          const SizedBox(height: 14),
+          BinaSecondaryButton(
+            label: 'تماس با کلینیک / کمک فوری',
+            icon: Icons.phone_in_talk_rounded,
+            onPressed: () => context.push('/help/urgent'),
+          ),
+          const SizedBox(height: 10),
+          BinaGradientButton(
+            label: 'بررسی دوباره برنامه امروز',
+            onPressed: () => context.go('/today'),
+          ),
+        ],
       ),
     );
   }

@@ -28,6 +28,7 @@ void main() {
             ),
           ),
           // Start signed-out on /bootstrap -> auto-redirects to /auth/welcome
+          onboardingCompletedProvider.overrideWith(() => _CompletedOnboardingNotifier()),
           sessionProvider.overrideWith(() => _SignedOutSessionNotifier()),
         ],
         child: const BinaPatientApp(),
@@ -61,6 +62,7 @@ void main() {
 
     // Lands on AUTH-07 accessibility setup -> continue to Today
     expect(find.text('تنظیمات نمایش و خوانایی'), findsOneWidget);
+    await tester.ensureVisible(find.text('ادامه به برنامه امروز'));
     await tester.tap(find.text('ادامه به برنامه امروز'));
     await tester.pumpAndSettle();
 
@@ -120,6 +122,7 @@ void main() {
         key: UniqueKey(),
         overrides: [
           offlineStoreProvider.overrideWithValue(store),
+          onboardingCompletedProvider.overrideWith(() => _CompletedOnboardingNotifier()),
           sessionProvider.overrideWith(() => _SignedInSessionNotifier(session)),
         ],
         child: const BinaPatientApp(),
@@ -153,6 +156,11 @@ void main() {
       isNull,
     );
   });
+}
+
+class _CompletedOnboardingNotifier extends OnboardingCompletedNotifier {
+  @override
+  bool? build() => true;
 }
 
 class _SignedOutSessionNotifier extends SessionNotifier {

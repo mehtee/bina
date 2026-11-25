@@ -156,17 +156,22 @@ class TodayScreen extends ConsumerWidget {
           ),
         ],
         const SizedBox(height: 12),
-        BinaHero(
-          title: snapshot.clinic.nameFa,
-          status: plan.scheduleItems.isEmpty ? 'بدون نوبت فعال' : 'برنامه فعال امروز',
-          statusIcon: plan.scheduleItems.isEmpty ? null : Icons.check,
-          subtitle: plan.clinicStaffedHoursFa,
+        BinaFadeSlideIn(
+          child: BinaHero(
+            title: snapshot.clinic.nameFa,
+            status: plan.scheduleItems.isEmpty ? 'بدون نوبت فعال' : 'برنامه فعال امروز',
+            statusIcon: plan.scheduleItems.isEmpty ? null : Icons.check,
+            subtitle: plan.clinicStaffedHoursFa,
+          ),
         ),
         const SizedBox(height: 12),
-        BinaCareProgress(
-          recordedCount: recordedCount,
-          totalCount: plan.scheduleItems.length,
-          label: 'پیگیری نوبت‌های امروز',
+        BinaFadeSlideIn(
+          delayMs: 40,
+          child: BinaCareProgress(
+            recordedCount: recordedCount,
+            totalCount: plan.scheduleItems.length,
+            label: 'پیگیری نوبت‌های امروز',
+          ),
         ),
         const SizedBox(height: 20),
         if (plan.scheduleItems.isEmpty)

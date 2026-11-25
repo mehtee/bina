@@ -245,75 +245,6 @@ class EpisodeDetailScreen extends ConsumerWidget {
   }
 }
 
-/// Stylized neutral teal dropper graphic (preview/visual accent only; never identifies drug).
-class _StylizedDropperVisual extends StatelessWidget {
-  const _StylizedDropperVisual();
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.binaPalette;
-    return ExcludeSemantics(
-      child: SizedBox(
-        width: 76,
-        height: 112,
-        child: CustomPaint(painter: _DropperPainter(teal: p.irisTeal, cap: p.surfaceRaised)),
-      ),
-    );
-  }
-}
-
-class _DropperPainter extends CustomPainter {
-  _DropperPainter({required this.teal, required this.cap});
-  final Color teal;
-  final Color cap;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final capPaint = Paint()..color = cap;
-    final bodyPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-        colors: <Color>[teal, teal.withValues(alpha: 0.75)],
-      ).createShader(Rect.fromLTWH(0, size.height * 0.35, size.width, size.height * 0.65));
-
-    // Tip & ribbed cap
-    final tip = Path()
-      ..moveTo(size.width * 0.42, 6)
-      ..lineTo(size.width * 0.58, 6)
-      ..lineTo(size.width * 0.64, size.height * 0.24)
-      ..lineTo(size.width * 0.36, size.height * 0.24)
-      ..close();
-    canvas.drawPath(tip, capPaint);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(size.width * 0.30, size.height * 0.23, size.width * 0.40, size.height * 0.14),
-        const Radius.circular(6),
-      ),
-      capPaint,
-    );
-
-    // Bottle body + blank sterile label
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(size.width * 0.22, size.height * 0.37, size.width * 0.56, size.height * 0.58),
-        const Radius.circular(14),
-      ),
-      bodyPaint,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(size.width * 0.25, size.height * 0.48, size.width * 0.50, size.height * 0.36),
-        const Radius.circular(6),
-      ),
-      capPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _DropperPainter oldDelegate) => false;
-}
-
 /// CARE-04 / CARE-05 `/care/dose/:doseId` & `/care/medication/:medicationId` (`06-Medication-Detail.png`).
 class MedicationDetailScreen extends ConsumerWidget {
   const MedicationDetailScreen({
@@ -440,7 +371,7 @@ class MedicationDetailScreen extends ConsumerWidget {
         textDirection: TextDirection.ltr,
         child: Row(
           children: <Widget>[
-            const _StylizedDropperVisual(),
+            const BinaVectorArt.dropper(size: 88),
             const SizedBox(width: 14),
             Expanded(
               child: Directionality(
@@ -801,6 +732,95 @@ class CareInstructionsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
               ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// CARE-13 `/care/reminder/:episodeId/:eye/:version` — rejects superseded versions cleanly.
+class DoseReminderEntryScreen extends ConsumerWidget {
+  const DoseReminderEntryScreen({
+    super.key,
+    required this.episodeId,
+    required this.eyeCode,
+    required this.notifiedVersion,
+  });
+
+  final String episodeId;
+  final String eyeCode;
+  final int notifiedVersion;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final planAsync = ref.watch(carePlanControllerProvider);
+    final eyeFa = eyeCode.toUpperCase() == 'OS' ? 'چشم چپ' : 'چشم راست';
+    return CareSubpageScaffold(
+      title: 'یادآور مصرف دارو ($eyeFa)',
+      child: planAsync.when(
+        loading: () => const BinaSurface(child: Text('در حال بررسی نسخه فعال...')),
+        error: (_, _) => BinaErrorState(
+          message: 'امکان بررسی یادآور وجود ندارد.',
+          onOpenHelp: () => context.push('/help/urgent'),
+        ),
+        data: (snapshot) {
+          PatientTodayDropCard? match;
+          for (var i = 0; i < snapshot.todayPlan.scheduleItems.length; i += 1) {
+            final item = snapshot.todayPlan.scheduleItems[i];
+            if (item.episodeId == episodeId &&
+                item.eyeLaterality.value == eyeCode.toUpperCase()) {
+              match = item;
+              break;
+            }
+          }
+
+          if (match == null) {
+            return BinaEmptyState(
+              icon: Icons.notifications_off_outlined,
+              title: 'این یادآور دیگر در برنامه فعال نیست',
+              message: 'برنامه فعلی خود را از صفحه امروز بررسی کنید.',
+              actionLabel: 'رفتن به برنامه امروز',
+              onAction: () => context.go('/today'),
+            );
+          }
+
+          if (match.prescriptionVersion != notifiedVersion) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                BinaBanner(
+                  kind: BinaStatusKind.warning,
+                  title: 'نسخه داروی $eyeFa بروزرسانی شده است',
+                  body:
+                      'این یادآور مربوط به نسخه قبلی (نسخه $notifiedVersion) است. هم‌اکنون نسخه ${match.prescriptionVersion} فعال است و از دوز قبلی صرف‌نظر شد.',
+                ),
+                const SizedBox(height: 16),
+                BinaGradientButton(
+                  label: 'مشاهده برنامه فعلی امروز',
+                  onPressed: () => context.go('/today'),
+                ),
+              ],
+            );
+          }
+
+          final idx = snapshot.todayPlan.scheduleItems.indexOf(match);
+          final key = buildDoseRouteKey(match, idx);
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              BinaDoseCard(
+                eyeLabelFa: '${match.eyeLabelFa} — نسخه ${match.prescriptionVersion}',
+                drugNameFa: match.drugNameFa,
+                bottleCapColorFa: match.bottleCapColorFa,
+                scheduledTimeLabel: match.scheduledTimeJalali,
+                instructionsFa: match.instructionsFa,
+                statusText: match.taken ? 'مصرف شد' : 'در انتظار ثبت',
+                statusKind: match.taken ? BinaStatusKind.success : BinaStatusKind.info,
+                actionLabel: 'ادامه و ثبت مصرف',
+                onOpen: () => context.go('/care/dose/$key/record'),
+              ),
             ],
           );
         },

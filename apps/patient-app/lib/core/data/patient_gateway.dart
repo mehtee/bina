@@ -108,6 +108,11 @@ abstract interface class PatientGatewayPort {
     required HomeVisionTestRequest request,
   });
 
+  Future<IcareHome2ReadingResponse> ingestIcareHome2Reading({
+    required AuthSessionContext session,
+    required IcareHome2ReadingRequest request,
+  });
+
   Future<PatientVisionTrendsResponse> getVisionTrends(AuthSessionContext session);
 }
 
@@ -544,6 +549,22 @@ class MockPatientGateway implements PatientGatewayPort {
   }
 
   @override
+  Future<IcareHome2ReadingResponse> ingestIcareHome2Reading({
+    required AuthSessionContext session,
+    required IcareHome2ReadingRequest request,
+  }) async {
+    final validQuality = request.qualityScore >= 0.7 && request.iopMmHg > 4.0 && request.iopMmHg < 60.0;
+    return IcareHome2ReadingResponse(
+      readingId: 'icare-${session.patientId}-${DateTime.now().millisecondsSinceEpoch}',
+      accepted: validQuality,
+      alertTier: request.iopMmHg >= 28.0 ? UrgencyTier.urgent : UrgencyTier.routine,
+      summaryFa: validQuality
+          ? 'اندازه‌گیری دستگاه iCare HOME2 برای ${request.eyeLaterality == EyeLaterality.oD ? 'چشم راست' : 'چشم چپ'} ثبت شد.'
+          : 'کیفیت قرائت دستگاه برای ثبت خودکار کافی نبود و برای بررسی جدا شد.',
+    );
+  }
+
+  @override
   Future<PatientVisionTrendsResponse> getVisionTrends(AuthSessionContext session) async {
     final json = await _loadFixture();
     return PatientVisionTrendsResponse.fromJson(json['r2Trends']! as Map<String, Object?>);
@@ -779,6 +800,19 @@ final class HttpPatientGateway implements PatientGatewayPort {
       body: jsonEncode(request.toJson()),
     );
     return HomeVisionTestResponse.fromJson(_decodeJson(res));
+  }
+
+  @override
+  Future<IcareHome2ReadingResponse> ingestIcareHome2Reading({
+    required AuthSessionContext session,
+    required IcareHome2ReadingRequest request,
+  }) async {
+    final res = await _client.post(
+      _uri('/v1/integrations/icare-home2/readings'),
+      headers: _headers(session: session),
+      body: jsonEncode(request.toJson()),
+    );
+    return IcareHome2ReadingResponse.fromJson(_decodeJson(res));
   }
 
   @override

@@ -179,6 +179,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          onboardingCompletedProvider.overrideWith(() => _DoneOnboarding()),
           patientGatewayProvider.overrideWithValue(gw),
         ],
         child: const BinaPatientApp(),
@@ -247,8 +248,11 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
 
     await tester.pumpWidget(
-      const ProviderScope(
-        child: BinaPatientApp(),
+      ProviderScope(
+        overrides: [
+          onboardingCompletedProvider.overrideWith(() => _DoneOnboarding()),
+        ],
+        child: const BinaPatientApp(),
       ),
     );
     await tester.pumpAndSettle();
@@ -268,6 +272,7 @@ void main() {
     // EDU-04: Unavailable/missing topic fallback
     await tester.pumpWidget(
       ProviderScope(
+        key: UniqueKey(),
         child: MaterialApp(
           theme: buildBinaTheme(Brightness.light),
           home: const Directionality(
@@ -293,6 +298,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          onboardingCompletedProvider.overrideWith(() => _DoneOnboarding()),
           patientGatewayProvider.overrideWithValue(gw),
         ],
         child: const BinaPatientApp(),
@@ -360,6 +366,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          onboardingCompletedProvider.overrideWith(() => _DoneOnboarding()),
           patientGatewayProvider.overrideWithValue(containerGw),
           sessionProvider.overrideWith(() => _StaticSession(caregiverSession)),
         ],
@@ -403,4 +410,9 @@ void main() {
       isNull,
     );
   });
+}
+
+class _DoneOnboarding extends OnboardingCompletedNotifier {
+  @override
+  bool? build() => true;
 }

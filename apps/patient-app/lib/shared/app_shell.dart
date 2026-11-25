@@ -47,9 +47,66 @@ class BinaAppShell extends ConsumerWidget {
                 onSwitchPatient: () => context.push('/caregiver/patients'),
               ),
             ),
-          Expanded(child: navigationShell),
+          Expanded(
+            child: _TabCrossfadeWrapper(
+              index: currentIndex,
+              child: navigationShell,
+            ),
+          ),
         ],
       ),
+    );
+  }
+}
+
+class _TabCrossfadeWrapper extends StatefulWidget {
+  const _TabCrossfadeWrapper({
+    required this.index,
+    required this.child,
+  });
+
+  final int index;
+  final Widget child;
+
+  @override
+  State<_TabCrossfadeWrapper> createState() => _TabCrossfadeWrapperState();
+}
+
+class _TabCrossfadeWrapperState extends State<_TabCrossfadeWrapper>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    value: 1.0,
+    duration: BinaMotion.tab,
+  );
+  late final Animation<double> _opacity = CurvedAnimation(
+    parent: _controller,
+    curve: BinaMotion.curveStandard,
+  );
+
+  @override
+  void didUpdateWidget(covariant _TabCrossfadeWrapper oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.index != widget.index) {
+      if (BinaMotion.isReduced(context)) {
+        _controller.value = 1.0;
+      } else {
+        _controller.forward(from: 0.25);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: widget.child,
     );
   }
 }

@@ -331,11 +331,15 @@ void main() {
 
     await tester.tap(find.text('بازگشت به بخش آزمون‌ها'));
     await tester.pumpAndSettle();
+    final testsScroll =
+        find.descendant(of: find.byType(TestsHubScreen), matching: find.byType(Scrollable)).first;
     await tester.scrollUntilVisible(
       find.text('تاریخچه آزمون‌های ثبت‌شده'),
       200,
-      scrollable: find.descendant(of: find.byType(TestsHubScreen), matching: find.byType(Scrollable)).first,
+      scrollable: testsScroll,
     );
+    await tester.drag(testsScroll, const Offset(0, -180));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('تاریخچه آزمون‌های ثبت‌شده'));
     await tester.pumpAndSettle();
 

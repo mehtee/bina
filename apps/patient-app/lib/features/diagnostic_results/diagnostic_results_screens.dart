@@ -537,6 +537,33 @@ class _SignedReportDetailScreenState extends ConsumerState<SignedReportDetailScr
                 icon: Icons.event_note_outlined,
                 onPressed: () => context.push('/results/${s.studyId}/follow-up'),
               ),
+              const SizedBox(height: 10),
+              BinaSecondaryButton(
+                label: 'نمایش نسخه قابل خواندن و ذخیره (RES-06)',
+                icon: Icons.article_outlined,
+                onPressed: () => showBinaBottomSheet<void>(
+                  context,
+                  titleFa: 'نسخه تاییدشده قابل خواندن',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Text('${s.eyeLabelFa} — تایید پزشک: ${BinaI18nCatalog.isolateLtr(s.signedAtJalali)}'),
+                      const SizedBox(height: 10),
+                      SelectableText(
+                        s.patientGuidanceFa,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: 12),
+                      const BinaBanner(
+                        kind: BinaStatusKind.neutral,
+                        title: 'حفظ حریم خصوصی گزارش',
+                        body:
+                            'خروجی خودکار PDF و اشتراک‌گذاری فایل درمانی تنها پس از تایید صریح کانال امن کلینیک فعال می‌شود. متن کامل و قابل خواندن بالا نسخه تاییدشده پزشک است.',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           );
         },
@@ -704,9 +731,17 @@ class VfDetailPreviewScreen extends StatefulWidget {
 class _VfDetailPreviewScreenState extends State<VfDetailPreviewScreen> {
   String _tab = 'map';
 
+  static const List<List<double>> _sample24x2Matrix = <List<double>>[
+    <double>[-1, 0.85, 0.88, 0.90, 0.84, -1],
+    <double>[0.82, 0.88, 0.92, 0.94, 0.89, 0.80],
+    <double>[0.78, 0.72, 0.95, 0.96, 0.91, 0.86],
+    <double>[0.80, 0.65, 0.90, 0.93, 0.88, 0.84],
+    <double>[0.84, 0.87, 0.91, 0.90, 0.86, 0.82],
+    <double>[-1, 0.86, 0.89, 0.87, 0.85, -1],
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final p = context.binaPalette;
     return _ResultsSubpageScaffold(
       title: 'جزئیات میدان بینایی (VF)',
       includeFooterWave: true,
@@ -722,37 +757,18 @@ class _VfDetailPreviewScreenState extends State<VfDetailPreviewScreen> {
             onChanged: (v) => setState(() => _tab = v),
           ),
           const SizedBox(height: 16),
-          BinaSurface(
+          const BinaSurface(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Container(
-                  constraints: const BoxConstraints(minHeight: 180),
-                  padding: const EdgeInsetsDirectional.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: p.outlineVariant),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Directionality(
-                    textDirection: TextDirection.ltr,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(Icons.grid_on_rounded, size: 72, color: Color(0xFF334155)),
-                        SizedBox(height: 8),
-                        Text(
-                          'نقشه مرجع مصنوعی ۲۴-۲ (فقط پیش‌نمایش)',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Color(0xFF334155)),
-                        ),
-                      ],
-                    ),
+                Center(
+                  child: BinaVFMap(
+                    gridValuesDb: _sample24x2Matrix,
+                    semanticSummaryFa: 'نقشه مرجع مصنوعی ۲۴-۲ میدان بینایی در پیش‌نمایش',
                   ),
                 ),
-                const SizedBox(height: 12),
-                const Wrap(
+                SizedBox(height: 12),
+                Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: <Widget>[
@@ -807,23 +823,37 @@ class _IopDetailPreviewScreenState extends State<IopDetailPreviewScreen> {
             onChanged: (v) => setState(() => _range = v),
           ),
           const SizedBox(height: 16),
-          const BinaSurface(
-            variant: BinaSurfaceVariant.chart,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Text('روند نمونه ۳۰ روزه (پیش‌نمایش گیت‌شده)'),
-                SizedBox(height: 14),
-                BinaSparkline(
-                  samples: <double>[18.5, 19.2, 17.8, 18.0, 17.6, 18.0],
-                  semanticLabel: 'نمودار فشار چشم پیش‌نمایش',
-                  width: 300,
-                  height: 96,
-                ),
-                SizedBox(height: 8),
-                Text('\u206618.0 mmHg\u2069'),
-              ],
-            ),
+          BinaIOPChart(
+            eyeLabelFa: 'چشم راست (پیش‌نمایش گیت‌شده)',
+            targetMinMmHg: 15.0,
+            targetMaxMmHg: 21.0,
+            targetLabelFa: 'محدوده هدف نمونه',
+            samples: <BinaIopSample>[
+              BinaIopSample(
+                labelJalali: '۱۴۰۵/۰۸/۰۵',
+                timestampUtc: DateTime.utc(2026, 10, 27),
+                iopMmHg: 18.5,
+                eyeLabelFa: 'چشم راست',
+              ),
+              BinaIopSample(
+                labelJalali: '۱۴۰۵/۰۸/۱۴',
+                timestampUtc: DateTime.utc(2026, 11, 5),
+                iopMmHg: 19.2,
+                eyeLabelFa: 'چشم راست',
+              ),
+              BinaIopSample(
+                labelJalali: '۱۴۰۵/۰۸/۲۲',
+                timestampUtc: DateTime.utc(2026, 11, 13),
+                iopMmHg: 17.8,
+                eyeLabelFa: 'چشم راست',
+              ),
+              BinaIopSample(
+                labelJalali: '۱۴۰۵/۰۹/۰۱',
+                timestampUtc: DateTime.utc(2026, 11, 22),
+                iopMmHg: 18.0,
+                eyeLabelFa: 'چشم راست',
+              ),
+            ],
           ),
           const SizedBox(height: 14),
           LayoutBuilder(

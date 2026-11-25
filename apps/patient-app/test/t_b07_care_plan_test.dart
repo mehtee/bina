@@ -162,6 +162,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          onboardingCompletedProvider.overrideWith(() => _DoneOnboarding()),
           patientGatewayProvider.overrideWithValue(gw),
         ],
         child: const BinaPatientApp(),
@@ -242,6 +243,11 @@ void main() {
       expect(tester.takeException(), isNull);
     }
   });
+}
+
+class _DoneOnboarding extends OnboardingCompletedNotifier {
+  @override
+  bool? build() => true;
 }
 
 class _StaticSession extends SessionNotifier {

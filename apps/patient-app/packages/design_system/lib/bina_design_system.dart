@@ -6,5 +6,7 @@ export 'src/tokens/bina_spacing.dart';
 export 'src/tokens/bina_typography.dart';
 export 'src/widgets/bina_art_widgets.dart';
 export 'src/widgets/bina_controls.dart';
+export 'src/widgets/bina_motion_widgets.dart';
 export 'src/widgets/bina_shell.dart';
+export 'src/widgets/bina_spec_widgets.dart';
 export 'src/widgets/bina_surfaces.dart';

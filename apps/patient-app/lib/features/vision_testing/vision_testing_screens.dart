@@ -76,10 +76,11 @@ class _TestsHubScreenState extends ConsumerState<TestsHubScreen> {
     }
 
     final p = context.binaPalette;
+    final config = ref.watch(appConfigProvider);
     return BinaCanvas(
       artVariant: BinaCanvasArtVariant.tests,
       child: ListView(
-        padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 24),
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 96),
         children: <Widget>[
           Row(
             children: <Widget>[
@@ -92,6 +93,15 @@ class _TestsHubScreenState extends ConsumerState<TestsHubScreen> {
             ],
           ),
           const SizedBox(height: 12),
+          if (config.enableWebLabMode) ...<Widget>[
+            const BinaBanner(
+              kind: BinaStatusKind.warning,
+              title: 'حالت آزمایشگاهی وب (Demo Lab Mode)',
+              body:
+                  'این نسخه برای آزمایش روان جریان کار در مرورگر فعال شده است. آزمون‌های بالینی معتبر فقط روی دستگاه تاییدشده و با کالیبراسیون واقعی انجام می‌شوند.',
+            ),
+            const SizedBox(height: 12),
+          ],
           const BinaBanner(
             kind: BinaStatusKind.info,
             title: 'پایش بینایی خانگی کالیبره‌شده',
@@ -99,39 +109,64 @@ class _TestsHubScreenState extends ConsumerState<TestsHubScreen> {
                 'آزمون‌های مجاز فقط با کالیبراسیون صفحه و تایید سنسورهای فاصله و نور آغاز می‌شوند و جایگزین معاینه کلینیک نیستند.',
           ),
           const SizedBox(height: 16),
-          BinaRichRow(
-            title: 'آزمون حدت بینایی (لندولت C)',
-            subtitle: 'ارزیابی دقیق تیزبینی مطابق استاندارد ISO 8596 و تایید چشم مشخص',
-            wellKind: BinaWellKind.test,
-            icon: Icons.visibility_outlined,
-            minHeight: 88,
-            wellSize: 52,
-            onTap: () {
-              ref.read(visionTestingControllerProvider.notifier).startAssignment(VisionTestKind.landoltC);
-              context.push('/tests/landolt_c/eligibility');
-            },
-          ),
-          const SizedBox(height: 12),
-          BinaRichRow(
-            title: 'آزمون شبکه آمسلر (Amsler)',
-            subtitle: 'بررسی اعوجاج یا نقاط تاریک در مرکز میدان بینایی',
-            wellKind: BinaWellKind.plan,
-            icon: Icons.grid_on_rounded,
-            minHeight: 88,
-            wellSize: 52,
-            onTap: () {
-              ref.read(visionTestingControllerProvider.notifier).startAssignment(VisionTestKind.amsler);
-              context.push('/tests/amsler/eligibility');
-            },
-          ),
-          const SizedBox(height: 16),
-          BinaRichRow(
-            title: 'تاریخچه آزمون‌های ثبت‌شده',
-            subtitle: 'مشاهده سوابق آزمون‌های خانگی به تفکیک چشم راست و چشم چپ',
-            wellKind: BinaWellKind.neutral,
-            icon: Icons.history_rounded,
-            minHeight: 72,
-            onTap: () => context.push('/tests/history'),
+          BinaFadeSlideIn(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                BinaRichRow(
+                  title: 'آزمون حدت بینایی (لندولت C)',
+                  subtitle: 'ارزیابی دقیق تیزبینی مطابق استاندارد ISO 8596 و تایید چشم مشخص',
+                  wellKind: BinaWellKind.test,
+                  icon: Icons.visibility_outlined,
+                  minHeight: 88,
+                  wellSize: 52,
+                  onTap: () {
+                    ref.read(visionTestingControllerProvider.notifier).startAssignment(VisionTestKind.landoltC);
+                    context.push('/tests/landolt_c/eligibility');
+                  },
+                ),
+                const SizedBox(height: 12),
+                BinaRichRow(
+                  title: 'آزمون شبکه آمسلر (Amsler)',
+                  subtitle: 'بررسی اعوجاج یا نقاط تاریک در مرکز میدان بینایی',
+                  wellKind: BinaWellKind.plan,
+                  icon: Icons.grid_on_rounded,
+                  minHeight: 88,
+                  wellSize: 52,
+                  onTap: () {
+                    ref.read(visionTestingControllerProvider.notifier).startAssignment(VisionTestKind.amsler);
+                    context.push('/tests/amsler/eligibility');
+                  },
+                ),
+                const SizedBox(height: 16),
+                BinaRichRow(
+                  title: 'تاریخچه آزمون‌های ثبت‌شده',
+                  subtitle: 'مشاهده سوابق آزمون‌های خانگی به تفکیک چشم راست و چشم چپ',
+                  wellKind: BinaWellKind.neutral,
+                  icon: Icons.history_rounded,
+                  minHeight: 72,
+                  onTap: () => context.push('/tests/history'),
+                ),
+                const SizedBox(height: 12),
+                BinaRichRow(
+                  title: 'جلسات پایه پایش بینایی',
+                  subtitle: 'نقطه مرجع مقایسه روند چشم راست و چشم چپ پس از شروع پایش',
+                  wellKind: BinaWellKind.plan,
+                  icon: Icons.stacked_line_chart_rounded,
+                  minHeight: 72,
+                  onTap: () => context.push('/tests/baseline'),
+                ),
+                const SizedBox(height: 12),
+                BinaRichRow(
+                  title: 'دریافت فشار چشم (iCare HOME2)',
+                  subtitle: 'ثبت قرائت کالیبره‌شده دستگاه خانگی — بدون امکان ورود دستی عدد',
+                  wellKind: BinaWellKind.test,
+                  icon: Icons.speed_rounded,
+                  minHeight: 72,
+                  onTap: () => context.push('/tests/home-iop'),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -164,22 +199,14 @@ class _TestsHubScreenState extends ConsumerState<TestsHubScreen> {
                 label: 'فشار چشم (IOP)',
                 value: 'اندازه‌گیری',
                 footer: 'خانگی (مرجع بصری)',
-                leadingStatus: BinaIconWell(
-                  kind: BinaWellKind.test,
-                  icon: Icons.speed_rounded,
-                  size: 44,
-                ),
+                leadingStatus: BinaVectorArt.iopGauge(size: 44),
               );
               const t2 = BinaMetricTile(
                 label: 'میدان بینایی (VF)',
                 value: 'آزمون',
                 mintAccent: true,
                 footer: 'خانگی (مرجع بصری)',
-                leadingStatus: BinaIconWell(
-                  kind: BinaWellKind.plan,
-                  icon: Icons.grid_view_rounded,
-                  size: 44,
-                ),
+                leadingStatus: BinaVectorArt.vfDots(size: 44),
               );
               if (stackTiles) {
                 return const Column(
@@ -269,33 +296,53 @@ class _TestEligibilityScreenState extends ConsumerState<TestEligibilityScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
+          const BinaStepHeader(
+            currentStep: 1,
+            totalSteps: 6,
+            titleFa: 'صلاحیت دستگاه',
+          ),
+          const SizedBox(height: 12),
           Text(kind.titleFa, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 14),
           if (_checking)
             const BinaSurface(child: Text('در حال بررسی سازگاری دستگاه و سنسورهای لازم...'))
           else if (_result == null || !_result!.eligible) ...<Widget>[
-            BinaBanner(
-              kind: BinaStatusKind.error,
-              title: 'این دستگاه برای انجام این آزمون تأیید نشده است',
-              body:
-                  'محیط فعلی (${BinaI18nCatalog.isolateLtr(_result?.reasonCode ?? 'UNSUPPORTED')}) فاقد سنسورهای تاییدشده فاصله، نور یا پایداری برای آزمون بالینی است. شروع آزمون بالینی در این دستگاه مسدود شده است.',
-            ),
-            const SizedBox(height: 16),
-            BinaSecondaryButton(
-              label: 'تماس با کلینیک و انجام آزمون حضوری',
-              icon: Icons.phone_in_talk_rounded,
-              onPressed: () => context.push('/help/urgent'),
+            BinaFadeSlideIn(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  BinaBanner(
+                    kind: BinaStatusKind.error,
+                    title: 'این دستگاه برای انجام این آزمون تأیید نشده است',
+                    body:
+                        'محیط فعلی (${BinaI18nCatalog.isolateLtr(_result?.reasonCode ?? 'UNSUPPORTED')}) فاقد سنسورهای تاییدشده فاصله، نور یا پایداری برای آزمون بالینی است. شروع آزمون بالینی در این دستگاه مسدود شده است.',
+                  ),
+                  const SizedBox(height: 16),
+                  BinaSecondaryButton(
+                    label: 'تماس با کلینیک و انجام آزمون حضوری',
+                    icon: Icons.phone_in_talk_rounded,
+                    onPressed: () => context.push('/help/urgent'),
+                  ),
+                ],
+              ),
             ),
           ] else ...<Widget>[
-            const BinaBanner(
-              kind: BinaStatusKind.success,
-              title: 'دستگاه آماده مراحل پیش‌آزمون است',
-              body: 'در مراحل بعد چشم مورد نظر، کالیبراسیون صفحه و سنسورهای محیط بررسی می‌شوند.',
-            ),
-            const SizedBox(height: 16),
-            BinaGradientButton(
-              label: 'ادامه و انتخاب چشم',
-              onPressed: () => context.push('/tests/${widget.assignmentId}/eye'),
+            BinaFadeSlideIn(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  const BinaBanner(
+                    kind: BinaStatusKind.success,
+                    title: 'دستگاه آماده مراحل پیش‌آزمون است',
+                    body: 'در مراحل بعد چشم مورد نظر، کالیبراسیون صفحه و سنسورهای محیط بررسی می‌شوند.',
+                  ),
+                  const SizedBox(height: 16),
+                  BinaGradientButton(
+                    label: 'ادامه و انتخاب چشم',
+                    onPressed: () => context.push('/tests/${widget.assignmentId}/eye'),
+                  ),
+                ],
+              ),
             ),
           ],
         ],
@@ -320,13 +367,20 @@ class TestEyeConfirmScreen extends ConsumerWidget {
 
     return _TestsSubpageScaffold(
       title: 'انتخاب چشم برای آزمون',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Text(
-            'مشخص کنید این آزمون برای کدام چشم انجام می‌شود و چشم دیگر را بدون فشار بپوشانید.',
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
+      child: BinaFadeSlideIn(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            const BinaStepHeader(
+              currentStep: 2,
+              totalSteps: 6,
+              titleFa: 'انتخاب چشم',
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'مشخص کنید این آزمون برای کدام چشم انجام می‌شود و چشم دیگر را بدون فشار بپوشانید.',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
           const SizedBox(height: 16),
           RadioGroup<EyeLaterality?>(
             groupValue: selectedEye,
@@ -367,6 +421,7 @@ class TestEyeConfirmScreen extends ConsumerWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }
@@ -400,38 +455,46 @@ class TestInstructionsScreen extends ConsumerWidget {
     final eyeFa = eye == EyeLaterality.oD ? 'چشم راست (OD)' : 'چشم چپ (OS)';
     return _TestsSubpageScaffold(
       title: 'راهنمای پیش از آزمون',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          BinaEyeLabel(eyeCode: eye.value, fullPersianLabel: eyeFa),
-          const SizedBox(height: 12),
-          BinaSurface(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Text('شرایط استاندارد انجام آزمون', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 10),
-                const Text('۱. در نور یکنواخت اتاق و دور از بازتاب مستقیم پنجره بنشینید.'),
-                const SizedBox(height: 8),
-                const Text('۲. در صورت تجویز عینک برای دید دور یا مطالعه طبق دستور پزشک، عینک خود را بزنید.'),
-                const SizedBox(height: 8),
-                Text('۳. تنها $eyeFa را باز بگذارید و چشم دیگر را بدون فشار روی پلک بپوشانید.'),
-              ],
+      child: BinaFadeSlideIn(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            const BinaStepHeader(
+              currentStep: 3,
+              totalSteps: 6,
+              titleFa: 'راهنمای استاندارد',
             ),
-          ),
-          const SizedBox(height: 12),
-          const BinaBanner(
-            kind: BinaStatusKind.info,
-            title: 'ثبات ظاهر صفحه آزمون',
-            body:
-                'هنگام شروع آزمون واقعی، صفحه محرک بالینی با رنگ و اندازه ثابت استاندارد نمایش داده می‌شود و تحت تاثیر پوسته تیره یا بزرگ‌نمایی متن قرار نمی‌گیرد.',
-          ),
-          const SizedBox(height: 16),
-          BinaGradientButton(
-            label: 'ادامه به کالیبراسیون صفحه',
-            onPressed: () => context.push('/tests/$assignmentId/calibration'),
-          ),
-        ],
+            const SizedBox(height: 12),
+            BinaEyeLabel(eyeCode: eye.value, fullPersianLabel: eyeFa),
+            const SizedBox(height: 12),
+            BinaSurface(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Text('شرایط استاندارد انجام آزمون', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 10),
+                  const Text('۱. در نور یکنواخت اتاق و دور از بازتاب مستقیم پنجره بنشینید.'),
+                  const SizedBox(height: 8),
+                  const Text('۲. در صورت تجویز عینک برای دید دور یا مطالعه طبق دستور پزشک، عینک خود را بزنید.'),
+                  const SizedBox(height: 8),
+                  Text('۳. تنها $eyeFa را باز بگذارید و چشم دیگر را بدون فشار روی پلک بپوشانید.'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const BinaBanner(
+              kind: BinaStatusKind.info,
+              title: 'ثبات ظاهر صفحه آزمون',
+              body:
+                  'هنگام شروع آزمون واقعی، صفحه محرک بالینی با رنگ و اندازه ثابت استاندارد نمایش داده می‌شود و تحت تاثیر پوسته تیره یا بزرگ‌نمایی متن قرار نمی‌گیرد.',
+            ),
+            const SizedBox(height: 16),
+            BinaGradientButton(
+              label: 'ادامه به کالیبراسیون صفحه',
+              onPressed: () => context.push('/tests/$assignmentId/calibration'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -483,10 +546,17 @@ class _TestCalibrationScreenState extends ConsumerState<TestCalibrationScreen> {
     return _TestsSubpageScaffold(
       title: 'کالیبراسیون فیزیکی صفحه',
       child: Consumer(
-        builder: (context, ref, _) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            BinaSurface(
+        builder: (context, ref, _) => BinaFadeSlideIn(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              const BinaStepHeader(
+                currentStep: 4,
+                totalSteps: 6,
+                titleFa: 'کالیبراسیون صفحه',
+              ),
+              const SizedBox(height: 12),
+              BinaSurface(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
@@ -535,6 +605,7 @@ class _TestCalibrationScreenState extends ConsumerState<TestCalibrationScreen> {
             ),
           ],
         ),
+        ),
       ),
     );
   }
@@ -575,6 +646,12 @@ class _TestPracticeScreenState extends ConsumerState<TestPracticeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
+          const BinaStepHeader(
+            currentStep: 5,
+            totalSteps: 6,
+            titleFa: 'تمرین آزمایشی',
+          ),
+          const SizedBox(height: 12),
           const BinaBanner(
             kind: BinaStatusKind.info,
             title: 'تمرین آزمایشی (در پرونده ثبت نمی‌شود)',
@@ -710,6 +787,12 @@ class _TestPreflightScreenState extends ConsumerState<TestPreflightScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
+          const BinaStepHeader(
+            currentStep: 6,
+            totalSteps: 6,
+            titleFa: 'بررسی سنسورهای محیط',
+          ),
+          const SizedBox(height: 12),
           const BinaBanner(
             kind: BinaStatusKind.info,
             title: 'حریم خصوصی دوربین و سنسورها',
@@ -1344,6 +1427,253 @@ class _TrendPointTile extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// TEST-14 `/tests/baseline`: Shows established eye-separated baseline sessions for comparison.
+class TestBaselineScreen extends ConsumerWidget {
+  const TestBaselineScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final trendsAsync = ref.watch(visionTrendsProvider);
+    return _TestsSubpageScaffold(
+      title: 'جلسات پایه پایش بینایی',
+      child: BinaFadeSlideIn(
+        child: trendsAsync.when(
+          loading: () => const BinaSurface(child: Text('در حال بارگذاری اطلاعات پایه...')),
+          error: (_, _) => BinaErrorState(
+            message: 'امکان دریافت جلسات پایه فراهم نشد.',
+            onRetry: () => ref.invalidate(visionTrendsProvider),
+          ),
+          data: (trends) {
+            if (trends.od.isEmpty && trends.os.isEmpty) {
+              return const BinaEmptyState(
+                icon: Icons.stacked_line_chart_rounded,
+                title: 'جلسه پایه‌ای ثبت نشده است',
+                message: 'پس از تکمیل اولین آزمون معتبر، نتیجه آن به‌عنوان نقطه مرجع چشم راست یا چشم چپ ثبت می‌شود.',
+              );
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                const BinaBanner(
+                  kind: BinaStatusKind.info,
+                  title: 'نحوه مقایسه با جلسه پایه',
+                  body: 'نتایج جدید هر چشم فقط با سوابق پایه همان چشم مقایسه می‌شوند و هیچ‌گاه چشم راست و چشم چپ با یکدیگر ادغام نمی‌شوند.',
+                ),
+                const SizedBox(height: 16),
+                if (trends.od.isNotEmpty) ...<Widget>[
+                  const BinaEyeLabel(eyeCode: 'OD', fullPersianLabel: 'چشم راست (OD)'),
+                  const SizedBox(height: 8),
+                  _TrendPointTile(point: trends.od.first),
+                  const SizedBox(height: 16),
+                ],
+                if (trends.os.isNotEmpty) ...<Widget>[
+                  const BinaEyeLabel(eyeCode: 'OS', fullPersianLabel: 'چشم چپ (OS)'),
+                  const SizedBox(height: 8),
+                  _TrendPointTile(point: trends.os.first),
+                  const SizedBox(height: 16),
+                ],
+                BinaSecondaryButton(
+                  label: 'مشاهده کل تاریخچه آزمون‌ها',
+                  icon: Icons.history_rounded,
+                  onPressed: () => context.push('/tests/history'),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/// TEST-16..18 `/tests/home-iop`: Paired `iCare HOME2` telemetry ingestion — zero arbitrary manual entry.
+class HomeIopScreen extends ConsumerStatefulWidget {
+  const HomeIopScreen({super.key});
+
+  @override
+  ConsumerState<HomeIopScreen> createState() => _HomeIopScreenState();
+}
+
+class _HomeIopScreenState extends ConsumerState<HomeIopScreen> {
+  EyeLaterality? _selectedEye;
+  int _selectedPresetIndex = 0;
+  bool _submitting = false;
+  String? _errorFa;
+  IcareHome2ReadingResponse? _receipt;
+
+  static const List<({String labelFa, double iopMmHg, double quality})> _devicePackets =
+      <({String labelFa, double iopMmHg, double quality})>[
+    (
+      labelFa: 'قرائت استاندارد متصل (۱۷٫۴ mmHg • کیفیت ۰٫۹۲ — معتبر)',
+      iopMmHg: 17.4,
+      quality: 0.92,
+    ),
+    (
+      labelFa: 'قرائت با لرزش / کیفیت پایین (۲۴٫۲ mmHg • کیفیت ۰٫۴۱ — بررسی قرنطینه)',
+      iopMmHg: 24.2,
+      quality: 0.41,
+    ),
+  ];
+
+  String _urgencyFa(UrgencyTier tier) => switch (tier) {
+        UrgencyTier.urgent => 'فوری',
+        UrgencyTier.followup36m => 'پیگیری ۳ تا ۶ ماه',
+        UrgencyTier.routine => 'عادی',
+      };
+
+  Future<void> _ingestReading() async {
+    final eye = _selectedEye;
+    if (eye == null) return;
+    final session = ref.read(sessionProvider);
+    if (session == null) {
+      setState(() => _errorFa = 'نشست کاربری فعال نیست.');
+      return;
+    }
+
+    setState(() {
+      _submitting = true;
+      _errorFa = null;
+    });
+    final packet = _devicePackets[_selectedPresetIndex];
+    try {
+      final resp = await ref.read(patientGatewayProvider).ingestIcareHome2Reading(
+            session: session,
+            request: IcareHome2ReadingRequest(
+              patientId: session.patientId,
+              deviceSerial: 'ICARE-H2-IR-0412',
+              eyeLaterality: eye,
+              iopMmHg: packet.iopMmHg,
+              qualityScore: packet.quality,
+              measuredAtIso: DateTime.now().toUtc().toIso8601String(),
+            ),
+          );
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _receipt = resp;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _errorFa = 'ارسال قرائت دستگاه انجام نشد. اتصال را بررسی کنید و دوباره تلاش کنید.';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _TestsSubpageScaffold(
+      title: 'دریافت فشار چشم (iCare HOME2)',
+      child: BinaFadeSlideIn(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            const BinaBanner(
+              kind: BinaStatusKind.info,
+              title: 'ثبت خودکار از دستگاه کالیبره‌شده',
+              body:
+                  'برای حفظ دقت بالینی، عدد فشار چشم فقط از بسته دریافتی دستگاه هم‌زمان (paired) ثبت می‌شود و امکان ورود دستی عدد دلخواه وجود ندارد.',
+            ),
+            const SizedBox(height: 16),
+            BinaSurface(
+              child: Row(
+                children: <Widget>[
+                  const BinaVectorArt.iopGauge(size: 48),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Text('دستگاه متصل: iCare HOME2', style: Theme.of(context).textTheme.titleMedium),
+                        const SizedBox(height: 4),
+                        Text(
+                          'شناسه: ${BinaI18nCatalog.isolateLtr('ICARE-H2-IR-0412')}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text('۱. انتخاب چشم اندازه‌گیری‌شده (الزامی)', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            RadioGroup<EyeLaterality?>(
+              groupValue: _selectedEye,
+              onChanged: (v) => setState(() => _selectedEye = v),
+              child: Column(
+                children: <Widget>[
+                  BinaSurface(
+                    onTap: () => setState(() => _selectedEye = EyeLaterality.oD),
+                    child: const RadioListTile<EyeLaterality?>(
+                      value: EyeLaterality.oD,
+                      title: Text('چشم راست (OD)'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  BinaSurface(
+                    onTap: () => setState(() => _selectedEye = EyeLaterality.oS),
+                    child: const RadioListTile<EyeLaterality?>(
+                      value: EyeLaterality.oS,
+                      title: Text('چشم چپ (OS)'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text('۲. بسته قرائت دریافتی از دستگاه', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            RadioGroup<int>(
+              groupValue: _selectedPresetIndex,
+              onChanged: (v) {
+                if (v != null) setState(() => _selectedPresetIndex = v);
+              },
+              child: Column(
+                children: <Widget>[
+                  for (var i = 0; i < _devicePackets.length; i += 1) ...<Widget>[
+                    BinaSurface(
+                      onTap: () => setState(() => _selectedPresetIndex = i),
+                      child: RadioListTile<int>(
+                        value: i,
+                        title: Text(_devicePackets[i].labelFa),
+                      ),
+                    ),
+                    if (i + 1 < _devicePackets.length) const SizedBox(height: 8),
+                  ],
+                ],
+              ),
+            ),
+            if (_errorFa != null) ...<Widget>[
+              const SizedBox(height: 12),
+              BinaBanner(kind: BinaStatusKind.error, title: 'خطای ارسال', body: _errorFa!),
+            ],
+            if (_receipt != null) ...<Widget>[
+              const SizedBox(height: 14),
+              BinaBanner(
+                kind: _receipt!.accepted ? BinaStatusKind.success : BinaStatusKind.warning,
+                title: _receipt!.accepted
+                    ? 'قرائت دستگاه تایید و ثبت شد (${_urgencyFa(_receipt!.alertTier)})'
+                    : 'قرائت در قرنطینه کنترل کیفیت ثبت شد',
+                body:
+                    '${_receipt!.summaryFa}\nشناسه ثبت: ${BinaI18nCatalog.isolateLtr(_receipt!.readingId)}',
+              ),
+            ],
+            const SizedBox(height: 16),
+            BinaGradientButton(
+              label: 'ارسال قرائت دستگاه به کلینیک',
+              busy: _submitting,
+              onPressed: (_selectedEye == null || _submitting) ? null : _ingestReading,
+            ),
+          ],
+        ),
       ),
     );
   }

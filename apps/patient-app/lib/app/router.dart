@@ -1,7 +1,11 @@
+import 'package:bina_design_system/bina_design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../core/config/app_config.dart';
+import '../core/data/patient_gateway.dart';
+import '../features/account/account_screens.dart';
+import '../features/auth_onboarding/auth_screens.dart';
 import '../features/preview_harness/preview_harness_screen.dart';
 import '../shared/scaffold_placeholder.dart';
 import 'providers.dart';
@@ -20,6 +24,12 @@ enum BinaDestinationId {
   final IconData icon;
   final IconData selectedIcon;
 
+  BinaNavItem toNavItem() => BinaNavItem(
+        labelFa: labelFa,
+        icon: icon,
+        selectedIcon: selectedIcon,
+      );
+
   static List<BinaDestinationId> enabledFor(AppConfig config) {
     return <BinaDestinationId>[
       today,
@@ -33,28 +43,50 @@ enum BinaDestinationId {
 
 final routerProvider = Provider<GoRouter>((ref) {
   final config = ref.watch(appConfigProvider);
+  final authRefresh = ValueNotifier<int>(0);
+  ref.listen<AuthSessionContext?>(sessionProvider, (_, _) {
+    authRefresh.value += 1;
+  });
+  ref.onDispose(authRefresh.dispose);
 
   return GoRouter(
-    initialLocation: BinaDestinationId.today.path,
+    initialLocation: '/bootstrap',
+    refreshListenable: authRefresh,
+    redirect: (context, state) {
+      final session = ref.read(sessionProvider);
+      final loc = state.uri.path;
+      final isPublic = loc == '/bootstrap' ||
+          loc.startsWith('/auth/') ||
+          loc.startsWith('/help/urgent') ||
+          (config.enablePreviewHarness && loc == '/__preview');
+      if (session == null && !isPublic) {
+        return '/auth/welcome';
+      }
+      return null;
+    },
     errorBuilder: (context, state) => Wave0MissingRouteScreen(location: state.uri.toString()),
     routes: <RouteBase>[
-      GoRoute(
-        path: '/auth/welcome',
-        builder: (context, state) => const Wave0PlaceholderPage(
-          routeId: 'AUTH-02',
-          titleFa: 'خوش‌آمدگویی و ورود',
-          subtitleFa: 'ورود بیمار و همراه با شماره موبایل +98 و رضایت‌نامه فارسی',
-        ),
-      ),
-      GoRoute(
-        path: '/help/urgent',
-        builder: (context, state) => const Wave0SosPlaceholderScreen(),
-      ),
+      GoRoute(path: '/bootstrap', builder: (_, _) => const BootstrapScreen()),
+      GoRoute(path: '/auth/welcome', builder: (_, _) => const WelcomeScreen()),
+      GoRoute(path: '/auth/invitation', builder: (_, _) => const InvitationScreen()),
+      GoRoute(path: '/auth/phone', builder: (_, _) => const PhoneEntryScreen()),
+      GoRoute(path: '/auth/otp', builder: (_, _) => const OtpVerifyScreen()),
+      GoRoute(path: '/auth/consent', builder: (_, _) => const ConsentScreen()),
+      GoRoute(path: '/auth/accessibility', builder: (_, _) => const AccessibilitySetupScreen()),
+      GoRoute(path: '/auth/help', builder: (_, _) => const AuthHelpScreen()),
+      GoRoute(path: '/auth/session-expired', builder: (_, _) => const SessionExpiredScreen()),
+      GoRoute(path: '/help/urgent', builder: (_, _) => const Wave0SosPlaceholderScreen()),
+      GoRoute(path: '/account/profile', builder: (_, _) => const ProfileScreen()),
+      GoRoute(path: '/account/settings', builder: (_, _) => const SettingsScreen()),
+      GoRoute(path: '/account/appearance', builder: (_, _) => const AppearanceScreen()),
+      GoRoute(path: '/account/accessibility', builder: (_, _) => const AccessibilitySettingsScreen()),
+      GoRoute(path: '/account/notifications', builder: (_, _) => const NotificationsSettingsScreen()),
+      GoRoute(path: '/account/consents', builder: (_, _) => const ConsentsScreen()),
+      GoRoute(path: '/account/sync', builder: (_, _) => const SyncStatusScreen()),
+      GoRoute(path: '/account/clinic', builder: (_, _) => const ClinicInfoScreen()),
+      GoRoute(path: '/account/help', builder: (_, _) => const AppHelpScreen()),
       if (config.enablePreviewHarness)
-        GoRoute(
-          path: '/__preview',
-          builder: (context, state) => const PreviewHarnessScreen(),
-        ),
+        GoRoute(path: '/__preview', builder: (_, _) => const PreviewHarnessScreen()),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return Wave0ShellScaffold(navigationShell: navigationShell);
@@ -67,7 +99,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const Wave0PlaceholderPage(
                   routeId: 'CARE-01 (V01)',
                   titleFa: 'امروز',
-                  subtitleFa: 'اسکفولد Wave 0 آماده است — پیاده‌سازی کامل در Wave 1b (T-B07)',
+                  subtitleFa: 'اسکفولد آماده است — پیاده‌سازی کامل در T-B07',
                 ),
               ),
             ],
@@ -92,7 +124,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                   builder: (context, state) => const Wave0PlaceholderPage(
                     routeId: 'TEST-01 (V03)',
                     titleFa: 'آزمون‌ها',
-                    subtitleFa: 'آزمون‌های بینایی خانگی کالیبره‌شده (Wave 4 / T-B22)',
+                    subtitleFa: 'آزمون‌های بینایی خانگی کالیبره‌شده (T-B22)',
                   ),
                 ),
               ],
@@ -105,7 +137,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                   builder: (context, state) => const Wave0PlaceholderPage(
                     routeId: 'RES-01 (V04)',
                     titleFa: 'نتایج',
-                    subtitleFa: 'خلاصه تشخیصی تأییدشده پزشک (Wave 3 / T-B19)',
+                    subtitleFa: 'خلاصه تشخیصی تأییدشده پزشک (T-B19)',
                   ),
                 ),
               ],
@@ -114,11 +146,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: BinaDestinationId.account.path,
-                builder: (context, state) => const Wave0PlaceholderPage(
-                  routeId: 'ACC-01 (V09)',
-                  titleFa: 'حساب من',
-                  subtitleFa: 'پروفایل، همراه، ظاهر روشن/تیره، همگام‌سازی و راهنما (T-B06)',
-                ),
+                builder: (_, _) => const AccountScreen(),
               ),
             ],
           ),

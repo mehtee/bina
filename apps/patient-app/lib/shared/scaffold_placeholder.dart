@@ -16,6 +16,7 @@ class Wave0ShellScaffold extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(appConfigProvider);
+    final session = ref.watch(sessionProvider);
     final destinations = BinaDestinationId.enabledFor(config);
     final currentIndex = navigationShell.currentIndex.clamp(0, destinations.length - 1);
 
@@ -34,6 +35,14 @@ class Wave0ShellScaffold extends ConsumerWidget {
                 onPressed: () => context.push('/__preview'),
                 icon: const Icon(Icons.preview_outlined, size: 18),
                 label: const Text('پیش‌نمایش V01–V09'),
+              ),
+            ),
+          if (session?.actorType == 'caregiver')
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 4),
+              child: BinaContextBanner(
+                patientNameFa: session!.activePatientNameFa ?? 'پرونده تحت مراقبت',
+                onSwitchPatient: () => context.push('/caregiver/patients'),
               ),
             ),
           Expanded(child: navigationShell),

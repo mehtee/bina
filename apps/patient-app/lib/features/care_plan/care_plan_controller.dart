@@ -86,7 +86,7 @@ class CarePlanController extends AsyncNotifier<CarePlanSnapshot> {
   Future<void> refreshPlan() async {
     final session = ref.read(sessionProvider);
     if (session == null) return;
-    state = AsyncValue.data(await _loadForSession(session));
+    state = await AsyncValue.guard(() => _loadForSession(session));
   }
 
   Future<CarePlanSnapshot> _loadForSession(AuthSessionContext session) async {
@@ -112,6 +112,11 @@ class CarePlanController extends AsyncNotifier<CarePlanSnapshot> {
     } on PatientGatewayException catch (err) {
       if (err.isUnauthorizedOrRevoked && session.actorType == 'caregiver') {
         await cache.purgeForSession(session);
+        await outbox.purgePartition(partition);
+        await reminders.cancelForPatient(
+          tenantId: session.tenantId,
+          patientId: session.patientId,
+        );
       }
       rethrow;
     } catch (_) {

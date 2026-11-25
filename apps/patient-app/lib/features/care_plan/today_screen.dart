@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
+import '../../core/data/patient_gateway.dart';
 import '../../core/i18n/bina_i18n.dart';
 import 'care_plan_controller.dart';
 
@@ -46,25 +47,42 @@ class TodayScreen extends ConsumerWidget {
             ),
           ],
         ),
-        error: (err, _) => ListView(
-          padding: const EdgeInsetsDirectional.all(16),
-          children: <Widget>[
-            _TodayTopHeader(
-              greetingFa: 'برنامه مراقبت',
-              dateJalaliFa: 'در انتظار همگام‌سازی',
-              isCaregiver: session?.actorType == 'caregiver',
-              onOpenUrgent: () => context.push('/help/urgent'),
-              onOpenNotifications: () => context.push('/account/notifications'),
-              onOpenAccount: () => context.go('/account'),
-            ),
-            const SizedBox(height: 16),
-            BinaErrorState(
-              message: 'امکان دریافت برنامه درمان فراهم نشد. در صورت نیاز فوری با اورژانس تماس بگیرید.',
-              onRetry: () => ref.read(carePlanControllerProvider.notifier).refreshPlan(),
-              onOpenHelp: () => context.push('/help/urgent'),
-            ),
-          ],
-        ),
+        error: (err, _) {
+          final isCaregiverRevoked = err is PatientGatewayException &&
+              err.isUnauthorizedOrRevoked &&
+              session?.actorType == 'caregiver';
+          return ListView(
+            padding: const EdgeInsetsDirectional.all(16),
+            children: <Widget>[
+              _TodayTopHeader(
+                greetingFa: 'برنامه مراقبت',
+                dateJalaliFa: isCaregiverRevoked ? 'دسترسی پایان یافته' : 'در انتظار همگام‌سازی',
+                isCaregiver: session?.actorType == 'caregiver',
+                onOpenUrgent: () => context.push('/help/urgent'),
+                onOpenNotifications: () => context.push('/account/notifications'),
+                onOpenAccount: () => context.go('/account'),
+              ),
+              const SizedBox(height: 16),
+              if (isCaregiverRevoked)
+                BinaBanner(
+                  kind: BinaStatusKind.neutral,
+                  title: 'دسترسی به این پرونده پایان یافته است',
+                  body: 'دسترسی مراقب برای این بیمار لغو شده و داده‌های کش‌شده پاک شدند.',
+                  actionLabel: 'مشاهده وضعیت دسترسی',
+                  onAction: () async {
+                    await ref.read(sessionProvider.notifier).handleCaregiverRevoked();
+                    if (context.mounted) context.go('/caregiver/revoked');
+                  },
+                )
+              else
+                BinaErrorState(
+                  message: 'امکان دریافت برنامه درمان فراهم نشد. در صورت نیاز فوری با اورژانس تماس بگیرید.',
+                  onRetry: () => ref.read(carePlanControllerProvider.notifier).refreshPlan(),
+                  onOpenHelp: () => context.push('/help/urgent'),
+                ),
+            ],
+          );
+        },
         data: (snapshot) => _buildProductionToday(context, ref, snapshot, session?.actorType == 'caregiver'),
       ),
     );
@@ -114,13 +132,6 @@ class TodayScreen extends ConsumerWidget {
             child: BinaBrandMark(full: true, height: 32),
           ),
         ),
-        if (isCaregiver) ...<Widget>[
-          const SizedBox(height: 10),
-          BinaContextBanner(
-            patientNameFa: 'پرونده تحت مراقبت',
-            onSwitchPatient: () => context.push('/caregiver/patients'),
-          ),
-        ],
         if (snapshot.isFromOfflineCache) ...<Widget>[
           const SizedBox(height: 10),
           BinaOfflineBanner(

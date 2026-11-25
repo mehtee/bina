@@ -1,3 +1,4 @@
+import 'package:bina_api_dtos/bina_api_dtos.dart';
 import 'package:bina_device_sensors/bina_device_sensors.dart';
 import 'package:bina_offline_store/bina_offline_store.dart';
 import 'package:flutter/material.dart';
@@ -46,16 +47,42 @@ class SessionNotifier extends Notifier<AuthSessionContext?> {
 
   void setSession(AuthSessionContext? session) => state = session;
 
+  Future<void> switchCaregiverPatient(CaregiverPatientLink link) async {
+    final current = state;
+    if (current == null) return;
+    state = AuthSessionContext(
+      accessToken: current.accessToken,
+      tenantId: current.tenantId,
+      clinicId: link.clinicId,
+      patientId: link.patientId,
+      actorType: 'caregiver',
+      grantId: link.grantId,
+      activePatientNameFa: link.patientNameFa,
+    );
+  }
+
+  Future<void> _purgeSessionPartition(AuthSessionContext current) async {
+    final partition = SessionCacheRepository.partitionFor(current);
+    await ref.read(offlineStoreProvider).purgePartition(partition);
+    await ref.read(outboxQueueProvider).purgePartition(partition);
+    await ref.read(localReminderPortProvider).cancelForPatient(
+          tenantId: current.tenantId,
+          patientId: current.patientId,
+        );
+  }
+
+  Future<void> handleCaregiverRevoked() async {
+    final current = state;
+    if (current != null) {
+      await _purgeSessionPartition(current);
+    }
+    state = null;
+  }
+
   Future<void> signOutAndPurge() async {
     final current = state;
     if (current != null) {
-      final partition = SessionCacheRepository.partitionFor(current);
-      await ref.read(offlineStoreProvider).purgePartition(partition);
-      await ref.read(outboxQueueProvider).purgePartition(partition);
-      await ref.read(localReminderPortProvider).cancelForPatient(
-            tenantId: current.tenantId,
-            patientId: current.patientId,
-          );
+      await _purgeSessionPartition(current);
     }
     state = null;
   }

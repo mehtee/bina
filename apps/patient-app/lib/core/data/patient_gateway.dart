@@ -14,6 +14,7 @@ class AuthSessionContext {
     required this.patientId,
     required this.actorType,
     this.grantId,
+    this.activePatientNameFa,
   });
 
   final String accessToken;
@@ -22,6 +23,7 @@ class AuthSessionContext {
   final String patientId;
   final String actorType; // 'patient' | 'caregiver'
   final String? grantId;
+  final String? activePatientNameFa;
 
   String get actorPartitionId => actorType == 'caregiver' ? (grantId ?? 'caregiver') : patientId;
 }

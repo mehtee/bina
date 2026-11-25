@@ -1,3 +1,4 @@
+import 'package:bina_api_dtos/bina_api_dtos.dart';
 import 'package:bina_design_system/bina_design_system.dart';
 import 'package:bina_offline_store/bina_offline_store.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +10,10 @@ import '../features/account/account_screens.dart';
 import '../features/auth_onboarding/auth_screens.dart';
 import '../features/care_plan/care_screens.dart';
 import '../features/care_plan/today_screen.dart';
+import '../features/caregiver/caregiver_screens.dart';
+import '../features/education/education_screens.dart';
 import '../features/preview_harness/preview_harness_screen.dart';
+import '../features/symptoms_sos/sos_screens.dart';
 import '../shared/scaffold_placeholder.dart';
 import 'providers.dart';
 
@@ -61,6 +65,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isPublic = loc == '/bootstrap' ||
           loc.startsWith('/auth/') ||
           loc.startsWith('/help/urgent') ||
+          loc == '/caregiver/revoked' ||
           (config.enablePreviewHarness && loc == '/__preview');
       if (session == null && !isPublic) {
         return '/auth/welcome';
@@ -78,7 +83,40 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/auth/accessibility', builder: (_, _) => const AccessibilitySetupScreen()),
       GoRoute(path: '/auth/help', builder: (_, _) => const AuthHelpScreen()),
       GoRoute(path: '/auth/session-expired', builder: (_, _) => const SessionExpiredScreen()),
-      GoRoute(path: '/help/urgent', builder: (_, _) => const Wave0SosPlaceholderScreen()),
+      GoRoute(path: '/help/urgent', builder: (_, _) => const UrgentHelpScreen()),
+      GoRoute(path: '/help/symptoms', builder: (_, _) => const SymptomIntroScreen()),
+      GoRoute(path: '/help/symptoms/eye', builder: (_, _) => const SymptomEyeScreen()),
+      GoRoute(path: '/help/symptoms/questions', builder: (_, _) => const SymptomQuestionsScreen()),
+      GoRoute(path: '/help/symptoms/review', builder: (_, _) => const SymptomReviewScreen()),
+      GoRoute(
+        path: '/help/symptoms/receipt',
+        builder: (_, state) => SymptomReceiptScreen(
+          payload: state.extra is SymptomReceiptPayload ? state.extra! as SymptomReceiptPayload : null,
+        ),
+      ),
+      GoRoute(path: '/care/education', builder: (_, _) => const EducationListScreen()),
+      GoRoute(
+        path: '/care/education/:topicId',
+        builder: (_, state) => EducationDetailScreen(topicId: state.pathParameters['topicId']!),
+      ),
+      GoRoute(path: '/account/caregivers', builder: (_, _) => const CaregiversListScreen()),
+      GoRoute(path: '/account/caregivers/invite', builder: (_, _) => const CaregiverInviteScreen()),
+      GoRoute(
+        path: '/account/caregivers/scope',
+        builder: (_, state) => CaregiverScopeScreen(
+          draft: state.extra is CaregiverInviteDraft ? state.extra! as CaregiverInviteDraft : null,
+        ),
+      ),
+      GoRoute(
+        path: '/account/caregivers/grant/:grantId',
+        builder: (_, state) => CaregiverGrantDetailScreen(
+          grantId: state.pathParameters['grantId']!,
+          initialGrant: state.extra is CaregiverGrant ? state.extra! as CaregiverGrant : null,
+        ),
+      ),
+      GoRoute(path: '/caregiver/accept', builder: (_, _) => const CaregiverAcceptScreen()),
+      GoRoute(path: '/caregiver/patients', builder: (_, _) => const CaregiverPatientsScreen()),
+      GoRoute(path: '/caregiver/revoked', builder: (_, _) => const CaregiverRevokedScreen()),
       GoRoute(path: '/account/profile', builder: (_, _) => const ProfileScreen()),
       GoRoute(path: '/account/settings', builder: (_, _) => const SettingsScreen()),
       GoRoute(path: '/account/appearance', builder: (_, _) => const AppearanceScreen()),

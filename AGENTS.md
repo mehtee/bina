@@ -1,6 +1,6 @@
 # AGENTS.md — Engineering, Resource-Safety, AI/ML & Verification Rules for Bina AI
 
-This file governs all AI coding agents and engineers working inside the `/home/mahdi/projects/binaai` monorepo. Read `docs/PRD.md` and `docs/ADR.md` before designing or modifying any module, and read `docs/BINA_AI_PATIENT_APP_UI_UX_SPEC_V2_1.md` (alongside the extracted reference screens in `docs/patient-app-ui-designs/` and standalone visual assets in `docs/patient-app-visual-assets/`) before designing, scaffolding, or implementing any page, theme, widget, or visual asset in `apps/patient-app/`.
+This file governs all AI coding agents and engineers working inside the `/home/mahdi/projects/binaai` monorepo. Read `docs/PRD.md` and `docs/ADR.md` before designing or modifying any module; read `docs/BINA_AI_PATIENT_APP_UI_UX_SPEC_V2_1.md` (alongside `docs/patient-app-ui-designs/` and `docs/patient-app-visual-assets/`) before designing, scaffolding, or implementing anything in `apps/patient-app/`; and read `docs/BINA_AI_STAFF_WEB_UI_UX_SPEC_V2.md` (alongside `docs/staff-web-ui-designs/` and shared `docs/patient-app-visual-assets/`) before designing, scaffolding, or implementing any route, token, viewer, chart, component, or asset in `apps/staff-web/`.
 
 ---
 
@@ -19,12 +19,16 @@ binaai/
 ├── .env                      # Local secrets & active LLM/AI/DB config (GITIGNORED — NEVER COMMIT)
 ├── docs/
 │   ├── PRD.md                # Unified PRD v3.0 (Pillar 1 + Pillar 2 + Wave 0–4 + Datasets + KPIs + Hazards)
-│   ├── ADR.md                # Architecture Decision Records (ADR-001..054) & 2-Track Task Plan
+│   ├── ADR.md                # Architecture Decision Records (ADR-001..055) & 2-Track Task Plan
 │   ├── BINA_AI_PATIENT_APP_UI_UX_SPEC_V2_1.md # Authoritative Patient App UI/UX & Design System Spec (Bina Clinical Glass v2.1, ADR-054)
-│   ├── patient-app-ui-designs/      # 9 approved Light-mode UI reference renders (01-Today.png..09-My-Account.png)
-│   ├── patient-app-visual-assets/   # 4 canonical standalone visual source PNGs (A01–A04; derive runtime Light/Dark assets per §4.4)
-│   ├── Bina-AI-UI-Designs.zip       # Original 9-screen reference archive (keep unmodified)
+│   ├── BINA_AI_STAFF_WEB_UI_UX_SPEC_V2.md     # Authoritative Staff Web UI/UX & Clinical Design System Spec (Compact Desktop v2.0, ADR-055)
+│   ├── flutter_missing.md           # Patient App gap tracker & backlog
+│   ├── patient-app-ui-designs/      # 9 approved Light-mode Patient App reference renders (01-Today.png..09-My-Account.png)
+│   ├── patient-app-visual-assets/   # 4 canonical standalone visual source PNGs (A01–A04; shared Patient App + Staff Web)
+│   ├── staff-web-ui-designs/        # 8 extracted desktop Staff Web reference renders (01-Clinical-Dashboard.png..08-Care-Operations-Alternative.png)
+│   ├── Bina-AI-UI-Designs.zip       # Original 9-screen Patient App reference archive (keep unmodified)
 │   ├── Bina-AI-Visual-Assets.zip    # Original 4-asset archive (keep unmodified)
+│   ├── Bina-AI-Staff-Web-Last-8-Designs.zip # Original 8-screen Staff Web reference archive (keep unmodified)
 │   ├── bina-ai-local-small-llm-distillation.md # Local CPU-hostable <=1.5B Persian LLM distillation roadmap
 │   ├── bina-ai-executive-summary-fa.md
 │   ├── bina-ai-product-architecture-blueprint.md
@@ -88,12 +92,15 @@ docker system df
 
 ---
 
-## 3. Flutter Mobile Build & UI/UX Policy on This Host
+## 3. UI/UX Sources of Truth & Flutter Mobile Build Policy on This Host
 
-- **Mandatory UI/UX Source of Truth (`ADR-054` — Bina Clinical Glass v2.1):** Before designing, scaffolding, or implementing ANY screen, route, token, theme, component, or visual asset in `apps/patient-app/`, read [docs/BINA_AI_PATIENT_APP_UI_UX_SPEC_V2_1.md](file:///home/mahdi/projects/binaai/docs/BINA_AI_PATIENT_APP_UI_UX_SPEC_V2_1.md) in full and reference the 9 approved Light-mode renders in `docs/patient-app-ui-designs/` (`01-Today.png`..`09-My-Account.png`) and the 4 canonical source assets in `docs/patient-app-visual-assets/` (`A01–A04`):
+- **Mandatory Patient App UI/UX Source of Truth (`ADR-054` — Bina Clinical Glass v2.1):** Before designing, scaffolding, or implementing ANY screen, route, token, theme, component, or visual asset in `apps/patient-app/`, read [docs/BINA_AI_PATIENT_APP_UI_UX_SPEC_V2_1.md](file:///home/mahdi/projects/binaai/docs/BINA_AI_PATIENT_APP_UI_UX_SPEC_V2_1.md) in full and reference the 9 approved Light-mode renders in `docs/patient-app-ui-designs/` (`01-Today.png`..`09-My-Account.png`) and the 4 canonical source assets in `docs/patient-app-visual-assets/` (`A01–A04`):
   - **Source Precedence (§0):** `docs/PRD.md`, `docs/ADR.md`, and OpenAPI/clinical contracts govern safety, scope, and data; the 9 PNGs govern Light visual appearance; v2.1 defines tokens, Dark theme, and all unpictured flows (`V10` + `§9.1–§9.8`). Never embed screenshots as app widgets or hardcode phone bezels/status bars.
   - **Canonical Visual Assets (§4.4.1–4.4.4):** Use `A01–A04` unmodified as source masters (`assets/design/source/`, excluded from release bundle) to produce Light/Dark runtime derivatives in `assets/design/runtime/` (`iris_*`, `logo_*`, `wave_footer_*`, `wave_header_*`). Never interchange compact header wave (`A04`) with broad footer wave (`A03`), never redraw `A01–A04`, and suppress decorative art in SOS and active `clinical_renderer` test surfaces.
   - **Repository-First SDK & Material (§1.1):** Use the repository's pinned Flutter SDK & Material library without unapproved breaking migrations; verify exact host SDK compatibility before generating code.
+- **Mandatory Staff Web UI/UX Source of Truth (`ADR-055` — Bina Clinical Glass / Compact Desktop Workstation v2.0):** Before designing, scaffolding, or implementing ANY route, token, table, chart, clinical viewer, or workflow in `apps/staff-web/`, read [docs/BINA_AI_STAFF_WEB_UI_UX_SPEC_V2.md](file:///home/mahdi/projects/binaai/docs/BINA_AI_STAFF_WEB_UI_UX_SPEC_V2.md) in full and reference the 8 extracted desktop renders in `docs/staff-web-ui-designs/` (`01-Clinical-Dashboard.png`..`08-Care-Operations-Alternative.png`, `R07–R14`) plus shared `A01–A04` source assets in `docs/patient-app-visual-assets/`:
+  - **Global Normalization & Precedence (§0, §2.0):** `PRD.md`, `ADR.md`, backend RBAC/ABAC/RLS, and OpenAPI contracts override synthetic mockup values (enforce active CNV deterministic `ارجاع فوری` floor, translate English triage mockup to Persian RTL with exact 3 PRD tiers `ارجاع فوری` / `پیگیری ۳ تا ۶ ماه` / `عادی`, normalize sidebar to right-hand Persian RTL with light ice-aqua default and optional deep-teal global preference).
+  - **Desktop Density, Tokens & Clinical Viewports (§2–§6, §10):** Use Appendix A canonical Light/Dark CSS variables, self-hosted `Vazirmatn` WOFF2, `<200 kB` initial JS (lazy-loaded viewers/charts/PDF/admin), `<100 MB` Alpine container, theme-invariant `#090D12` clinical viewport with zero artwork or CSS filters, primary pixel segmentation masks independent from auxiliary Grad-CAM (off by default with exact Persian auxiliary label), chronological LTR chart axes with null gaps, zero PHI in URL query params/`localStorage`/logs, and explicit demo banner in MSW mode (never silently falling back to mock in live mode).
 - **DO NOT run Android or iOS native builds (`flutter build apk`, `flutter build appbundle`, `flutter build ipa`, `./gradlew`) on this server.**
 - **ALWAYS verify `apps/patient-app/` on this server via:**
   - `flutter analyze`
@@ -146,7 +153,7 @@ docker system df
 
 ## 6. Architecture, SOLID, Iran/Persian-First & Safety Rules
 
-1. **Two-Track Parallel Development (`ADR-048`, `ADR-054`):** Work contract-first against `packages/contracts-openapi/` and `packages/clinical-fixtures/` so **Track A (`backend` + `ai-engine` + `ml`)** and **Track B (`patient-app` + `staff-web` + `e2e`)** never block each other. All `apps/patient-app/` pages, themes (Light & Dark), floating dock, semantic tokens, asset derivatives (`A01–A04`), offline receipts, and isolated `clinical_renderer` boundaries MUST conform to `docs/BINA_AI_PATIENT_APP_UI_UX_SPEC_V2_1.md` and the 9 approved Light renders in `docs/patient-app-ui-designs/`; report unsupported backend endpoints rather than inventing API behavior.
+1. **Two-Track Parallel Development (`ADR-048`, `ADR-054`, `ADR-055`):** Work contract-first against `packages/contracts-openapi/` and `packages/clinical-fixtures/` so **Track A (`backend` + `ai-engine` + `ml`)** and **Track B (`patient-app` + `staff-web` + `e2e`)** never block each other. All `apps/patient-app/` surfaces MUST conform to `docs/BINA_AI_PATIENT_APP_UI_UX_SPEC_V2_1.md` and `docs/patient-app-ui-designs/`; all `apps/staff-web/` surfaces MUST conform to `docs/BINA_AI_STAFF_WEB_UI_UX_SPEC_V2.md` and `docs/staff-web-ui-designs/`; report unsupported backend endpoints rather than inventing API behavior.
 2. **SOLID & Strict Boundaries:** No `GodService` or shared `utils` dumping grounds; bounded contexts never import another context's internals; `clinical-rules` never imports LLM/HTTP/vendor SDKs; `ai-copilot` never mutates clinical truth or downgrades urgency.
 3. **Iranian Market, 100% Persian-First & Safety Non-Negotiables:**
    - **100% Persian User-Facing (`fa-IR`):** Source code & technical docs are in English; ALL user-facing patient, caregiver, clinician, diagnostic report, PDF, SMS, audio, and AI outputs MUST be fluent Persian (`fa-IR`) with **Jalali (`Solar Hijri`)** dates, semantic RTL, bidi isolation, `+98` phone support, and **self-hosted `Vazirmatn` fonts & local Web assets** (zero blocked external CDNs).

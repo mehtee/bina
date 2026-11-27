@@ -5,14 +5,17 @@
   "type": "module",
   "scripts": {
     "test:security": "vitest run security --pool=forks --maxWorkers=1 --no-file-parallelism",
-    "test:process": "vitest run process --pool=forks --maxWorkers=1 --no-file-parallelism"
+    "test:process": "vitest run process --pool=forks --maxWorkers=1 --no-file-parallelism",
+    "test:e2e": "node e2e/staff-web.e2e.mjs"
   },
   "dependencies": {
     "@bina/backend": "workspace:*",
     "pg": "^8.13.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "@types/pg": "^8.11.11",
+    "playwright-core": "^1.52.0",
     "vitest": "^3.0.8"
   }
 }

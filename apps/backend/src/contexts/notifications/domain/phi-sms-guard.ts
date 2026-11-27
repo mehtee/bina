@@ -79,3 +79,33 @@ export function renderAndValidatePhiFreeSms(msg: TemplatedNotification): string 
 
   return body;
 }
+
+/**
+ * Validates clinic-authored message templates before persistence so SMS templates
+ * cannot contain clinical PHI terms (drugs/diagnoses) or exceed safe UCS-2 limits.
+ */
+export function validatePhiFreeTemplateText(
+  bodyTemplateFa: string,
+  channel: "sms" | "print" | "in_app"
+): void {
+  const trimmed = bodyTemplateFa.trim();
+  if (trimmed.length < 5) {
+    throw new SmsPhiViolationError("متن قالب پیام باید حداقل ۵ کاراکتر باشد.");
+  }
+  if (channel !== "sms") {
+    return;
+  }
+  const lowerBody = trimmed.toLowerCase();
+  for (const term of FORBIDDEN_PHI_TERMS) {
+    if (lowerBody.includes(term.toLowerCase())) {
+      throw new SmsPhiViolationError(
+        `قالب پیامک حاوی واژه حساس بالینی («${term}») است و برای پیامک مجاز نیست.`
+      );
+    }
+  }
+  if (trimmed.length > UCS2_MAX_CHARS) {
+    throw new SmsPhiViolationError(
+      `طول قالب پیامک (${trimmed.length} کاراکتر) از سقف مجاز ${UCS2_MAX_CHARS} کاراکتر UCS-2 بیشتر است.`
+    );
+  }
+}

@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+.react-router
+coverage
+*.log
+.env
+.env.*
+src/assets/design/source

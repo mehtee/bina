@@ -1,4 +1,5 @@
 import { randomInt, randomUUID, timingSafeEqual } from "node:crypto";
+import { authorizeStaffAction, type StaffPrincipal } from "../../../packages/authz/index.js";
 import type { DbTx } from "../../../packages/db/index.js";
 import { asClinicId, asTenantId, type NotificationTransportPort } from "../../../packages/domain-kernel/index.js";
 import type { AuditLogPort } from "../../audit-compliance/ports/index.js";
@@ -9,6 +10,8 @@ import type {
   CaregiverPatientLink,
   ConsentAcceptanceRecord,
   EnrollmentRepoPort,
+  PatientClinicalHistoryRecord,
+  PatientListItem,
 } from "../ports/index.js";
 
 export class EnrollmentHttpError extends Error {
@@ -139,6 +142,7 @@ export class EnrollmentService {
       patientId: patient.id,
       consentVersion: input.consentVersion,
       locale: patient.preferredLocale,
+      action: "accepted",
     });
 
     const exp = Math.floor(now.getTime() / 1000) + 3600;
@@ -247,6 +251,248 @@ export class EnrollmentService {
     };
   }
 
+  async listPatients(
+    tx: DbTx,
+    principal: StaffPrincipal,
+    filter: {
+      q?: string | undefined;
+      accessMode?: "app" | "caregiver" | "print_phone" | undefined;
+      limit: number;
+      offset: number;
+    }
+  ): Promise<{ items: PatientListItem[]; total: number }> {
+    const decision = authorizeStaffAction(principal, "patient:read", principal.tenantId);
+    if (!decision.allowed) {
+      throw new EnrollmentHttpError(403, decision.code, decision.reasonFa);
+    }
+    return this.repo.listPatients(tx, {
+      clinicId: principal.clinicId,
+      q: filter.q,
+      accessMode: filter.accessMode,
+      limit: Math.min(100, Math.max(1, filter.limit)),
+      offset: Math.max(0, filter.offset),
+    });
+  }
+
+  async enrollPatientByStaff(
+    tx: DbTx,
+    principal: StaffPrincipal,
+    input: {
+      fullNameFa: string;
+      phoneNumber: string;
+      accessMode: "app" | "caregiver" | "print_phone";
+      nationalIdMasked?: string | undefined;
+      birthYearJalali?: number | undefined;
+      notesFa?: string | undefined;
+      consentVersion?: string | undefined;
+      mlTrainingConsentFlag?: boolean | undefined;
+    }
+  ): Promise<{
+    patientId: string;
+    tenantId: string;
+    clinicId: string;
+    fullNameFa: string;
+    phoneMasked: string;
+    nationalIdMasked?: string | null | undefined;
+    birthYearJalali?: number | null | undefined;
+    notesFa?: string | null | undefined;
+    accessMode: "app" | "caregiver" | "print_phone";
+    preferredLocale: string;
+    mlTrainingConsentFlag: boolean;
+    consents: ConsentAcceptanceRecord[];
+  }> {
+    const decision = authorizeStaffAction(principal, "patient:enroll", principal.tenantId);
+    if (!decision.allowed) {
+      throw new EnrollmentHttpError(403, decision.code, decision.reasonFa);
+    }
+
+    let e164: string;
+    try {
+      e164 = normalizeIranPhone(input.phoneNumber);
+    } catch (err) {
+      throw new EnrollmentHttpError(
+        400,
+        "INVALID_IRAN_PHONE",
+        err instanceof Error ? err.message : "شماره موبایل ایران نامعتبر است (+989xxxxxxxxx)."
+      );
+    }
+
+    const patient = await this.repo.upsertPatientByPhoneHash(tx, {
+      tenantId: principal.tenantId,
+      clinicId: principal.clinicId,
+      phoneHash: hashIranPhone(e164, this.salt),
+      phoneMasked: maskIranPhone(e164),
+      fullNameFa: input.fullNameFa.trim(),
+      accessMode: input.accessMode,
+      nationalIdMasked: input.nationalIdMasked,
+      birthYearJalali: input.birthYearJalali,
+      notesFa: input.notesFa,
+    });
+
+    if (typeof input.mlTrainingConsentFlag === "boolean") {
+      await this.repo.updatePatientMlConsent(tx, patient.id, input.mlTrainingConsentFlag);
+    }
+
+    if (input.consentVersion) {
+      await this.repo.recordConsentAcceptance(tx, {
+        tenantId: principal.tenantId,
+        patientId: patient.id,
+        consentVersion: input.consentVersion,
+        locale: patient.preferredLocale,
+        action: "accepted",
+        recordedByUserId: principal.userId,
+      });
+    }
+
+    await this.auditLog.append(tx, {
+      tenantId: principal.tenantId,
+      actorUserId: principal.userId,
+      actorRole: principal.role,
+      action: "patient.enrolled-by-staff",
+      resourceType: "patient",
+      resourceId: patient.id,
+      metadata: { accessMode: input.accessMode },
+    });
+
+    const refreshed = await this.repo.findPatientById(tx, patient.id);
+    const consents = await this.repo.listConsentsByPatient(tx, patient.id);
+    const p = refreshed ?? patient;
+    return {
+      patientId: p.id,
+      tenantId: p.tenantId,
+      clinicId: p.clinicId,
+      fullNameFa: p.fullNameFa,
+      phoneMasked: p.phoneMasked,
+      nationalIdMasked: p.nationalIdMasked,
+      birthYearJalali: p.birthYearJalali,
+      notesFa: p.notesFa,
+      accessMode: p.accessMode,
+      preferredLocale: p.preferredLocale,
+      mlTrainingConsentFlag: p.mlTrainingConsentFlag,
+      consents,
+    };
+  }
+
+  async getPatientProfileByStaff(
+    tx: DbTx,
+    principal: StaffPrincipal,
+    patientId: string
+  ) {
+    const decision = authorizeStaffAction(principal, "patient:read", principal.tenantId);
+    if (!decision.allowed) {
+      throw new EnrollmentHttpError(403, decision.code, decision.reasonFa);
+    }
+    return this.getPatientProfile(tx, patientId);
+  }
+
+  async listClinicalHistory(
+    tx: DbTx,
+    principal: StaffPrincipal,
+    patientId: string
+  ): Promise<PatientClinicalHistoryRecord[]> {
+    const decision = authorizeStaffAction(principal, "patient:read", principal.tenantId);
+    if (!decision.allowed) {
+      throw new EnrollmentHttpError(403, decision.code, decision.reasonFa);
+    }
+    const patient = await this.repo.findPatientById(tx, patientId);
+    if (!patient) {
+      throw new EnrollmentHttpError(404, "PATIENT_NOT_FOUND", "پروفایل بیمار یافت نشد.");
+    }
+    return this.repo.listClinicalHistory(tx, patientId);
+  }
+
+  async addClinicalHistory(
+    tx: DbTx,
+    principal: StaffPrincipal,
+    patientId: string,
+    input: {
+      summaryFa: string;
+      conditions?: string[] | undefined;
+      allergies?: string[] | undefined;
+      medications?: string[] | undefined;
+      riskFactors?: Record<string, unknown> | undefined;
+      labs?: Record<string, unknown> | undefined;
+    }
+  ): Promise<PatientClinicalHistoryRecord> {
+    const decision = authorizeStaffAction(principal, "patient:enroll", principal.tenantId);
+    if (!decision.allowed) {
+      throw new EnrollmentHttpError(403, decision.code, decision.reasonFa);
+    }
+    const patient = await this.repo.findPatientById(tx, patientId);
+    if (!patient) {
+      throw new EnrollmentHttpError(404, "PATIENT_NOT_FOUND", "پروفایل بیمار یافت نشد.");
+    }
+    const saved = await this.repo.insertClinicalHistory(tx, {
+      tenantId: principal.tenantId,
+      clinicId: principal.clinicId,
+      patientId,
+      recordedByUserId: principal.userId,
+      summaryFa: input.summaryFa.trim(),
+      conditions: input.conditions ?? [],
+      allergies: input.allergies ?? [],
+      medications: input.medications ?? [],
+      riskFactors: input.riskFactors ?? {},
+      labs: input.labs ?? {},
+    });
+    await this.auditLog.append(tx, {
+      tenantId: principal.tenantId,
+      actorUserId: principal.userId,
+      actorRole: principal.role,
+      action: "patient.clinical-history-added",
+      resourceType: "patient_clinical_history",
+      resourceId: saved.historyId,
+      metadata: { patientId },
+    });
+    return saved;
+  }
+
+  async updatePatientConsent(
+    tx: DbTx,
+    principal: StaffPrincipal,
+    patientId: string,
+    input: {
+      consentVersion: string;
+      action: "accepted" | "withdrawn";
+      mlTrainingConsentFlag?: boolean | undefined;
+      noteFa?: string | undefined;
+    }
+  ): Promise<ConsentAcceptanceRecord> {
+    const decision = authorizeStaffAction(principal, "patient:enroll", principal.tenantId);
+    if (!decision.allowed) {
+      throw new EnrollmentHttpError(403, decision.code, decision.reasonFa);
+    }
+    const patient = await this.repo.findPatientById(tx, patientId);
+    if (!patient) {
+      throw new EnrollmentHttpError(404, "PATIENT_NOT_FOUND", "پروفایل بیمار یافت نشد.");
+    }
+    if (typeof input.mlTrainingConsentFlag === "boolean") {
+      await this.repo.updatePatientMlConsent(tx, patientId, input.mlTrainingConsentFlag);
+    }
+    const record = await this.repo.recordConsentAcceptance(tx, {
+      tenantId: principal.tenantId,
+      patientId,
+      consentVersion: input.consentVersion,
+      locale: patient.preferredLocale,
+      action: input.action,
+      recordedByUserId: principal.userId,
+    });
+    await this.auditLog.append(tx, {
+      tenantId: principal.tenantId,
+      actorUserId: principal.userId,
+      actorRole: principal.role,
+      action: `patient.consent-${input.action}`,
+      resourceType: "consent_acceptance",
+      resourceId: record.id,
+      reasonFa: input.noteFa,
+      metadata: {
+        patientId,
+        consentVersion: input.consentVersion,
+        mlTrainingConsentFlag: input.mlTrainingConsentFlag,
+      },
+    });
+    return record;
+  }
+
   async listCaregiversForPatient(tx: DbTx, patientId: string): Promise<CaregiverGrantRecord[]> {
     return this.repo.listCaregiverGrantsByPatient(tx, patientId);
   }
@@ -264,8 +510,12 @@ export class EnrollmentService {
     clinicId: string;
     fullNameFa: string;
     phoneMasked: string;
+    nationalIdMasked?: string | null | undefined;
+    birthYearJalali?: number | null | undefined;
+    notesFa?: string | null | undefined;
     preferredLocale: string;
     accessMode: "app" | "caregiver" | "print_phone";
+    mlTrainingConsentFlag: boolean;
     consents: ConsentAcceptanceRecord[];
   }> {
     const patient = await this.repo.findPatientById(tx, patientId);
@@ -279,8 +529,12 @@ export class EnrollmentService {
       clinicId: patient.clinicId,
       fullNameFa: patient.fullNameFa,
       phoneMasked: patient.phoneMasked,
+      nationalIdMasked: patient.nationalIdMasked,
+      birthYearJalali: patient.birthYearJalali,
+      notesFa: patient.notesFa,
       preferredLocale: patient.preferredLocale,
       accessMode: patient.accessMode,
+      mlTrainingConsentFlag: patient.mlTrainingConsentFlag,
       consents,
     };
   }

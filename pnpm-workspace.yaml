@@ -7,3 +7,8 @@ allowBuilds:
   "@scarf/scarf": false
   core-js: false
   esbuild: true
+  msw: false
+
+minimumReleaseAgeExclude:
+  - lucide-react@1.81.0
+  - vite@8.4.0

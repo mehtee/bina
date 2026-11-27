@@ -522,6 +522,9 @@ class PersianReportDraft(BinaContractModel):
     urgencyLabelFa: str
     evidenceIds: list[str]
     validationPassed: bool
+    draftVersion: int | None = Field(default=None)
+    editedByUserId: str | None = Field(default=None)
+    updatedAtIso: str | None = Field(default=None)
 
 
 class ClinicianSignoffRequest(BinaContractModel):
@@ -529,6 +532,7 @@ class ClinicianSignoffRequest(BinaContractModel):
     finalUrgency: UrgencyTier
     finalReportTextFa: str
     overrideReasonFa: str | None = Field(default=None)
+    expectedDraftVersion: int | None = Field(default=None)
 
 
 class ClinicianSignoffResponse(BinaContractModel):
@@ -547,6 +551,10 @@ class DiagnosticStudyDetail(BinaContractModel):
     clinicId: str
     eyeLaterality: StudyLaterality
     status: StudyStatus
+    urgentFloorActive: bool | None = Field(default=None)
+    urgentFloorRuleCodes: list[str] | None = Field(default=None)
+    createdAtIso: str | None = Field(default=None)
+    updatedAtIso: str | None = Field(default=None)
     qcDecisions: list[QcDecision]
     specialistOutputs: list[SpecialistOutput]
     fusionResult: FusionResult | None = Field(default=None)
@@ -601,6 +609,8 @@ class HomeVisionTestRequest(BinaContractModel):
     ambientLux: float
     deviceTiltDeg: float
     glareDetected: bool | None = Field(default=None)
+    deviceModelCode: str | None = Field(default=None)
+    rawTrials: list[HomeVisionTestTrialInput] | None = Field(default=None)
 
 
 class HomeVisionTestResponse(BinaContractModel):
@@ -686,4 +696,1038 @@ class AiEngineAnalyzeResponse(BinaContractModel):
     specialistOutputs: list[SpecialistOutput]
     fusionResult: FusionResult | None = Field(default=None)
     explainability: ExplainabilityOutput | None = Field(default=None)
+
+
+class AuthorizedClinicMembership(BinaContractModel):
+    membershipId: str
+    tenantId: str
+    clinicId: str
+    clinicNameFa: str
+    role: StaffRole
+    emergencyPhone: str
+    calendarMode: str
+
+
+class AuthorizedClinicListResponse(BinaContractModel):
+    items: list[AuthorizedClinicMembership]
+
+
+class FeatureFlagRecord(BinaContractModel):
+    flagKey: str
+    labelFa: str
+    descriptionFa: str
+    enabled: bool
+    config: dict[str, Any]
+    updatedAtIso: str | None = Field(default=None)
+
+
+class FeatureFlagListResponse(BinaContractModel):
+    items: list[FeatureFlagRecord]
+
+
+class ClinicFeatureFlagRecord(BinaContractModel):
+    id: str
+    tenantId: str
+    clinicId: str
+    flagKey: str
+    enabled: bool
+    config: dict[str, Any]
+    updatedByUserId: str
+    updatedAtIso: str
+
+
+class UpsertFeatureFlagRequest(BinaContractModel):
+    flagKey: str
+    enabled: bool
+    config: dict[str, Any] | None = Field(default=None)
+
+
+class StaffMeResponse(BinaContractModel):
+    userId: str
+    tenantId: str
+    clinicId: str
+    role: StaffRole
+    mfaVerified: bool
+    stepUpVerified: bool
+    capabilities: dict[str, bool]
+    clinic: ClinicProfile | None = Field(default=None)
+    authorizedClinics: list[AuthorizedClinicMembership]
+    featureFlags: list[FeatureFlagRecord]
+
+
+class OverviewDashboardResponse(BinaContractModel):
+    todayJalali: str
+    activeEpisodesOd: int
+    activeEpisodesOs: int
+    printPhoneCohortCount: int
+    urgentTriageCount: int
+    overdueSlaCount: int
+    openTriageCount: int
+    pendingHitlStudies: int
+    qcFailedStudies: int
+    r2AlertCount: int
+    activeOutagesCount: int
+    queueUrgentItems: list[dict[str, Any]]
+    pendingHitlItems: list[dict[str, Any]]
+
+
+class WorkspaceSearchResponse(BinaContractModel):
+    query: str
+    patients: list[dict[str, Any]]
+    studies: list[dict[str, Any]]
+    episodes: list[dict[str, Any]]
+    reports: list[dict[str, Any]]
+
+
+class RecentActivityItem(BinaContractModel):
+    activityId: str
+    action: str
+    actorRole: str
+    resourceType: str
+    resourceId: str
+    breakGlass: bool
+    reasonFa: str | None = Field(default=None)
+    occurredAtIso: str
+    occurredAtJalali: str
+
+
+class RecentActivityListResponse(BinaContractModel):
+    items: list[RecentActivityItem]
+
+
+class PatientListItem(BinaContractModel):
+    patientId: str
+    clinicId: str
+    fullNameFa: str
+    phoneMasked: str
+    nationalIdMasked: str | None = Field(default=None)
+    accessMode: AccessMode
+    preferredLocale: str
+    activeEpisodeCount: int
+    openTriageCount: int
+    createdAtIso: str
+
+
+class PatientListResponse(BinaContractModel):
+    items: list[PatientListItem]
+    total: int
+
+
+class StaffEnrollPatientRequest(BinaContractModel):
+    fullNameFa: str
+    phoneNumber: str
+    accessMode: AccessMode
+    nationalIdMasked: str | None = Field(default=None)
+    birthYearJalali: int | None = Field(default=None)
+    notesFa: str | None = Field(default=None)
+    consentVersion: str | None = Field(default=None)
+    mlTrainingConsentFlag: bool | None = Field(default=None)
+
+
+class StaffEnrolledPatientResponse(BinaContractModel):
+    patientId: str
+    tenantId: str
+    clinicId: str
+    fullNameFa: str
+    phoneMasked: str
+    nationalIdMasked: str | None = Field(default=None)
+    birthYearJalali: int | None = Field(default=None)
+    notesFa: str | None = Field(default=None)
+    accessMode: AccessMode
+    preferredLocale: str
+    mlTrainingConsentFlag: bool
+    consents: list[ConsentRecord]
+
+
+class Patient360Response(BinaContractModel):
+    patient: dict[str, Any]
+    odEpisodes: list[dict[str, Any]]
+    osEpisodes: list[dict[str, Any]]
+    recentStudies: list[dict[str, Any]]
+    r2Summary: dict[str, Any]
+    openTriageCases: list[dict[str, Any]]
+    pendingFollowUpTasks: list[dict[str, Any]]
+    clinicalHistories: list[dict[str, Any]]
+    consents: list[dict[str, Any]]
+
+
+class PatientClinicalHistoryItem(BinaContractModel):
+    historyId: str
+    tenantId: str
+    clinicId: str
+    patientId: str
+    recordedByUserId: str
+    summaryFa: str
+    conditions: list[str]
+    allergies: list[str]
+    medications: list[str]
+    riskFactors: dict[str, Any]
+    labs: dict[str, Any]
+    createdAtIso: str
+
+
+class PatientClinicalHistoryListResponse(BinaContractModel):
+    items: list[PatientClinicalHistoryItem]
+
+
+class AddClinicalHistoryRequest(BinaContractModel):
+    summaryFa: str
+    conditions: list[str] | None = Field(default=None)
+    allergies: list[str] | None = Field(default=None)
+    medications: list[str] | None = Field(default=None)
+    riskFactors: dict[str, Any] | None = Field(default=None)
+    labs: dict[str, Any] | None = Field(default=None)
+
+
+class PatientTimelineEvent(BinaContractModel):
+    category: str
+    refId: str
+    eyeLaterality: StudyLaterality | None = Field(default=None)
+    eyeLabelFa: str | None = Field(default=None)
+    titleFa: str
+    summaryFa: str
+    occurredAtIso: str
+    occurredAtJalali: str
+
+
+class PatientTimelineResponse(BinaContractModel):
+    items: list[PatientTimelineEvent]
+
+
+class UpdatePatientConsentRequest(BinaContractModel):
+    consentVersion: str
+    action: str
+    mlTrainingConsentFlag: bool | None = Field(default=None)
+    noteFa: str | None = Field(default=None)
+
+
+class CareEpisodeWorklistItem(BinaContractModel):
+    episodeId: str
+    clinicId: str
+    patientId: str
+    patientNameFa: str
+    phoneMasked: str
+    protocolType: str
+    eyeLaterality: EyeLaterality
+    eyeLabelFa: str
+    surgeonId: str
+    accessMode: AccessMode
+    activePrescriptionVersion: int
+    status: str
+    anchorAtIso: str
+    anchorAtJalali: str
+
+
+class CareEpisodeWorklistResponse(BinaContractModel):
+    items: list[CareEpisodeWorklistItem]
+    total: int
+
+
+class CloseEpisodeRequest(BinaContractModel):
+    status: str | None = Field(default=None)
+    reasonFa: str
+
+
+class PrescriptionHistoryListResponse(BinaContractModel):
+    items: list[PrescriptionVersion]
+
+
+class EpisodeSymptomHistoryItem(BinaContractModel):
+    reportId: str
+    episodeId: str
+    eyeLaterality: EyeLaterality
+    eyeLabelFa: str
+    severePain: bool
+    suddenVisionLoss: bool
+    purulentDischarge: bool
+    flashesOrCurtain: bool
+    freeTextFa: str
+    urgencyTier: UrgencyTier
+    urgencyLabelFa: str
+    signals: list[dict[str, Any]] | None = Field(default=None)
+    createdAtIso: str
+    createdAtJalali: str
+
+
+class EpisodeSymptomListResponse(BinaContractModel):
+    items: list[EpisodeSymptomHistoryItem]
+
+
+class PrintPhoneQueueItem(BinaContractModel):
+    episodeId: str
+    patientId: str
+    patientNameFa: str
+    phoneMasked: str
+    eyeLaterality: EyeLaterality
+    eyeLabelFa: str
+    activePrescriptionVersion: int
+    pendingTaskCount: int
+    lastOutreachAtIso: str | None = Field(default=None)
+    lastOutreachOutcomeFa: str | None = Field(default=None)
+
+
+class PrintPhoneQueueResponse(BinaContractModel):
+    items: list[PrintPhoneQueueItem]
+    total: int
+
+
+class PrintPhoneOutreachRequest(BinaContractModel):
+    status: str | None = Field(default=None)
+    outcomeFa: str
+
+
+class PrintPhoneOutreachRecord(BinaContractModel):
+    taskId: str
+    episodeId: str
+    patientId: str
+    status: str
+    outcomeFa: str
+    recordedAtIso: str
+
+
+class TriageCaseDetailResponse(BinaContractModel):
+    triageCase: TriageCase
+    triggers: list[dict[str, Any]]
+    contactLogs: list[dict[str, Any]]
+    referrals: list[ReferralRecord]
+    followUpTasks: list[FollowUpTaskRecord]
+
+
+class TriageContactRequest(BinaContractModel):
+    outcome: str
+    channel: str | None = Field(default=None)
+    noteFa: str
+
+
+class CloseTriageCaseRequest(BinaContractModel):
+    resolutionNoteFa: str
+    resolutionType: str | None = Field(default=None)
+
+
+class ClinicOutageRecord(BinaContractModel):
+    outageId: str
+    tenantId: str
+    clinicId: str
+    titleFa: str
+    status: str
+    severity: str
+    affectedChannel: str
+    mitigationNoteFa: str
+    startedAtIso: str
+    resolvedAtIso: str | None = Field(default=None)
+    createdByUserId: str
+    createdAtIso: str
+
+
+class ClinicOutageListResponse(BinaContractModel):
+    items: list[ClinicOutageRecord]
+
+
+class CreateClinicOutageRequest(BinaContractModel):
+    titleFa: str
+    severity: str | None = Field(default=None)
+    affectedChannel: str
+    mitigationNoteFa: str | None = Field(default=None)
+
+
+class UpdateClinicOutageRequest(BinaContractModel):
+    status: str | None = Field(default=None)
+    severity: str | None = Field(default=None)
+    mitigationNoteFa: str | None = Field(default=None)
+
+
+class ReferralListResponse(BinaContractModel):
+    items: list[ReferralRecord]
+    total: int
+
+
+class UpdateReferralOutcomeRequest(BinaContractModel):
+    status: str
+    missReasonFa: str | None = Field(default=None)
+
+
+class FollowUpTaskRecord(BinaContractModel):
+    taskId: str
+    tenantId: str
+    clinicId: str
+    patientId: str
+    patientNameFa: str | None = Field(default=None)
+    episodeId: str | None = Field(default=None)
+    triageCaseId: str | None = Field(default=None)
+    eyeLaterality: StudyLaterality | None = Field(default=None)
+    eyeLabelFa: str | None = Field(default=None)
+    taskType: str
+    dueAtIso: str
+    dueAtJalali: str
+    status: str
+    assignedUserId: str | None = Field(default=None)
+    outcomeFa: str | None = Field(default=None)
+    completedAtIso: str | None = Field(default=None)
+    createdAtIso: str
+    updatedAtIso: str
+
+
+class FollowUpTaskListResponse(BinaContractModel):
+    items: list[FollowUpTaskRecord]
+    total: int
+
+
+class CreateFollowUpTaskRequest(BinaContractModel):
+    patientId: str
+    episodeId: str | None = Field(default=None)
+    triageCaseId: str | None = Field(default=None)
+    eyeLaterality: StudyLaterality | None = Field(default=None)
+    taskType: str
+    dueAt: str
+    assignedUserId: str | None = Field(default=None)
+    outcomeFa: str | None = Field(default=None)
+
+
+class UpdateFollowUpTaskRequest(BinaContractModel):
+    status: str | None = Field(default=None)
+    assignedUserId: str | None = Field(default=None)
+    outcomeFa: str | None = Field(default=None)
+
+
+class DiagnosticStudyWorklistItem(BinaContractModel):
+    studyId: str
+    patientId: str
+    patientNameFa: str
+    clinicId: str
+    eyeLaterality: StudyLaterality
+    eyeLabelFa: str
+    status: StudyStatus
+    urgencyTier: UrgencyTier | None = Field(default=None)
+    urgencyLabelFa: str | None = Field(default=None)
+    urgentFloorActive: bool
+    modalities: list[str]
+    topConditionNameFa: str | None = Field(default=None)
+    createdAtIso: str
+    createdAtJalali: str
+    signedAtIso: str | None = Field(default=None)
+
+
+class DiagnosticStudyWorklistResponse(BinaContractModel):
+    items: list[DiagnosticStudyWorklistItem]
+    total: int
+
+
+class AddRecaptureAssetsRequest(BinaContractModel):
+    assets: list[StudyAssetInput]
+
+
+class StudyInferenceJobRecord(BinaContractModel):
+    jobId: str
+    studyId: str
+    engineMode: str
+    modelVersions: dict[str, Any]
+    status: str
+    startedAtIso: str | None = Field(default=None)
+    completedAtIso: str | None = Field(default=None)
+    errorCode: str | None = Field(default=None)
+    createdAtIso: str
+
+
+class StudyInferenceJobListResponse(BinaContractModel):
+    items: list[StudyInferenceJobRecord]
+
+
+class SaveReportDraftRequest(BinaContractModel):
+    expectedDraftVersion: int
+    titleFa: str
+    modalityFindingsFa: str
+    differentialSummaryFa: str
+    crossModalCorrelationFa: str
+    followUpPlanFa: str
+    urgencyTier: UrgencyTier
+    evidenceIds: list[str] | None = Field(default=None)
+
+
+class ClinicianFeedbackRecord(BinaContractModel):
+    feedbackId: str
+    studyId: str
+    clinicianUserId: str
+    targetLayer: str
+    agreementState: str
+    correctedLabelCode: str | None = Field(default=None)
+    noteFa: str
+    createdAtIso: str
+
+
+class ClinicianFeedbackListResponse(BinaContractModel):
+    items: list[ClinicianFeedbackRecord]
+
+
+class CreateClinicianFeedbackRequest(BinaContractModel):
+    targetLayer: str
+    agreementState: str
+    correctedLabelCode: str | None = Field(default=None)
+    noteFa: str | None = Field(default=None)
+
+
+class BiomarkerDelta(BinaContractModel):
+    metricKey: str
+    currentValue: float
+    priorValue: float
+    delta: float
+
+
+class StudyComparisonResponse(BinaContractModel):
+    currentStudy: DiagnosticStudyDetail
+    priorStudies: list[DiagnosticStudyDetail]
+    biomarkerDeltas: list[BiomarkerDelta]
+
+
+class FhirBundleResponse(BinaContractModel):
+    resourceType: str
+    id: str
+    type: str
+    timestamp: str
+    entry: list[dict[str, Any]]
+
+
+class DicomRawTags(BinaContractModel):
+    patientName: str | None = Field(default=None)
+    patientId: str | None = Field(default=None)
+    patientBirthDate: str | None = Field(default=None)
+    patientTelephone: str | None = Field(default=None)
+    institutionName: str | None = Field(default=None)
+    performingPhysicianName: str | None = Field(default=None)
+    referringPhysicianName: str | None = Field(default=None)
+    studyInstanceUid: str | None = Field(default=None)
+    seriesInstanceUid: str | None = Field(default=None)
+    sopInstanceUid: str | None = Field(default=None)
+    modality: str | None = Field(default=None)
+    imageLaterality: str | None = Field(default=None)
+    studyDate: str | None = Field(default=None)
+
+
+class DicomIngestItem(BinaContractModel):
+    assetId: str
+    s3ObjectKey: str
+    declaredModalityHint: DiagnosticModality | None = Field(default=None)
+    rawTags: DicomRawTags
+
+
+class DicomIngestRequest(BinaContractModel):
+    patientId: str
+    eyeLaterality: StudyLaterality
+    dicomItems: list[DicomIngestItem]
+    labs: ClinicalLabsInput | None = Field(default=None)
+
+
+class AnonymizedDicomSnapshot(BinaContractModel):
+    pseudonymId: str
+    sha256: str
+    scrubbedTags: dict[str, Any]
+
+
+class DicomIngestResponse(BinaContractModel):
+    study: DiagnosticStudyDetail
+    anonymizedSnapshots: list[AnonymizedDicomSnapshot]
+
+
+class HomeVisionTestTrialInput(BinaContractModel):
+    trialIndex: int
+    stimulus: dict[str, Any]
+    response: dict[str, Any]
+    reactionMs: int | None = Field(default=None)
+    correct: bool | None = Field(default=None)
+
+
+class HomeVisionTestTrialRecord(BinaContractModel):
+    trialId: str
+    testId: str
+    trialIndex: int
+    stimulus: dict[str, Any]
+    response: dict[str, Any]
+    reactionMs: int | None = Field(default=None)
+    correct: bool | None = Field(default=None)
+    createdAtIso: str
+
+
+class VisionTrendAlert(BinaContractModel):
+    id: str
+    patientId: str
+    eyeLaterality: EyeLaterality
+    ruleCode: str
+    severity: UrgencyTier
+    summaryFa: str
+    ewmaValue: float
+    cusumValue: float
+    triageCaseId: str | None = Field(default=None)
+    createdAtIso: str
+
+
+class R2MonitoringOverviewResponse(BinaContractModel):
+    activePlanCount: int
+    enrolledPatientCount: int
+    acceptedTestCount: int
+    rejectedTestCount: int
+    activeAlertCount: int
+    killedDeviceCount: int
+    latestAlerts: list[VisionTrendAlert]
+
+
+class HomeVisionTestRecord(BinaContractModel):
+    id: str
+    tenantId: str
+    clinicId: str
+    patientId: str
+    calibrationProfileId: str | None = Field(default=None)
+    eyeLaterality: EyeLaterality
+    testType: str
+    vaLogmar: float | None = Field(default=None)
+    amslerDistortionScore: float
+    amslerCentralScotoma: bool
+    qualityStatus: str
+    rejectionCodes: list[str]
+    measuredAtIso: str
+
+
+class R2SessionListResponse(BinaContractModel):
+    items: list[HomeVisionTestRecord]
+    total: int
+
+
+class R2SessionDetailResponse(BinaContractModel):
+    session: HomeVisionTestRecord
+    trials: list[HomeVisionTestTrialRecord]
+    calibrationProfile: CalibrationProfileResponse | None = Field(default=None)
+    alerts: list[VisionTrendAlert]
+
+
+class IopReadingRecord(BinaContractModel):
+    readingId: str
+    patientId: str
+    deviceVendor: str
+    deviceSerialHash: str
+    eyeLaterality: EyeLaterality
+    eyeLabelFa: str
+    iopMmHg: float
+    qualityScore: float
+    accepted: bool
+    measuredAtIso: str
+
+
+class PatientIopListResponse(BinaContractModel):
+    items: list[IopReadingRecord]
+    od: list[IopReadingRecord]
+    os: list[IopReadingRecord]
+
+
+class MonitoringPlanRecord(BinaContractModel):
+    planId: str
+    tenantId: str
+    clinicId: str
+    patientId: str
+    eyeLaterality: EyeLaterality
+    eyeLabelFa: str
+    testTypes: list[str]
+    cadenceDays: int
+    alertThresholdLogmar: float
+    active: bool
+    createdByUserId: str
+    createdAtIso: str
+    updatedAtIso: str
+
+
+class MonitoringPlanListResponse(BinaContractModel):
+    items: list[MonitoringPlanRecord]
+
+
+class CreateMonitoringPlanRequest(BinaContractModel):
+    eyeLaterality: EyeLaterality
+    testTypes: list[str]
+    cadenceDays: int | None = Field(default=None)
+    alertThresholdLogmar: float | None = Field(default=None)
+    active: bool | None = Field(default=None)
+
+
+class DeviceQualificationRecord(BinaContractModel):
+    deviceId: str
+    tenantId: str
+    clinicId: str
+    modelCode: str
+    manufacturer: str
+    displayPpi: float | None = Field(default=None)
+    verifiedStatus: str
+    killSwitchReasonFa: str | None = Field(default=None)
+    updatedByUserId: str
+    createdAtIso: str
+    updatedAtIso: str
+
+
+class DeviceQualificationListResponse(BinaContractModel):
+    items: list[DeviceQualificationRecord]
+
+
+class UpsertDeviceQualificationRequest(BinaContractModel):
+    modelCode: str
+    manufacturer: str
+    displayPpi: float | None = Field(default=None)
+    verifiedStatus: str | None = Field(default=None)
+    killSwitchReasonFa: str | None = Field(default=None)
+
+
+class UpdateDeviceStatusRequest(BinaContractModel):
+    verifiedStatus: str
+    killSwitchReasonFa: str | None = Field(default=None)
+
+
+class ReportListItem(BinaContractModel):
+    reportId: str
+    reportType: str
+    patientId: str
+    patientNameFa: str
+    sourceRefId: str
+    titleFa: str
+    issuedAtJalali: str
+    sourceSha256: str
+    pdfSha256: str
+    createdAtIso: str
+
+
+class ReportListResponse(BinaContractModel):
+    items: list[ReportListItem]
+    total: int
+
+
+class ReportDetailResponse(BinaContractModel):
+    reportId: str
+    clinicId: str
+    reportType: str
+    patientId: str
+    patientNameFa: str
+    sourceRefId: str
+    titleFa: str
+    issuedAtJalali: str
+    sourceSha256: str
+    pdfSha256: str
+    payload: dict[str, Any]
+    createdAtIso: str
+
+
+class KpiRatio(BinaContractModel):
+    numerator: int
+    denominator: int
+    rate: float | None = Field(default=None)
+
+
+class ClinicAnalyticsResponse(BinaContractModel):
+    episodeCountsByStatus: dict[str, int]
+    episodeCountsByEye: dict[str, int]
+    cohortCountsByAccessMode: dict[str, int]
+    adherenceDistribution: dict[str, int]
+    triageSlaCompliance: KpiRatio
+    referralAttendance: KpiRatio
+
+
+class PilotScorecardResponse(BinaContractModel):
+    generatedAtIso: str
+    generatedAtJalali: str
+    kpis: dict[str, Any]
+    noticeFa: str
+
+
+class AiQualityAnalyticsResponse(BinaContractModel):
+    onlineOperationalMetrics: dict[str, Any]
+    offlineBenchmarkNoticeFa: str
+
+
+class ResearchExportRequest(BinaContractModel):
+    irbProtocolCode: str
+    reasonFa: str
+    limit: int | None = Field(default=None)
+
+
+class ResearchExportResponse(BinaContractModel):
+    irbProtocolCode: str
+    exportedAtIso: str
+    recordCount: int
+    records: list[dict[str, Any]]
+    manifestSha256: str
+
+
+class BillingEvidenceRequest(BinaContractModel):
+    patientId: str
+    periodStartJalali: str
+    periodEndJalali: str
+
+
+class BillingEvidenceResponse(BinaContractModel):
+    patientId: str
+    periodStartJalali: str
+    periodEndJalali: str
+    acceptedHomeVisionTestCount: int
+    confirmedAdherenceEventCount: int
+    disclaimerFa: str
+
+
+class StaffedHoursWindow(BinaContractModel):
+    open: str
+    close: str
+
+
+class StaffedHoursInput(BinaContractModel):
+    satToWed: StaffedHoursWindow | None = Field(default=None)
+    thursday: StaffedHoursWindow | None = Field(default=None)
+    fridayClosed: bool | None = Field(default=None)
+
+
+class UpdateClinicProfileRequest(BinaContractModel):
+    nameFa: str | None = Field(default=None)
+    emergencyPhone: str | None = Field(default=None)
+    calendarMode: str | None = Field(default=None)
+    dicomAeTitle: str | None = Field(default=None)
+    staffedHours: StaffedHoursInput | None = Field(default=None)
+
+
+class StaffMembershipRecord(BinaContractModel):
+    id: str
+    tenantId: str
+    clinicId: str
+    userId: str
+    role: StaffRole
+    active: bool
+    fullNameFa: str | None = Field(default=None)
+    email: str | None = Field(default=None)
+    mfaVerifiedAtIso: str | None = Field(default=None)
+    createdAtIso: str | None = Field(default=None)
+
+
+class StaffMembershipListResponse(BinaContractModel):
+    items: list[StaffMembershipRecord]
+
+
+class UpsertStaffMemberRequest(BinaContractModel):
+    userId: str
+    role: StaffRole
+    fullNameFa: str | None = Field(default=None)
+    email: str | None = Field(default=None)
+    active: bool | None = Field(default=None)
+    mfaVerified: bool | None = Field(default=None)
+
+
+class UpdateStaffMemberRequest(BinaContractModel):
+    role: StaffRole | None = Field(default=None)
+    active: bool | None = Field(default=None)
+    fullNameFa: str | None = Field(default=None)
+    email: str | None = Field(default=None)
+
+
+class ProtocolTemplateRecord(BinaContractModel):
+    id: str
+    tenantId: str
+    clinicId: str
+    protocolType: str
+    version: int
+    schema: dict[str, Any]
+    approvedBy: str | None = Field(default=None)
+    createdAtIso: str
+
+
+class AdminProtocolListResponse(BinaContractModel):
+    builtInTypes: list[str]
+    versions: list[ProtocolTemplateRecord]
+
+
+class CreateProtocolVersionRequest(BinaContractModel):
+    protocolType: str
+    schema: dict[str, Any]
+
+
+class MessageTemplateRecord(BinaContractModel):
+    templateId: str
+    tenantId: str
+    clinicId: str
+    templateKey: str
+    version: int
+    bodyTemplateFa: str
+    channel: str
+    active: bool
+    updatedByUserId: str
+    createdAtIso: str
+
+
+class MessageTemplateListResponse(BinaContractModel):
+    items: list[MessageTemplateRecord]
+
+
+class CreateMessageTemplateRequest(BinaContractModel):
+    templateKey: str
+    bodyTemplateFa: str
+    channel: str | None = Field(default=None)
+    active: bool | None = Field(default=None)
+
+
+class ConsentTemplateRecord(BinaContractModel):
+    consentTemplateId: str
+    tenantId: str
+    clinicId: str
+    consentType: str
+    version: str
+    titleFa: str
+    bodyFa: str
+    active: bool
+    updatedByUserId: str
+    createdAtIso: str
+
+
+class ConsentTemplateListResponse(BinaContractModel):
+    items: list[ConsentTemplateRecord]
+
+
+class CreateConsentTemplateRequest(BinaContractModel):
+    consentType: str
+    version: str
+    titleFa: str
+    bodyFa: str
+    active: bool | None = Field(default=None)
+
+
+class IntegrationEndpointRecord(BinaContractModel):
+    endpointId: str
+    tenantId: str
+    clinicId: str
+    integrationType: str
+    nameFa: str
+    endpointUrl: str
+    aeTitle: str | None = Field(default=None)
+    authMode: str
+    secretMasked: str | None = Field(default=None)
+    enabled: bool
+    lastTestedAtIso: str | None = Field(default=None)
+    lastTestStatus: str | None = Field(default=None)
+    createdAtIso: str
+    updatedAtIso: str
+
+
+class IntegrationEndpointListResponse(BinaContractModel):
+    items: list[IntegrationEndpointRecord]
+
+
+class CreateIntegrationEndpointRequest(BinaContractModel):
+    integrationType: str
+    nameFa: str
+    endpointUrl: str
+    aeTitle: str | None = Field(default=None)
+    authMode: str | None = Field(default=None)
+    secret: str | None = Field(default=None)
+    enabled: bool | None = Field(default=None)
+
+
+class UpdateIntegrationEndpointRequest(BinaContractModel):
+    nameFa: str | None = Field(default=None)
+    endpointUrl: str | None = Field(default=None)
+    aeTitle: str | None = Field(default=None)
+    authMode: str | None = Field(default=None)
+    secret: str | None = Field(default=None)
+    enabled: bool | None = Field(default=None)
+
+
+class IntegrationDeliveryRecord(BinaContractModel):
+    deliveryId: str
+    clinicId: str
+    endpointId: str | None = Field(default=None)
+    endpointNameFa: str | None = Field(default=None)
+    direction: str
+    payloadType: str
+    referenceId: str | None = Field(default=None)
+    status: str
+    httpStatus: int | None = Field(default=None)
+    errorCode: str | None = Field(default=None)
+    errorMessageFa: str | None = Field(default=None)
+    attemptCount: int
+    createdAtIso: str
+    updatedAtIso: str
+
+
+class TestIntegrationEndpointResponse(BinaContractModel):
+    endpoint: IntegrationEndpointRecord
+    delivery: IntegrationDeliveryRecord
+
+
+class IntegrationDeliveryListResponse(BinaContractModel):
+    items: list[IntegrationDeliveryRecord]
+    total: int
+
+
+class OpsHealthResponse(BinaContractModel):
+    status: str
+    service: str
+    aiEngineMode: AiEngineMode | None = Field(default=None)
+    database: dict[str, Any]
+    queues: dict[str, Any]
+
+
+class OpsJobsResponse(BinaContractModel):
+    aiInferenceJobs: list[dict[str, Any]]
+    outboxEvents: list[dict[str, Any]]
+    workflowRuns: list[dict[str, Any]]
+
+
+class AuditLogEntry(BinaContractModel):
+    id: str
+    tenantId: str
+    actorUserId: str
+    actorRole: str
+    action: str
+    resourceType: str
+    resourceId: str
+    reasonFa: str | None = Field(default=None)
+    breakGlass: bool | None = Field(default=None)
+    metadata: dict[str, Any] | None = Field(default=None)
+    occurredAtIso: str
+
+
+class AuditLogListResponse(BinaContractModel):
+    items: list[AuditLogEntry]
+    total: int
+
+
+class BreakGlassSessionRecord(BinaContractModel):
+    sessionId: str
+    tenantId: str
+    clinicId: str
+    actorUserId: str
+    actorRole: str
+    patientId: str
+    reasonFa: str
+    expiresAtIso: str
+    revokedAtIso: str | None = Field(default=None)
+    revokedByUserId: str | None = Field(default=None)
+    active: bool
+    createdAtIso: str
+
+
+class BreakGlassSessionListResponse(BinaContractModel):
+    items: list[BreakGlassSessionRecord]
+    total: int
+
+
+class OpenBreakGlassRequest(BinaContractModel):
+    patientId: str
+    reasonFa: str
+    durationMinutes: int | None = Field(default=None)
+
+
+class RevokeBreakGlassRequest(BinaContractModel):
+    reasonFa: str | None = Field(default=None)
+
+
+class ModelArtifactSummary(BinaContractModel):
+    modelName: str
+    hasMetricsJson: bool
+    hasModelCard: bool
+    metrics: dict[str, Any] | None = Field(default=None)
+
+
+class OpsModelsResponse(BinaContractModel):
+    aiEngineMode: str
+    foundationBackbone: str
+    commercialLicensePolicyFa: str
+    llmProvider: str
+    llmModel: str
+    artifacts: list[ModelArtifactSummary]
 

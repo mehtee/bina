@@ -4,13 +4,44 @@ export type StaffRole = "ophthalmologist" | "optometrist" | "technician" | "coor
 
 export type AuthzAction =
   | "clinic:read"
+  | "patient:read"
+  | "patient:enroll"
   | "episode:create"
   | "prescription:publish"
   | "triage:manage"
+  | "r2:manage"
   | "study:upload"
   | "diagnostic:signoff"
+  | "report:read"
+  | "report:create"
+  | "analytics:read"
+  | "admin:manage"
+  | "integrations:manage"
+  | "audit:read"
+  | "ops:read"
   | "export:phi"
   | "break_glass:access";
+
+export const ALL_AUTHZ_ACTIONS: readonly AuthzAction[] = [
+  "clinic:read",
+  "patient:read",
+  "patient:enroll",
+  "episode:create",
+  "prescription:publish",
+  "triage:manage",
+  "r2:manage",
+  "study:upload",
+  "diagnostic:signoff",
+  "report:read",
+  "report:create",
+  "analytics:read",
+  "admin:manage",
+  "integrations:manage",
+  "audit:read",
+  "ops:read",
+  "export:phi",
+  "break_glass:access",
+];
 
 export interface StaffPrincipal {
   readonly userId: UserId | string;
@@ -40,23 +71,65 @@ export interface AuthzContext {
 const ROLE_ACTIONS: Record<StaffRole, ReadonlySet<AuthzAction>> = {
   ophthalmologist: new Set([
     "clinic:read",
+    "patient:read",
+    "patient:enroll",
     "episode:create",
     "prescription:publish",
     "triage:manage",
+    "r2:manage",
     "study:upload",
     "diagnostic:signoff",
+    "report:read",
+    "report:create",
+    "analytics:read",
+    "audit:read",
+    "ops:read",
     "export:phi",
     "break_glass:access",
   ]),
-  optometrist: new Set(["clinic:read", "triage:manage", "study:upload"]),
-  technician: new Set(["clinic:read", "study:upload"]),
-  coordinator: new Set(["clinic:read", "episode:create", "triage:manage", "break_glass:access"]),
-  admin: new Set(["clinic:read", "export:phi", "break_glass:access"]),
+  optometrist: new Set([
+    "clinic:read",
+    "patient:read",
+    "patient:enroll",
+    "triage:manage",
+    "r2:manage",
+    "study:upload",
+    "report:read",
+    "analytics:read",
+  ]),
+  technician: new Set(["clinic:read", "patient:read", "study:upload"]),
+  coordinator: new Set([
+    "clinic:read",
+    "patient:read",
+    "patient:enroll",
+    "episode:create",
+    "triage:manage",
+    "r2:manage",
+    "report:read",
+    "report:create",
+    "analytics:read",
+    "ops:read",
+    "break_glass:access",
+  ]),
+  admin: new Set([
+    "clinic:read",
+    "patient:read",
+    "patient:enroll",
+    "report:read",
+    "report:create",
+    "analytics:read",
+    "admin:manage",
+    "integrations:manage",
+    "audit:read",
+    "ops:read",
+    "export:phi",
+    "break_glass:access",
+  ]),
 };
 
 /**
  * Enforces multi-tenant isolation, MFA, ophthalmologist-only clinical sign-off/Rx rules,
- * step-up verification for PHI exports, and mandatory justification for break-glass access.
+ * step-up verification for PHI exports & audit logs, and mandatory justification for break-glass access.
  */
 export function authorizeStaffAction(
   principal: StaffPrincipal,
@@ -84,7 +157,12 @@ export function authorizeStaffAction(
   }
 
   if (
-    (action === "prescription:publish" || action === "diagnostic:signoff" || action === "export:phi") &&
+    (action === "prescription:publish" ||
+      action === "diagnostic:signoff" ||
+      action === "export:phi" ||
+      action === "admin:manage" ||
+      action === "integrations:manage" ||
+      action === "audit:read") &&
     !principal.mfaVerified
   ) {
     return {
@@ -94,11 +172,11 @@ export function authorizeStaffAction(
     };
   }
 
-  if (action === "export:phi" && !principal.stepUpVerified) {
+  if ((action === "export:phi" || action === "audit:read") && !principal.stepUpVerified) {
     return {
       allowed: false,
       code: "FORBIDDEN_STEP_UP_REQUIRED",
-      reasonFa: "برای خروجی داده‌های حساس، تایید مجدد امنیتی الزامی است.",
+      reasonFa: "برای دسترسی یا خروجی داده‌های حساس، تایید مجدد امنیتی الزامی است.",
     };
   }
 
@@ -118,4 +196,23 @@ export function authorizeStaffAction(
     code: "ALLOWED",
     reasonFa: "دسترسی تایید شد.",
   };
+}
+
+/**
+ * Evaluates full server-derived UI/API capability booleans for a staff principal.
+ */
+export function getCapabilitiesForPrincipal(
+  principal: StaffPrincipal
+): Record<AuthzAction, boolean> {
+  const out = {} as Record<AuthzAction, boolean>;
+  for (const action of ALL_AUTHZ_ACTIONS) {
+    const decision = authorizeStaffAction(
+      principal,
+      action,
+      principal.tenantId,
+      action === "break_glass:access" ? { reasonFa: "بررسی مجوز نقش برای دسترسی اضطراری" } : {}
+    );
+    out[action] = decision.allowed;
+  }
+  return out;
 }

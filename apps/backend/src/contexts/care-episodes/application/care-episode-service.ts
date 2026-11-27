@@ -16,10 +16,14 @@ import type {
   AdherenceState,
   CareEpisodeRecord,
   CareEpisodeRepoPort,
+  CareEpisodeWorklistFilter,
+  CareEpisodeWorklistItem,
   DropItem,
   PatientTodayDropCard,
   PatientTodayPlan,
   PrescriptionVersionRecord,
+  PrintPhoneOutreachRecord,
+  PrintPhoneQueueItem,
 } from "../ports/index.js";
 
 export class CareEpisodeError extends Error {
@@ -112,12 +116,66 @@ export class CareEpisodeService {
     return episode;
   }
 
+  async listClinicEpisodes(
+    tx: DbTx,
+    principal: StaffPrincipal,
+    filter: CareEpisodeWorklistFilter
+  ): Promise<{ items: CareEpisodeWorklistItem[]; total: number }> {
+    const decision = authorizeStaffAction(principal, "clinic:read", principal.tenantId);
+    if (!decision.allowed) {
+      throw new CareEpisodeError(403, decision.code, decision.reasonFa);
+    }
+    return this.repo.listClinicEpisodes(tx, {
+      ...filter,
+      clinicId: filter.clinicId ?? principal.clinicId,
+      limit: Math.min(100, Math.max(1, filter.limit)),
+      offset: Math.max(0, filter.offset),
+    });
+  }
+
   async getEpisode(tx: DbTx, episodeId: string): Promise<CareEpisodeRecord> {
     const episode = await this.repo.findEpisodeById(tx, episodeId);
     if (!episode) {
       throw new CareEpisodeError(404, "EPISODE_NOT_FOUND", "اپیزود مراقبتی یافت نشد.");
     }
     return episode;
+  }
+
+  async closeEpisode(
+    tx: DbTx,
+    principal: StaffPrincipal,
+    episodeId: string,
+    input: { status?: "completed" | "cancelled" | undefined; reasonFa: string }
+  ): Promise<CareEpisodeRecord> {
+    const decision = authorizeStaffAction(principal, "episode:create", principal.tenantId);
+    if (!decision.allowed) {
+      throw new CareEpisodeError(403, decision.code, decision.reasonFa);
+    }
+    const existing = await this.repo.findEpisodeById(tx, episodeId);
+    if (!existing) {
+      throw new CareEpisodeError(404, "EPISODE_NOT_FOUND", "اپیزود مراقبتی یافت نشد.");
+    }
+    const nextStatus = input.status ?? "completed";
+    const updated = await this.repo.closeEpisode(tx, episodeId, nextStatus);
+    await this.auditLog.append(tx, {
+      tenantId: principal.tenantId,
+      actorUserId: principal.userId,
+      actorRole: principal.role,
+      action: "care_episode_closed",
+      resourceType: "care_episode",
+      resourceId: episodeId,
+      reasonFa: input.reasonFa,
+      metadata: { status: nextStatus },
+    });
+    return updated!;
+  }
+
+  async listPrescriptionHistory(tx: DbTx, episodeId: string): Promise<PrescriptionVersionRecord[]> {
+    const episode = await this.repo.findEpisodeById(tx, episodeId);
+    if (!episode) {
+      throw new CareEpisodeError(404, "EPISODE_NOT_FOUND", "اپیزود مراقبتی یافت نشد.");
+    }
+    return this.repo.listPrescriptionHistory(tx, episodeId);
   }
 
   async publishPrescription(
@@ -286,5 +344,52 @@ export class CareEpisodeService {
       idempotencyKey: input.idempotencyKey,
       occurredAt: new Date(input.occurredAtIso),
     });
+  }
+
+  async listPrintPhoneQueue(tx: DbTx, principal: StaffPrincipal): Promise<PrintPhoneQueueItem[]> {
+    const decision = authorizeStaffAction(principal, "clinic:read", principal.tenantId);
+    if (!decision.allowed) {
+      throw new CareEpisodeError(403, decision.code, decision.reasonFa);
+    }
+    return this.repo.listPrintPhoneQueue(tx, principal.clinicId);
+  }
+
+  async recordPrintPhoneOutreach(
+    tx: DbTx,
+    principal: StaffPrincipal,
+    episodeId: string,
+    input: { status: "completed" | "pending" | "missed"; outcomeFa: string }
+  ): Promise<PrintPhoneOutreachRecord> {
+    const decision = authorizeStaffAction(principal, "triage:manage", principal.tenantId);
+    if (!decision.allowed) {
+      throw new CareEpisodeError(403, decision.code, decision.reasonFa);
+    }
+    const episode = await this.repo.findEpisodeById(tx, episodeId);
+    if (!episode) {
+      throw new CareEpisodeError(404, "EPISODE_NOT_FOUND", "اپیزود مراقبتی یافت نشد.");
+    }
+
+    const record = await this.repo.recordPrintPhoneOutreach(tx, {
+      tenantId: principal.tenantId,
+      clinicId: principal.clinicId,
+      patientId: episode.patientId,
+      episodeId: episode.episodeId,
+      eyeLaterality: episode.eyeLaterality,
+      staffUserId: principal.userId,
+      status: input.status,
+      outcomeFa: input.outcomeFa.trim(),
+    });
+
+    await this.auditLog.append(tx, {
+      tenantId: principal.tenantId,
+      actorUserId: principal.userId,
+      actorRole: principal.role,
+      action: "care.print-phone-outreach-logged",
+      resourceType: "follow_up_task",
+      resourceId: record.taskId,
+      metadata: { episodeId, status: input.status },
+    });
+
+    return record;
   }
 }

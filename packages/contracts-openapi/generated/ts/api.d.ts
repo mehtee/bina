@@ -72,6 +72,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/staff/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Current authenticated staff profile, capabilities, authorized clinics, and active feature flags */
+        get: operations["getStaffMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/staff/clinics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List clinics within the tenant where the authenticated staff member holds an active membership */
+        get: operations["listAuthorizedStaffClinics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/overview/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Operational & clinical overview dashboard KPIs for Staff Web Module A */
+        get: operations["getOverviewDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/overview/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Permission-scoped search across patients, diagnostic studies, care episodes, and reports */
+        get: operations["searchStaffWorkspace"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/overview/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recent PHI-redacted clinical and operational audit activity feed */
+        get: operations["listRecentOverviewActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/patient/otp/request": {
         parameters: {
             query?: never;
@@ -157,6 +242,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/patients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Paginated clinic patient registry search (masked phones only) */
+        get: operations["listPatients"];
+        put?: never;
+        /** Staff-assisted patient enrollment (app, caregiver, or Print+Phone) with +98 validation */
+        post: operations["enrollPatientByStaff"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/patients/{patientId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Staff Web Patient 360 clinical summary across OD/OS episodes, R2, studies, triage, and consent */
+        get: operations["getPatient360"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/patients/{patientId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List immutable structured clinical history entries for a patient */
+        get: operations["listPatientClinicalHistory"];
+        put?: never;
+        /** Append immutable structured clinical history/risk-factor entry */
+        post: operations["addPatientClinicalHistory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/patients/{patientId}/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Unified chronological patient timeline across Pillar 1, Pillar 2, and R2 events */
+        get: operations["getPatientTimeline"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/patients/{patientId}/consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Record patient consent acceptance or withdrawal */
+        patch: operations["updatePatientConsent"];
+        trace?: never;
+    };
     "/v1/patients/{patientId}/caregivers": {
         parameters: {
             query?: never;
@@ -199,7 +371,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Paginated clinic care episodes queue filterable by eye, access mode, status, and patient */
+        get: operations["listClinicEpisodes"];
         put?: never;
         /** Create eye-specific (OD or OS) surgical/care episode */
         post: operations["createCareEpisode"];
@@ -226,7 +399,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/episodes/{episodeId}/prescriptions": {
+    "/v1/episodes/{episodeId}/close": {
         parameters: {
             query?: never;
             header?: never;
@@ -234,6 +407,24 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Close or cancel a care episode with audit reason */
+        patch: operations["closeCareEpisode"];
+        trace?: never;
+    };
+    "/v1/episodes/{episodeId}/prescriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List immutable eye drop prescription versions v1..vN for diffing */
+        get: operations["listEpisodePrescriptions"];
         put?: never;
         /** Publish immutable versioned eye drop prescription (v1..vN) */
         post: operations["publishEpisodePrescription"];
@@ -302,10 +493,45 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** List chronological post-op symptom reports submitted for a care episode */
+        get: operations["listEpisodeSymptoms"];
         put?: never;
         /** Submit post-op structured red-flag or Persian symptom report */
         post: operations["submitSymptomReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/care/print-phone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List active non-smartphone Print+Phone parity cohort and outreach status */
+        get: operations["listPrintPhoneQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/care/print-phone/{episodeId}/outreach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Log Print+Phone coordinator phone check-in or print pack delivery outcome */
+        post: operations["recordPrintPhoneOutreach"];
         delete?: never;
         options?: never;
         head?: never;
@@ -323,6 +549,57 @@ export interface paths {
         get: operations["listTriageCases"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/triage/cases/{caseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get full triage case details including triggers, contact logs, referrals, and follow-up tasks */
+        get: operations["getTriageCaseDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/triage/cases/{caseId}/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Log triage contact attempt or contact establishment and advance workflow state */
+        post: operations["recordTriageContact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/triage/cases/{caseId}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close triage case (enforces contact/referral/ophthalmologist verification guard on urgent cases) */
+        post: operations["closeTriageCase"];
         delete?: never;
         options?: never;
         head?: never;
@@ -380,7 +657,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/diagnostic-studies": {
+    "/v1/triage/outages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List operational clinic channel outages and mitigation windows */
+        get: operations["listClinicOutages"];
+        put?: never;
+        /** Log operational outage event */
+        post: operations["createClinicOutage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/triage/outages/{outageId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -388,6 +683,110 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update outage mitigation note, severity, or resolve outage */
+        patch: operations["updateClinicOutage"];
+        trace?: never;
+    };
+    "/v1/referrals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Paginated closed-loop referrals queue */
+        get: operations["listReferrals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/referrals/{referralId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve closed-loop referral detail */
+        get: operations["getReferralDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/referrals/{referralId}/outcome": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Record patient referral attendance or missed reason */
+        patch: operations["updateReferralOutcome"];
+        trace?: never;
+    };
+    "/v1/follow-ups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List scheduled coordinator follow-up tasks (post-op calls, Print+Phone check-ins, visits) */
+        get: operations["listFollowUpTasks"];
+        put?: never;
+        /** Schedule follow-up task */
+        post: operations["createFollowUpTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/follow-ups/{taskId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update follow-up task status, assignee, or Persian outcome note */
+        patch: operations["updateFollowUpTask"];
+        trace?: never;
+    };
+    "/v1/diagnostic-studies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Paginated Diagnostic AI HITL worklist filterable by status, urgency, eye, patient, and modality */
+        get: operations["listDiagnosticStudies"];
         put?: never;
         /** Ingest multimodal diagnostic study and enqueue async 6-layer AI analysis */
         post: operations["submitDiagnosticStudy"];
@@ -414,6 +813,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/diagnostic-studies/{studyId}/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add new recapture imaging assets after QC rejection without overwriting prior rejected assets and re-run pipeline */
+        post: operations["addStudyRecaptureAssets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/diagnostic-studies/{studyId}/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List AI inference job executions for a diagnostic study */
+        get: operations["listStudyInferenceJobs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/diagnostic-studies/{studyId}/report-draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save clinician-edited Persian draft with optimistic draftVersion concurrency check and clinical safety validation */
+        put: operations["saveStudyReportDraft"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/diagnostic-studies/{studyId}/signoff": {
         parameters: {
             query?: never;
@@ -423,8 +873,77 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Mandatory Ophthalmologist HITL sign-off and feedback capture */
+        /** Mandatory Ophthalmologist HITL sign-off (blocks downgrades below deterministic urgent floor) */
         post: operations["signOffDiagnosticStudy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/diagnostic-studies/{studyId}/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List immutable clinician adjudication feedback for a study */
+        get: operations["listStudyClinicianFeedback"];
+        put?: never;
+        /** Record immutable ophthalmologist adjudication feedback for D5 retraining */
+        post: operations["createStudyClinicianFeedback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/diagnostic-studies/{studyId}/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Longitudinal comparison of current diagnostic study against prior studies of the same eye */
+        get: operations["compareDiagnosticStudy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/diagnostic-studies/{studyId}/fhir": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export HL7 FHIR R4/R5 Bundle for an ophthalmologist-signed diagnostic study */
+        get: operations["exportDiagnosticStudyFhirBundle"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/integrations/dicom/ingest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ingest DICOM asset batch, strip Part 10 PHI tags into D5 snapshot, and enqueue 6-layer analysis */
+        post: operations["ingestDicomStudyBatch"];
         delete?: never;
         options?: never;
         head?: never;
@@ -482,6 +1001,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/r2/monitoring/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Clinic R2 home vision monitoring overview metrics and latest alerts */
+        get: operations["getR2MonitoringOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/r2/patients/{patientId}/trends": {
         parameters: {
             query?: never;
@@ -497,6 +1033,110 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/v1/r2/patients/{patientId}/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Paginated patient R2 home vision test sessions filterable by eye, testType, and QC status */
+        get: operations["listR2PatientSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/r2/sessions/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve single R2 session with immutable raw psychophysics trials and calibration profile */
+        get: operations["getR2SessionDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/r2/patients/{patientId}/iop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve eye-separated external iCare HOME2 home tonometry readings */
+        get: operations["listPatientIopReadings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/r2/patients/{patientId}/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List eye-specific R2 home monitoring protocols for a patient */
+        get: operations["listPatientMonitoringPlans"];
+        put?: never;
+        /** Create eye-specific R2 home monitoring protocol schedule */
+        post: operations["createPatientMonitoringPlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/r2/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List qualified/provisional/killed display device models for R2 monitoring */
+        get: operations["listQualifiedDevices"];
+        put?: never;
+        /** Register or update display device qualification entry */
+        post: operations["upsertQualifiedDevice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/r2/devices/{deviceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update device verification status or engage R2 device safety kill-switch */
+        patch: operations["updateQualifiedDeviceStatus"];
         trace?: never;
     };
     "/v1/integrations/icare-home2/readings": {
@@ -523,10 +1163,28 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Paginated Persian PDF report archive metadata */
+        get: operations["listReports"];
         put?: never;
         /** Generate and store deterministic Persian PDF report */
         post: operations["createPersianReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reports/{reportId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve report metadata, payload, and sha256 verification manifests */
+        get: operations["getReportDetail"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -542,6 +1200,387 @@ export interface paths {
         };
         /** Download deterministic Vazirmatn Persian PDF with source_sha256 manifest */
         get: operations["downloadPersianPdfReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/analytics/clinic": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Clinic operational KPIs across adherence cohorts, episodes, triage SLA, and referral attendance */
+        get: operations["getClinicAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/analytics/pilot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** PRD §8.1 pilot KPI scorecard returning null whenever denominator equals zero and explicitly including Print+Phone */
+        get: operations["getPilotScorecard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/analytics/ai-quality": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Online AI operational metrics (QC pass/fail, feedback agreement, overrides) strictly separated from offline benchmarks */
+        get: operations["getAiQualityAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/research/exports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Step-up MFA protected pseudonymized D5 research cohort export under IRB code */
+        post: operations["exportResearchPseudonymizedCohort"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/billing-evidence/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Non-diagnostic adherence and R2 telemonitoring evidence summary for supplementary insurance */
+        post: operations["generateBillingAdherenceEvidence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/clinic": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update clinic profile settings (name, emergency hotline, staffed hours, DICOM AE title) */
+        patch: operations["updateClinicProfile"];
+        trace?: never;
+    };
+    "/v1/admin/staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List clinic staff memberships and roles */
+        get: operations["listClinicStaff"];
+        put?: never;
+        /** Add or update staff membership in current clinic */
+        post: operations["upsertClinicStaffMember"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/staff/{membershipId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update staff role or active status (prevents deactivating last active admin) */
+        patch: operations["updateClinicStaffMember"];
+        trace?: never;
+    };
+    "/v1/admin/protocols": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List built-in care protocols and custom protocol template versions */
+        get: operations["listAdminProtocols"];
+        put?: never;
+        /** Publish new clinic care protocol template version */
+        post: operations["createAdminProtocolVersion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/message-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List versioned Persian message templates */
+        get: operations["listAdminMessageTemplates"];
+        put?: never;
+        /** Create new message template version (enforces strict zero-PHI & UCS-2 guard on SMS templates) */
+        post: operations["createAdminMessageTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/consents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List versioned Persian clinic consent forms */
+        get: operations["listAdminConsentTemplates"];
+        put?: never;
+        /** Publish clinic Persian consent template version */
+        post: operations["createAdminConsentTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/features": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List evaluated clinic feature flags */
+        get: operations["listAdminFeatureFlags"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Enable, disable, or configure a clinic feature flag */
+        patch: operations["upsertAdminFeatureFlag"];
+        trace?: never;
+    };
+    "/v1/integrations/endpoints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List configured DICOM/FHIR/HIS/iCare/SMS endpoints (credentials masked only) */
+        get: operations["listIntegrationEndpoints"];
+        put?: never;
+        /** Register integration endpoint (masks secrets on persistence) */
+        post: operations["createIntegrationEndpoint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/integrations/endpoints/{endpointId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update integration endpoint settings */
+        patch: operations["updateIntegrationEndpoint"];
+        trace?: never;
+    };
+    "/v1/integrations/endpoints/{endpointId}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run safe configuration & connectivity validation probe for an endpoint */
+        post: operations["testIntegrationEndpoint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/integrations/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Paginated inbound/outbound integration delivery and retry history */
+        get: operations["listIntegrationDeliveries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ops/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Authenticated clinic operations health summary including DB latency and queue backlogs */
+        get: operations["getOpsHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ops/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List recent AI inference jobs, transactional outbox events, and durable workflows */
+        get: operations["listOpsJobs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ops/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Step-up MFA protected PHI-redacted immutable audit log viewer */
+        get: operations["listAuditLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ops/break-glass": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List audited emergency break-glass access sessions */
+        get: operations["listBreakGlassSessions"];
+        put?: never;
+        /** Open time-limited audited break-glass session (requires >= 10 char clinical reason) */
+        post: operations["openBreakGlassSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ops/break-glass/{sessionId}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Immediately revoke an active break-glass emergency session */
+        post: operations["revokeBreakGlassSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ops/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List active commercial-safe AI engine configuration, LLM config, and exported ONNX model card artifacts */
+        get: operations["listOpsModels"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1147,12 +2186,18 @@ export interface components {
             urgencyLabelFa: string;
             evidenceIds: string[];
             validationPassed: boolean;
+            draftVersion?: number;
+            /** Format: uuid */
+            editedByUserId?: string | null;
+            /** Format: date-time */
+            updatedAtIso?: string | null;
         };
         ClinicianSignoffRequest: {
             action: components["schemas"]["SignoffAction"];
             finalUrgency: components["schemas"]["UrgencyTier"];
             finalReportTextFa: string;
             overrideReasonFa?: string | null;
+            expectedDraftVersion?: number;
         };
         ClinicianSignoffResponse: {
             /** Format: uuid */
@@ -1176,6 +2221,12 @@ export interface components {
             clinicId: string;
             eyeLaterality: components["schemas"]["StudyLaterality"];
             status: components["schemas"]["StudyStatus"];
+            urgentFloorActive?: boolean;
+            urgentFloorRuleCodes?: string[];
+            /** Format: date-time */
+            createdAtIso?: string;
+            /** Format: date-time */
+            updatedAtIso?: string;
             qcDecisions: components["schemas"]["QcDecision"][];
             specialistOutputs: components["schemas"]["SpecialistOutput"][];
             fusionResult?: components["schemas"]["FusionResult"];
@@ -1240,6 +2291,8 @@ export interface components {
             ambientLux: number;
             deviceTiltDeg: number;
             glareDetected?: boolean;
+            deviceModelCode?: string;
+            rawTrials?: components["schemas"]["HomeVisionTestTrialInput"][];
         };
         HomeVisionTestResponse: {
             /** Format: uuid */
@@ -1332,6 +2385,1197 @@ export interface components {
             fusionResult?: components["schemas"]["FusionResult"];
             explainability?: components["schemas"]["ExplainabilityOutput"];
         };
+        AuthorizedClinicMembership: {
+            /** Format: uuid */
+            membershipId: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            clinicNameFa: string;
+            role: components["schemas"]["StaffRole"];
+            emergencyPhone: string;
+            calendarMode: string;
+        };
+        AuthorizedClinicListResponse: {
+            items: components["schemas"]["AuthorizedClinicMembership"][];
+        };
+        FeatureFlagRecord: {
+            flagKey: string;
+            labelFa: string;
+            descriptionFa: string;
+            enabled: boolean;
+            config: {
+                [key: string]: unknown;
+            };
+            updatedAtIso?: string | null;
+        };
+        FeatureFlagListResponse: {
+            items: components["schemas"]["FeatureFlagRecord"][];
+        };
+        ClinicFeatureFlagRecord: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            flagKey: string;
+            enabled: boolean;
+            config: {
+                [key: string]: unknown;
+            };
+            /** Format: uuid */
+            updatedByUserId: string;
+            /** Format: date-time */
+            updatedAtIso: string;
+        };
+        UpsertFeatureFlagRequest: {
+            flagKey: string;
+            enabled: boolean;
+            config?: {
+                [key: string]: unknown;
+            };
+        };
+        StaffMeResponse: {
+            /** Format: uuid */
+            userId: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            role: components["schemas"]["StaffRole"];
+            mfaVerified: boolean;
+            stepUpVerified: boolean;
+            capabilities: {
+                [key: string]: boolean;
+            };
+            clinic?: components["schemas"]["ClinicProfile"];
+            authorizedClinics: components["schemas"]["AuthorizedClinicMembership"][];
+            featureFlags: components["schemas"]["FeatureFlagRecord"][];
+        };
+        OverviewDashboardResponse: {
+            todayJalali: string;
+            activeEpisodesOd: number;
+            activeEpisodesOs: number;
+            printPhoneCohortCount: number;
+            urgentTriageCount: number;
+            overdueSlaCount: number;
+            openTriageCount: number;
+            pendingHitlStudies: number;
+            qcFailedStudies: number;
+            r2AlertCount: number;
+            activeOutagesCount: number;
+            queueUrgentItems: {
+                [key: string]: unknown;
+            }[];
+            pendingHitlItems: {
+                [key: string]: unknown;
+            }[];
+        };
+        WorkspaceSearchResponse: {
+            query: string;
+            patients: {
+                [key: string]: unknown;
+            }[];
+            studies: {
+                [key: string]: unknown;
+            }[];
+            episodes: {
+                [key: string]: unknown;
+            }[];
+            reports: {
+                [key: string]: unknown;
+            }[];
+        };
+        RecentActivityItem: {
+            /** Format: uuid */
+            activityId: string;
+            action: string;
+            actorRole: string;
+            resourceType: string;
+            resourceId: string;
+            breakGlass: boolean;
+            reasonFa?: string | null;
+            /** Format: date-time */
+            occurredAtIso: string;
+            occurredAtJalali: string;
+        };
+        RecentActivityListResponse: {
+            items: components["schemas"]["RecentActivityItem"][];
+        };
+        PatientListItem: {
+            /** Format: uuid */
+            patientId: string;
+            /** Format: uuid */
+            clinicId: string;
+            fullNameFa: string;
+            phoneMasked: string;
+            nationalIdMasked?: string | null;
+            accessMode: components["schemas"]["AccessMode"];
+            preferredLocale: string;
+            activeEpisodeCount: number;
+            openTriageCount: number;
+            /** Format: date-time */
+            createdAtIso: string;
+        };
+        PatientListResponse: {
+            items: components["schemas"]["PatientListItem"][];
+            total: number;
+        };
+        StaffEnrollPatientRequest: {
+            fullNameFa: string;
+            phoneNumber: string;
+            accessMode: components["schemas"]["AccessMode"];
+            nationalIdMasked?: string;
+            birthYearJalali?: number;
+            notesFa?: string;
+            consentVersion?: string;
+            mlTrainingConsentFlag?: boolean;
+        };
+        StaffEnrolledPatientResponse: {
+            /** Format: uuid */
+            patientId: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            fullNameFa: string;
+            phoneMasked: string;
+            nationalIdMasked?: string | null;
+            birthYearJalali?: number | null;
+            notesFa?: string | null;
+            accessMode: components["schemas"]["AccessMode"];
+            preferredLocale: string;
+            mlTrainingConsentFlag: boolean;
+            consents: components["schemas"]["ConsentRecord"][];
+        };
+        Patient360Response: {
+            patient: {
+                [key: string]: unknown;
+            };
+            odEpisodes: {
+                [key: string]: unknown;
+            }[];
+            osEpisodes: {
+                [key: string]: unknown;
+            }[];
+            recentStudies: {
+                [key: string]: unknown;
+            }[];
+            r2Summary: {
+                [key: string]: unknown;
+            };
+            openTriageCases: {
+                [key: string]: unknown;
+            }[];
+            pendingFollowUpTasks: {
+                [key: string]: unknown;
+            }[];
+            clinicalHistories: {
+                [key: string]: unknown;
+            }[];
+            consents: {
+                [key: string]: unknown;
+            }[];
+        };
+        PatientClinicalHistoryItem: {
+            /** Format: uuid */
+            historyId: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            /** Format: uuid */
+            patientId: string;
+            /** Format: uuid */
+            recordedByUserId: string;
+            summaryFa: string;
+            conditions: string[];
+            allergies: string[];
+            medications: string[];
+            riskFactors: {
+                [key: string]: unknown;
+            };
+            labs: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            createdAtIso: string;
+        };
+        PatientClinicalHistoryListResponse: {
+            items: components["schemas"]["PatientClinicalHistoryItem"][];
+        };
+        AddClinicalHistoryRequest: {
+            summaryFa: string;
+            conditions?: string[];
+            allergies?: string[];
+            medications?: string[];
+            riskFactors?: {
+                [key: string]: unknown;
+            };
+            labs?: {
+                [key: string]: unknown;
+            };
+        };
+        PatientTimelineEvent: {
+            category: string;
+            refId: string;
+            eyeLaterality?: components["schemas"]["StudyLaterality"];
+            eyeLabelFa?: string | null;
+            titleFa: string;
+            summaryFa: string;
+            /** Format: date-time */
+            occurredAtIso: string;
+            occurredAtJalali: string;
+        };
+        PatientTimelineResponse: {
+            items: components["schemas"]["PatientTimelineEvent"][];
+        };
+        UpdatePatientConsentRequest: {
+            consentVersion: string;
+            /** @enum {string} */
+            action: "accepted" | "withdrawn";
+            mlTrainingConsentFlag?: boolean;
+            noteFa?: string;
+        };
+        CareEpisodeWorklistItem: {
+            /** Format: uuid */
+            episodeId: string;
+            /** Format: uuid */
+            clinicId: string;
+            /** Format: uuid */
+            patientId: string;
+            patientNameFa: string;
+            phoneMasked: string;
+            protocolType: string;
+            eyeLaterality: components["schemas"]["EyeLaterality"];
+            eyeLabelFa: string;
+            /** Format: uuid */
+            surgeonId: string;
+            accessMode: components["schemas"]["AccessMode"];
+            activePrescriptionVersion: number;
+            status: string;
+            /** Format: date-time */
+            anchorAtIso: string;
+            anchorAtJalali: string;
+        };
+        CareEpisodeWorklistResponse: {
+            items: components["schemas"]["CareEpisodeWorklistItem"][];
+            total: number;
+        };
+        CloseEpisodeRequest: {
+            /** @enum {string} */
+            status?: "completed" | "cancelled";
+            reasonFa: string;
+        };
+        PrescriptionHistoryListResponse: {
+            items: components["schemas"]["PrescriptionVersion"][];
+        };
+        EpisodeSymptomHistoryItem: {
+            /** Format: uuid */
+            reportId: string;
+            /** Format: uuid */
+            episodeId: string;
+            eyeLaterality: components["schemas"]["EyeLaterality"];
+            eyeLabelFa: string;
+            severePain: boolean;
+            suddenVisionLoss: boolean;
+            purulentDischarge: boolean;
+            flashesOrCurtain: boolean;
+            freeTextFa: string;
+            urgencyTier: components["schemas"]["UrgencyTier"];
+            urgencyLabelFa: string;
+            signals?: {
+                [key: string]: unknown;
+            }[];
+            /** Format: date-time */
+            createdAtIso: string;
+            createdAtJalali: string;
+        };
+        EpisodeSymptomListResponse: {
+            items: components["schemas"]["EpisodeSymptomHistoryItem"][];
+        };
+        PrintPhoneQueueItem: {
+            /** Format: uuid */
+            episodeId: string;
+            /** Format: uuid */
+            patientId: string;
+            patientNameFa: string;
+            phoneMasked: string;
+            eyeLaterality: components["schemas"]["EyeLaterality"];
+            eyeLabelFa: string;
+            activePrescriptionVersion: number;
+            pendingTaskCount: number;
+            lastOutreachAtIso?: string | null;
+            lastOutreachOutcomeFa?: string | null;
+        };
+        PrintPhoneQueueResponse: {
+            items: components["schemas"]["PrintPhoneQueueItem"][];
+            total: number;
+        };
+        PrintPhoneOutreachRequest: {
+            /** @enum {string} */
+            status?: "completed" | "pending" | "missed";
+            outcomeFa: string;
+        };
+        PrintPhoneOutreachRecord: {
+            /** Format: uuid */
+            taskId: string;
+            /** Format: uuid */
+            episodeId: string;
+            /** Format: uuid */
+            patientId: string;
+            status: string;
+            outcomeFa: string;
+            /** Format: date-time */
+            recordedAtIso: string;
+        };
+        TriageCaseDetailResponse: {
+            triageCase: components["schemas"]["TriageCase"];
+            triggers: {
+                [key: string]: unknown;
+            }[];
+            contactLogs: {
+                [key: string]: unknown;
+            }[];
+            referrals: components["schemas"]["ReferralRecord"][];
+            followUpTasks: components["schemas"]["FollowUpTaskRecord"][];
+        };
+        TriageContactRequest: {
+            /** @enum {string} */
+            outcome: "no_answer" | "contacted" | "escalated";
+            /** @enum {string} */
+            channel?: "phone" | "sms" | "in_person";
+            noteFa: string;
+        };
+        CloseTriageCaseRequest: {
+            resolutionNoteFa: string;
+            /** @enum {string} */
+            resolutionType?: "resolved" | "referred" | "false_positive_clinician_verified";
+        };
+        ClinicOutageRecord: {
+            /** Format: uuid */
+            outageId: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            titleFa: string;
+            /** @enum {string} */
+            status: "active" | "mitigated" | "resolved";
+            /** @enum {string} */
+            severity: "warning" | "critical";
+            /** @enum {string} */
+            affectedChannel: "sms" | "ai_engine" | "ehr_his" | "phone" | "portal";
+            mitigationNoteFa: string;
+            /** Format: date-time */
+            startedAtIso: string;
+            resolvedAtIso?: string | null;
+            /** Format: uuid */
+            createdByUserId: string;
+            /** Format: date-time */
+            createdAtIso: string;
+        };
+        ClinicOutageListResponse: {
+            items: components["schemas"]["ClinicOutageRecord"][];
+        };
+        CreateClinicOutageRequest: {
+            titleFa: string;
+            /** @enum {string} */
+            severity?: "warning" | "critical";
+            /** @enum {string} */
+            affectedChannel: "sms" | "ai_engine" | "ehr_his" | "phone" | "portal";
+            mitigationNoteFa?: string;
+        };
+        UpdateClinicOutageRequest: {
+            /** @enum {string} */
+            status?: "active" | "mitigated" | "resolved";
+            /** @enum {string} */
+            severity?: "warning" | "critical";
+            mitigationNoteFa?: string;
+        };
+        ReferralListResponse: {
+            items: components["schemas"]["ReferralRecord"][];
+            total: number;
+        };
+        UpdateReferralOutcomeRequest: {
+            /** @enum {string} */
+            status: "attended" | "missed";
+            missReasonFa?: string;
+        };
+        FollowUpTaskRecord: {
+            /** Format: uuid */
+            taskId: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            /** Format: uuid */
+            patientId: string;
+            patientNameFa?: string;
+            episodeId?: string | null;
+            triageCaseId?: string | null;
+            eyeLaterality?: components["schemas"]["StudyLaterality"];
+            eyeLabelFa?: string | null;
+            taskType: string;
+            /** Format: date-time */
+            dueAtIso: string;
+            dueAtJalali: string;
+            status: string;
+            assignedUserId?: string | null;
+            outcomeFa?: string | null;
+            completedAtIso?: string | null;
+            /** Format: date-time */
+            createdAtIso: string;
+            /** Format: date-time */
+            updatedAtIso: string;
+        };
+        FollowUpTaskListResponse: {
+            items: components["schemas"]["FollowUpTaskRecord"][];
+            total: number;
+        };
+        CreateFollowUpTaskRequest: {
+            /** Format: uuid */
+            patientId: string;
+            /** Format: uuid */
+            episodeId?: string;
+            /** Format: uuid */
+            triageCaseId?: string;
+            eyeLaterality?: components["schemas"]["StudyLaterality"];
+            /** @enum {string} */
+            taskType: "postop_call" | "print_phone_checkin" | "clinic_visit" | "referral_followup" | "r2_recalibration";
+            /** Format: date-time */
+            dueAt: string;
+            /** Format: uuid */
+            assignedUserId?: string;
+            outcomeFa?: string;
+        };
+        UpdateFollowUpTaskRequest: {
+            /** @enum {string} */
+            status?: "pending" | "completed" | "missed" | "cancelled";
+            assignedUserId?: string | null;
+            outcomeFa?: string | null;
+        };
+        DiagnosticStudyWorklistItem: {
+            /** Format: uuid */
+            studyId: string;
+            /** Format: uuid */
+            patientId: string;
+            patientNameFa: string;
+            /** Format: uuid */
+            clinicId: string;
+            eyeLaterality: components["schemas"]["StudyLaterality"];
+            eyeLabelFa: string;
+            status: components["schemas"]["StudyStatus"];
+            urgencyTier?: components["schemas"]["UrgencyTier"];
+            urgencyLabelFa?: string | null;
+            urgentFloorActive: boolean;
+            modalities: string[];
+            topConditionNameFa?: string | null;
+            /** Format: date-time */
+            createdAtIso: string;
+            createdAtJalali: string;
+            signedAtIso?: string | null;
+        };
+        DiagnosticStudyWorklistResponse: {
+            items: components["schemas"]["DiagnosticStudyWorklistItem"][];
+            total: number;
+        };
+        AddRecaptureAssetsRequest: {
+            assets: components["schemas"]["StudyAssetInput"][];
+        };
+        StudyInferenceJobRecord: {
+            /** Format: uuid */
+            jobId: string;
+            /** Format: uuid */
+            studyId: string;
+            engineMode: string;
+            modelVersions: {
+                [key: string]: unknown;
+            };
+            status: string;
+            startedAtIso?: string | null;
+            completedAtIso?: string | null;
+            errorCode?: string | null;
+            /** Format: date-time */
+            createdAtIso: string;
+        };
+        StudyInferenceJobListResponse: {
+            items: components["schemas"]["StudyInferenceJobRecord"][];
+        };
+        SaveReportDraftRequest: {
+            expectedDraftVersion: number;
+            titleFa: string;
+            modalityFindingsFa: string;
+            differentialSummaryFa: string;
+            crossModalCorrelationFa: string;
+            followUpPlanFa: string;
+            urgencyTier: components["schemas"]["UrgencyTier"];
+            evidenceIds?: string[];
+        };
+        ClinicianFeedbackRecord: {
+            /** Format: uuid */
+            feedbackId: string;
+            /** Format: uuid */
+            studyId: string;
+            /** Format: uuid */
+            clinicianUserId: string;
+            targetLayer: string;
+            agreementState: string;
+            correctedLabelCode?: string | null;
+            noteFa: string;
+            /** Format: date-time */
+            createdAtIso: string;
+        };
+        ClinicianFeedbackListResponse: {
+            items: components["schemas"]["ClinicianFeedbackRecord"][];
+        };
+        CreateClinicianFeedbackRequest: {
+            /** @enum {string} */
+            targetLayer: "qc" | "specialist" | "fusion" | "segmentation" | "gradcam" | "report_draft" | "urgency";
+            /** @enum {string} */
+            agreementState: "agree" | "partially_agree" | "disagree";
+            correctedLabelCode?: string;
+            noteFa?: string;
+        };
+        BiomarkerDelta: {
+            metricKey: string;
+            currentValue: number;
+            priorValue: number;
+            delta: number;
+        };
+        StudyComparisonResponse: {
+            currentStudy: components["schemas"]["DiagnosticStudyDetail"];
+            priorStudies: components["schemas"]["DiagnosticStudyDetail"][];
+            biomarkerDeltas: components["schemas"]["BiomarkerDelta"][];
+        };
+        FhirBundleResponse: {
+            resourceType: string;
+            id: string;
+            type: string;
+            timestamp: string;
+            entry: {
+                [key: string]: unknown;
+            }[];
+        };
+        DicomRawTags: {
+            patientName?: string;
+            patientId?: string;
+            patientBirthDate?: string;
+            patientTelephone?: string;
+            institutionName?: string;
+            performingPhysicianName?: string;
+            referringPhysicianName?: string;
+            studyInstanceUid?: string;
+            seriesInstanceUid?: string;
+            sopInstanceUid?: string;
+            modality?: string;
+            imageLaterality?: string;
+            studyDate?: string;
+        };
+        DicomIngestItem: {
+            /** Format: uuid */
+            assetId: string;
+            s3ObjectKey: string;
+            declaredModalityHint?: components["schemas"]["DiagnosticModality"];
+            rawTags: components["schemas"]["DicomRawTags"];
+        };
+        DicomIngestRequest: {
+            /** Format: uuid */
+            patientId: string;
+            eyeLaterality: components["schemas"]["StudyLaterality"];
+            dicomItems: components["schemas"]["DicomIngestItem"][];
+            labs?: components["schemas"]["ClinicalLabsInput"];
+        };
+        AnonymizedDicomSnapshot: {
+            pseudonymId: string;
+            sha256: string;
+            scrubbedTags: {
+                [key: string]: unknown;
+            };
+        };
+        DicomIngestResponse: {
+            study: components["schemas"]["DiagnosticStudyDetail"];
+            anonymizedSnapshots: components["schemas"]["AnonymizedDicomSnapshot"][];
+        };
+        HomeVisionTestTrialInput: {
+            trialIndex: number;
+            stimulus: {
+                [key: string]: unknown;
+            };
+            response: {
+                [key: string]: unknown;
+            };
+            reactionMs?: number;
+            correct?: boolean;
+        };
+        HomeVisionTestTrialRecord: {
+            /** Format: uuid */
+            trialId: string;
+            /** Format: uuid */
+            testId: string;
+            trialIndex: number;
+            stimulus: {
+                [key: string]: unknown;
+            };
+            response: {
+                [key: string]: unknown;
+            };
+            reactionMs?: number | null;
+            correct?: boolean | null;
+            /** Format: date-time */
+            createdAtIso: string;
+        };
+        VisionTrendAlert: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            patientId: string;
+            eyeLaterality: components["schemas"]["EyeLaterality"];
+            ruleCode: string;
+            severity: components["schemas"]["UrgencyTier"];
+            summaryFa: string;
+            ewmaValue: number;
+            cusumValue: number;
+            triageCaseId?: string | null;
+            /** Format: date-time */
+            createdAtIso: string;
+        };
+        R2MonitoringOverviewResponse: {
+            activePlanCount: number;
+            enrolledPatientCount: number;
+            acceptedTestCount: number;
+            rejectedTestCount: number;
+            activeAlertCount: number;
+            killedDeviceCount: number;
+            latestAlerts: components["schemas"]["VisionTrendAlert"][];
+        };
+        HomeVisionTestRecord: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            /** Format: uuid */
+            patientId: string;
+            calibrationProfileId?: string | null;
+            eyeLaterality: components["schemas"]["EyeLaterality"];
+            testType: string;
+            vaLogmar?: number | null;
+            amslerDistortionScore: number;
+            amslerCentralScotoma: boolean;
+            qualityStatus: string;
+            rejectionCodes: string[];
+            /** Format: date-time */
+            measuredAtIso: string;
+        };
+        R2SessionListResponse: {
+            items: components["schemas"]["HomeVisionTestRecord"][];
+            total: number;
+        };
+        R2SessionDetailResponse: {
+            session: components["schemas"]["HomeVisionTestRecord"];
+            trials: components["schemas"]["HomeVisionTestTrialRecord"][];
+            calibrationProfile?: components["schemas"]["CalibrationProfileResponse"];
+            alerts: components["schemas"]["VisionTrendAlert"][];
+        };
+        IopReadingRecord: {
+            /** Format: uuid */
+            readingId: string;
+            /** Format: uuid */
+            patientId: string;
+            deviceVendor: string;
+            deviceSerialHash: string;
+            eyeLaterality: components["schemas"]["EyeLaterality"];
+            eyeLabelFa: string;
+            iopMmHg: number;
+            qualityScore: number;
+            accepted: boolean;
+            /** Format: date-time */
+            measuredAtIso: string;
+        };
+        PatientIopListResponse: {
+            items: components["schemas"]["IopReadingRecord"][];
+            od: components["schemas"]["IopReadingRecord"][];
+            os: components["schemas"]["IopReadingRecord"][];
+        };
+        MonitoringPlanRecord: {
+            /** Format: uuid */
+            planId: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            /** Format: uuid */
+            patientId: string;
+            eyeLaterality: components["schemas"]["EyeLaterality"];
+            eyeLabelFa: string;
+            testTypes: string[];
+            cadenceDays: number;
+            alertThresholdLogmar: number;
+            active: boolean;
+            /** Format: uuid */
+            createdByUserId: string;
+            /** Format: date-time */
+            createdAtIso: string;
+            /** Format: date-time */
+            updatedAtIso: string;
+        };
+        MonitoringPlanListResponse: {
+            items: components["schemas"]["MonitoringPlanRecord"][];
+        };
+        CreateMonitoringPlanRequest: {
+            eyeLaterality: components["schemas"]["EyeLaterality"];
+            testTypes: string[];
+            cadenceDays?: number;
+            alertThresholdLogmar?: number;
+            active?: boolean;
+        };
+        DeviceQualificationRecord: {
+            /** Format: uuid */
+            deviceId: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            modelCode: string;
+            manufacturer: string;
+            displayPpi?: number | null;
+            /** @enum {string} */
+            verifiedStatus: "qualified" | "provisional" | "killed";
+            killSwitchReasonFa?: string | null;
+            /** Format: uuid */
+            updatedByUserId: string;
+            /** Format: date-time */
+            createdAtIso: string;
+            /** Format: date-time */
+            updatedAtIso: string;
+        };
+        DeviceQualificationListResponse: {
+            items: components["schemas"]["DeviceQualificationRecord"][];
+        };
+        UpsertDeviceQualificationRequest: {
+            modelCode: string;
+            manufacturer: string;
+            displayPpi?: number;
+            /** @enum {string} */
+            verifiedStatus?: "qualified" | "provisional" | "killed";
+            killSwitchReasonFa?: string;
+        };
+        UpdateDeviceStatusRequest: {
+            /** @enum {string} */
+            verifiedStatus: "qualified" | "provisional" | "killed";
+            killSwitchReasonFa?: string;
+        };
+        ReportListItem: {
+            /** Format: uuid */
+            reportId: string;
+            reportType: string;
+            /** Format: uuid */
+            patientId: string;
+            patientNameFa: string;
+            /** Format: uuid */
+            sourceRefId: string;
+            titleFa: string;
+            issuedAtJalali: string;
+            sourceSha256: string;
+            pdfSha256: string;
+            /** Format: date-time */
+            createdAtIso: string;
+        };
+        ReportListResponse: {
+            items: components["schemas"]["ReportListItem"][];
+            total: number;
+        };
+        ReportDetailResponse: {
+            /** Format: uuid */
+            reportId: string;
+            /** Format: uuid */
+            clinicId: string;
+            reportType: string;
+            /** Format: uuid */
+            patientId: string;
+            patientNameFa: string;
+            /** Format: uuid */
+            sourceRefId: string;
+            titleFa: string;
+            issuedAtJalali: string;
+            sourceSha256: string;
+            pdfSha256: string;
+            payload: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            createdAtIso: string;
+        };
+        KpiRatio: {
+            numerator: number;
+            denominator: number;
+            rate?: number | null;
+        };
+        ClinicAnalyticsResponse: {
+            episodeCountsByStatus: {
+                [key: string]: number;
+            };
+            episodeCountsByEye: {
+                [key: string]: number;
+            };
+            cohortCountsByAccessMode: {
+                [key: string]: number;
+            };
+            adherenceDistribution: {
+                [key: string]: number;
+            };
+            triageSlaCompliance: components["schemas"]["KpiRatio"];
+            referralAttendance: components["schemas"]["KpiRatio"];
+        };
+        PilotScorecardResponse: {
+            /** Format: date-time */
+            generatedAtIso: string;
+            generatedAtJalali: string;
+            kpis: {
+                [key: string]: unknown;
+            };
+            noticeFa: string;
+        };
+        AiQualityAnalyticsResponse: {
+            onlineOperationalMetrics: {
+                [key: string]: unknown;
+            };
+            offlineBenchmarkNoticeFa: string;
+        };
+        ResearchExportRequest: {
+            irbProtocolCode: string;
+            reasonFa: string;
+            limit?: number;
+        };
+        ResearchExportResponse: {
+            irbProtocolCode: string;
+            /** Format: date-time */
+            exportedAtIso: string;
+            recordCount: number;
+            records: {
+                [key: string]: unknown;
+            }[];
+            manifestSha256: string;
+        };
+        BillingEvidenceRequest: {
+            /** Format: uuid */
+            patientId: string;
+            periodStartJalali: string;
+            periodEndJalali: string;
+        };
+        BillingEvidenceResponse: {
+            /** Format: uuid */
+            patientId: string;
+            periodStartJalali: string;
+            periodEndJalali: string;
+            acceptedHomeVisionTestCount: number;
+            confirmedAdherenceEventCount: number;
+            disclaimerFa: string;
+        };
+        StaffedHoursWindow: {
+            open: string;
+            close: string;
+        };
+        StaffedHoursInput: {
+            satToWed?: components["schemas"]["StaffedHoursWindow"];
+            thursday?: components["schemas"]["StaffedHoursWindow"];
+            fridayClosed?: boolean;
+        };
+        UpdateClinicProfileRequest: {
+            nameFa?: string;
+            emergencyPhone?: string;
+            /** @enum {string} */
+            calendarMode?: "jalali" | "gregorian";
+            dicomAeTitle?: string | null;
+            staffedHours?: components["schemas"]["StaffedHoursInput"];
+        };
+        StaffMembershipRecord: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            /** Format: uuid */
+            userId: string;
+            role: components["schemas"]["StaffRole"];
+            active: boolean;
+            fullNameFa?: string | null;
+            email?: string | null;
+            mfaVerifiedAtIso?: string | null;
+            createdAtIso?: string;
+        };
+        StaffMembershipListResponse: {
+            items: components["schemas"]["StaffMembershipRecord"][];
+        };
+        UpsertStaffMemberRequest: {
+            /** Format: uuid */
+            userId: string;
+            role: components["schemas"]["StaffRole"];
+            fullNameFa?: string;
+            email?: string;
+            active?: boolean;
+            mfaVerified?: boolean;
+        };
+        UpdateStaffMemberRequest: {
+            role?: components["schemas"]["StaffRole"];
+            active?: boolean;
+            fullNameFa?: string | null;
+            email?: string | null;
+        };
+        ProtocolTemplateRecord: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            protocolType: string;
+            version: number;
+            schema: {
+                [key: string]: unknown;
+            };
+            approvedBy?: string;
+            /** Format: date-time */
+            createdAtIso: string;
+        };
+        AdminProtocolListResponse: {
+            builtInTypes: string[];
+            versions: components["schemas"]["ProtocolTemplateRecord"][];
+        };
+        CreateProtocolVersionRequest: {
+            protocolType: string;
+            schema: {
+                [key: string]: unknown;
+            };
+        };
+        MessageTemplateRecord: {
+            /** Format: uuid */
+            templateId: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            templateKey: string;
+            version: number;
+            bodyTemplateFa: string;
+            /** @enum {string} */
+            channel: "sms" | "print" | "in_app";
+            active: boolean;
+            /** Format: uuid */
+            updatedByUserId: string;
+            /** Format: date-time */
+            createdAtIso: string;
+        };
+        MessageTemplateListResponse: {
+            items: components["schemas"]["MessageTemplateRecord"][];
+        };
+        CreateMessageTemplateRequest: {
+            templateKey: string;
+            bodyTemplateFa: string;
+            /** @enum {string} */
+            channel?: "sms" | "print" | "in_app";
+            active?: boolean;
+        };
+        ConsentTemplateRecord: {
+            /** Format: uuid */
+            consentTemplateId: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            consentType: string;
+            version: string;
+            titleFa: string;
+            bodyFa: string;
+            active: boolean;
+            /** Format: uuid */
+            updatedByUserId: string;
+            /** Format: date-time */
+            createdAtIso: string;
+        };
+        ConsentTemplateListResponse: {
+            items: components["schemas"]["ConsentTemplateRecord"][];
+        };
+        CreateConsentTemplateRequest: {
+            /** @enum {string} */
+            consentType: "care_enrollment" | "diagnostic_ai" | "research_d5" | "caregiver_delegation";
+            version: string;
+            titleFa: string;
+            bodyFa: string;
+            active?: boolean;
+        };
+        IntegrationEndpointRecord: {
+            /** Format: uuid */
+            endpointId: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            integrationType: string;
+            nameFa: string;
+            endpointUrl: string;
+            aeTitle?: string | null;
+            authMode: string;
+            secretMasked?: string | null;
+            enabled: boolean;
+            lastTestedAtIso?: string | null;
+            lastTestStatus?: string | null;
+            /** Format: date-time */
+            createdAtIso: string;
+            /** Format: date-time */
+            updatedAtIso: string;
+        };
+        IntegrationEndpointListResponse: {
+            items: components["schemas"]["IntegrationEndpointRecord"][];
+        };
+        CreateIntegrationEndpointRequest: {
+            /** @enum {string} */
+            integrationType: "dicom_dimse" | "dicomweb" | "fhir_his" | "icare_home2" | "sms_gateway";
+            nameFa: string;
+            endpointUrl: string;
+            aeTitle?: string;
+            /** @enum {string} */
+            authMode?: "none" | "mtls" | "bearer" | "basic";
+            secret?: string;
+            enabled?: boolean;
+        };
+        UpdateIntegrationEndpointRequest: {
+            nameFa?: string;
+            endpointUrl?: string;
+            aeTitle?: string | null;
+            /** @enum {string} */
+            authMode?: "none" | "mtls" | "bearer" | "basic";
+            secret?: string | null;
+            enabled?: boolean;
+        };
+        IntegrationDeliveryRecord: {
+            /** Format: uuid */
+            deliveryId: string;
+            /** Format: uuid */
+            clinicId: string;
+            endpointId?: string | null;
+            endpointNameFa?: string | null;
+            direction: string;
+            payloadType: string;
+            referenceId?: string | null;
+            status: string;
+            httpStatus?: number | null;
+            errorCode?: string | null;
+            errorMessageFa?: string | null;
+            attemptCount: number;
+            /** Format: date-time */
+            createdAtIso: string;
+            /** Format: date-time */
+            updatedAtIso: string;
+        };
+        TestIntegrationEndpointResponse: {
+            endpoint: components["schemas"]["IntegrationEndpointRecord"];
+            delivery: components["schemas"]["IntegrationDeliveryRecord"];
+        };
+        IntegrationDeliveryListResponse: {
+            items: components["schemas"]["IntegrationDeliveryRecord"][];
+            total: number;
+        };
+        OpsHealthResponse: {
+            status: string;
+            service: string;
+            aiEngineMode?: components["schemas"]["AiEngineMode"];
+            database: {
+                [key: string]: unknown;
+            };
+            queues: {
+                [key: string]: unknown;
+            };
+        };
+        OpsJobsResponse: {
+            aiInferenceJobs: {
+                [key: string]: unknown;
+            }[];
+            outboxEvents: {
+                [key: string]: unknown;
+            }[];
+            workflowRuns: {
+                [key: string]: unknown;
+            }[];
+        };
+        AuditLogEntry: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            actorUserId: string;
+            actorRole: string;
+            action: string;
+            resourceType: string;
+            resourceId: string;
+            reasonFa?: string | null;
+            breakGlass?: boolean;
+            metadata?: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            occurredAtIso: string;
+        };
+        AuditLogListResponse: {
+            items: components["schemas"]["AuditLogEntry"][];
+            total: number;
+        };
+        BreakGlassSessionRecord: {
+            /** Format: uuid */
+            sessionId: string;
+            /** Format: uuid */
+            tenantId: string;
+            /** Format: uuid */
+            clinicId: string;
+            /** Format: uuid */
+            actorUserId: string;
+            actorRole: string;
+            /** Format: uuid */
+            patientId: string;
+            reasonFa: string;
+            /** Format: date-time */
+            expiresAtIso: string;
+            revokedAtIso?: string | null;
+            revokedByUserId?: string | null;
+            active: boolean;
+            /** Format: date-time */
+            createdAtIso: string;
+        };
+        BreakGlassSessionListResponse: {
+            items: components["schemas"]["BreakGlassSessionRecord"][];
+            total: number;
+        };
+        OpenBreakGlassRequest: {
+            /** Format: uuid */
+            patientId: string;
+            reasonFa: string;
+            durationMinutes?: number;
+        };
+        RevokeBreakGlassRequest: {
+            reasonFa?: string;
+        };
+        ModelArtifactSummary: {
+            modelName: string;
+            hasMetricsJson: boolean;
+            hasModelCard: boolean;
+            metrics?: {
+                [key: string]: unknown;
+            };
+        };
+        OpsModelsResponse: {
+            aiEngineMode: string;
+            foundationBackbone: string;
+            commercialLicensePolicyFa: string;
+            llmProvider: string;
+            llmModel: string;
+            artifacts: components["schemas"]["ModelArtifactSummary"][];
+        };
     };
     responses: never;
     parameters: {
@@ -1341,6 +3585,14 @@ export interface components {
         CaseIdParam: string;
         StudyIdParam: string;
         ReportIdParam: string;
+        OutageIdParam: string;
+        ReferralIdParam: string;
+        TaskIdParam: string;
+        SessionIdParam: string;
+        DeviceIdParam: string;
+        MembershipIdParam: string;
+        EndpointIdParam: string;
+        BreakGlassSessionIdParam: string;
         IdempotencyKeyHeader: string;
     };
     requestBodies: never;
@@ -1433,6 +3685,110 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StaffStepUpResponse"];
+                };
+            };
+        };
+    };
+    getStaffMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Staff profile and server-derived capabilities */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffMeResponse"];
+                };
+            };
+        };
+    };
+    listAuthorizedStaffClinics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Authorized clinic memberships */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorizedClinicListResponse"];
+                };
+            };
+        };
+    };
+    getOverviewDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Overview dashboard snapshot */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewDashboardResponse"];
+                };
+            };
+        };
+    };
+    searchStaffWorkspace: {
+        parameters: {
+            query: {
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Scoped workspace search results */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceSearchResponse"];
+                };
+            };
+        };
+    };
+    listRecentOverviewActivity: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recent clinic activity feed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecentActivityListResponse"];
                 };
             };
         };
@@ -1549,6 +3905,173 @@ export interface operations {
             };
         };
     };
+    listPatients: {
+        parameters: {
+            query?: {
+                q?: string;
+                accessMode?: components["schemas"]["AccessMode"];
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated patient list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientListResponse"];
+                };
+            };
+        };
+    };
+    enrollPatientByStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffEnrollPatientRequest"];
+            };
+        };
+        responses: {
+            /** @description Enrolled patient summary */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffEnrolledPatientResponse"];
+                };
+            };
+        };
+    };
+    getPatient360: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: components["parameters"]["PatientIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Patient 360 aggregate */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Patient360Response"];
+                };
+            };
+        };
+    };
+    listPatientClinicalHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: components["parameters"]["PatientIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Patient clinical history list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientClinicalHistoryListResponse"];
+                };
+            };
+        };
+    };
+    addPatientClinicalHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: components["parameters"]["PatientIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddClinicalHistoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Clinical history appended */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientClinicalHistoryItem"];
+                };
+            };
+        };
+    };
+    getPatientTimeline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: components["parameters"]["PatientIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Chronological patient timeline events */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientTimelineResponse"];
+                };
+            };
+        };
+    };
+    updatePatientConsent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: components["parameters"]["PatientIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePatientConsentRequest"];
+            };
+        };
+        responses: {
+            /** @description Consent event recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentRecord"];
+                };
+            };
+        };
+    };
     listPatientCaregivers: {
         parameters: {
             query?: never;
@@ -1618,6 +4141,34 @@ export interface operations {
             };
         };
     };
+    listClinicEpisodes: {
+        parameters: {
+            query?: {
+                patientId?: string;
+                status?: "active" | "completed" | "cancelled";
+                eyeLaterality?: components["schemas"]["EyeLaterality"];
+                accessMode?: components["schemas"]["AccessMode"];
+                protocolType?: string;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Clinic care episodes list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CareEpisodeWorklistResponse"];
+                };
+            };
+        };
+    };
     createCareEpisode: {
         parameters: {
             query?: never;
@@ -1660,6 +4211,54 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CareEpisode"];
+                };
+            };
+        };
+    };
+    closeCareEpisode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                episodeId: components["parameters"]["EpisodeIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloseEpisodeRequest"];
+            };
+        };
+        responses: {
+            /** @description Care episode closed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CareEpisode"];
+                };
+            };
+        };
+    };
+    listEpisodePrescriptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                episodeId: components["parameters"]["EpisodeIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Prescription version history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrescriptionHistoryListResponse"];
                 };
             };
         };
@@ -1780,6 +4379,28 @@ export interface operations {
             };
         };
     };
+    listEpisodeSymptoms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                episodeId: components["parameters"]["EpisodeIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Episode symptom history */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EpisodeSymptomListResponse"];
+                };
+            };
+        };
+    };
     submitSymptomReport: {
         parameters: {
             query?: never;
@@ -1808,9 +4429,64 @@ export interface operations {
             };
         };
     };
-    listTriageCases: {
+    listPrintPhoneQueue: {
         parameters: {
             query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Print+Phone cohort queue */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrintPhoneQueueResponse"];
+                };
+            };
+        };
+    };
+    recordPrintPhoneOutreach: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                episodeId: components["parameters"]["EpisodeIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrintPhoneOutreachRequest"];
+            };
+        };
+        responses: {
+            /** @description Print+Phone outreach logged */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrintPhoneOutreachRecord"];
+                };
+            };
+        };
+    };
+    listTriageCases: {
+        parameters: {
+            query?: {
+                status?: "New" | "OwnerAssigned" | "ContactAttempted" | "ContactEstablished" | "Escalated" | "Referred" | "Closed";
+                urgencyTier?: components["schemas"]["UrgencyTier"];
+                sourcePillar?: "pillar1_care" | "pillar2_diagnostic";
+                eyeLaterality?: components["schemas"]["StudyLaterality"];
+                ownerId?: string;
+                unassignedOnly?: boolean;
+                limit?: number;
+                offset?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1824,6 +4500,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TriageCaseListResponse"];
+                };
+            };
+        };
+    };
+    getTriageCaseDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseId: components["parameters"]["CaseIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Triage case detail */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TriageCaseDetailResponse"];
+                };
+            };
+        };
+    };
+    recordTriageContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseId: components["parameters"]["CaseIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TriageContactRequest"];
+            };
+        };
+        responses: {
+            /** @description Triage case updated with contact attempt */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TriageCase"];
+                };
+            };
+        };
+    };
+    closeTriageCase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                caseId: components["parameters"]["CaseIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CloseTriageCaseRequest"];
+            };
+        };
+        responses: {
+            /** @description Triage case closed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TriageCase"];
                 };
             };
         };
@@ -1906,6 +4656,256 @@ export interface operations {
             };
         };
     };
+    listClinicOutages: {
+        parameters: {
+            query?: {
+                status?: "active" | "mitigated" | "resolved";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Clinic outage records */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicOutageListResponse"];
+                };
+            };
+        };
+    };
+    createClinicOutage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateClinicOutageRequest"];
+            };
+        };
+        responses: {
+            /** @description Outage created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicOutageRecord"];
+                };
+            };
+        };
+    };
+    updateClinicOutage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                outageId: components["parameters"]["OutageIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateClinicOutageRequest"];
+            };
+        };
+        responses: {
+            /** @description Outage updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicOutageRecord"];
+                };
+            };
+        };
+    };
+    listReferrals: {
+        parameters: {
+            query?: {
+                status?: "dispatched" | "attended" | "missed";
+                urgentOnly?: boolean;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Referrals queue */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferralListResponse"];
+                };
+            };
+        };
+    };
+    getReferralDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                referralId: components["parameters"]["ReferralIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Referral record */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferralRecord"];
+                };
+            };
+        };
+    };
+    updateReferralOutcome: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                referralId: components["parameters"]["ReferralIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateReferralOutcomeRequest"];
+            };
+        };
+        responses: {
+            /** @description Referral outcome recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferralRecord"];
+                };
+            };
+        };
+    };
+    listFollowUpTasks: {
+        parameters: {
+            query?: {
+                status?: "pending" | "completed" | "missed" | "cancelled";
+                taskType?: "postop_call" | "print_phone_checkin" | "clinic_visit" | "referral_followup" | "r2_recalibration";
+                patientId?: string;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Follow-up tasks list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUpTaskListResponse"];
+                };
+            };
+        };
+    };
+    createFollowUpTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFollowUpTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description Follow-up task created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUpTaskRecord"];
+                };
+            };
+        };
+    };
+    updateFollowUpTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: components["parameters"]["TaskIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateFollowUpTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description Follow-up task updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUpTaskRecord"];
+                };
+            };
+        };
+    };
+    listDiagnosticStudies: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["StudyStatus"];
+                urgencyTier?: components["schemas"]["UrgencyTier"];
+                eyeLaterality?: components["schemas"]["StudyLaterality"];
+                patientId?: string;
+                modality?: string;
+                signedOnly?: boolean;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Diagnostic studies worklist */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiagnosticStudyWorklistResponse"];
+                };
+            };
+        };
+    };
     submitDiagnosticStudy: {
         parameters: {
             query?: never;
@@ -1952,6 +4952,80 @@ export interface operations {
             };
         };
     };
+    addStudyRecaptureAssets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                studyId: components["parameters"]["StudyIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddRecaptureAssetsRequest"];
+            };
+        };
+        responses: {
+            /** @description Study re-analyzed with recaptured assets */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiagnosticStudyDetail"];
+                };
+            };
+        };
+    };
+    listStudyInferenceJobs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                studyId: components["parameters"]["StudyIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Study inference jobs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyInferenceJobListResponse"];
+                };
+            };
+        };
+    };
+    saveStudyReportDraft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                studyId: components["parameters"]["StudyIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveReportDraftRequest"];
+            };
+        };
+        responses: {
+            /** @description Updated Persian report draft */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersianReportDraft"];
+                };
+            };
+        };
+    };
     signOffDiagnosticStudy: {
         parameters: {
             query?: never;
@@ -1974,6 +5048,122 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClinicianSignoffResponse"];
+                };
+            };
+        };
+    };
+    listStudyClinicianFeedback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                studyId: components["parameters"]["StudyIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Clinician feedback list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicianFeedbackListResponse"];
+                };
+            };
+        };
+    };
+    createStudyClinicianFeedback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                studyId: components["parameters"]["StudyIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateClinicianFeedbackRequest"];
+            };
+        };
+        responses: {
+            /** @description Feedback recorded */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicianFeedbackRecord"];
+                };
+            };
+        };
+    };
+    compareDiagnosticStudy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                studyId: components["parameters"]["StudyIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Longitudinal study and biomarker comparison */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudyComparisonResponse"];
+                };
+            };
+        };
+    };
+    exportDiagnosticStudyFhirBundle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                studyId: components["parameters"]["StudyIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description FHIR Bundle JSON */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FhirBundleResponse"];
+                };
+            };
+        };
+    };
+    ingestDicomStudyBatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DicomIngestRequest"];
+            };
+        };
+        responses: {
+            /** @description DICOM batch anonymized and queued */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DicomIngestResponse"];
                 };
             };
         };
@@ -2046,6 +5236,26 @@ export interface operations {
             };
         };
     };
+    getR2MonitoringOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description R2 monitoring overview */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["R2MonitoringOverviewResponse"];
+                };
+            };
+        };
+    };
     getPatientVisionTrends: {
         parameters: {
             query?: never;
@@ -2064,6 +5274,196 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PatientVisionTrendsResponse"];
+                };
+            };
+        };
+    };
+    listR2PatientSessions: {
+        parameters: {
+            query?: {
+                eyeLaterality?: components["schemas"]["EyeLaterality"];
+                testType?: "landolt_c" | "amsler" | "contrast";
+                qualityStatus?: "accepted" | "rejected";
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                patientId: components["parameters"]["PatientIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description R2 sessions list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["R2SessionListResponse"];
+                };
+            };
+        };
+    };
+    getR2SessionDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: components["parameters"]["SessionIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description R2 session detail */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["R2SessionDetailResponse"];
+                };
+            };
+        };
+    };
+    listPatientIopReadings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: components["parameters"]["PatientIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Patient IOP readings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PatientIopListResponse"];
+                };
+            };
+        };
+    };
+    listPatientMonitoringPlans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: components["parameters"]["PatientIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Monitoring plans */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonitoringPlanListResponse"];
+                };
+            };
+        };
+    };
+    createPatientMonitoringPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patientId: components["parameters"]["PatientIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMonitoringPlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Monitoring plan created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonitoringPlanRecord"];
+                };
+            };
+        };
+    };
+    listQualifiedDevices: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Device qualification registry */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceQualificationListResponse"];
+                };
+            };
+        };
+    };
+    upsertQualifiedDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertDeviceQualificationRequest"];
+            };
+        };
+        responses: {
+            /** @description Device qualification saved */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceQualificationRecord"];
+                };
+            };
+        };
+    };
+    updateQualifiedDeviceStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deviceId: components["parameters"]["DeviceIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDeviceStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description Device status updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeviceQualificationRecord"];
                 };
             };
         };
@@ -2092,6 +5492,31 @@ export interface operations {
             };
         };
     };
+    listReports: {
+        parameters: {
+            query?: {
+                patientId?: string;
+                reportType?: "patient_schedule" | "postop_closure" | "signed_diagnostic";
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated report list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportListResponse"];
+                };
+            };
+        };
+    };
     createPersianReport: {
         parameters: {
             query?: never;
@@ -2116,6 +5541,28 @@ export interface operations {
             };
         };
     };
+    getReportDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reportId: components["parameters"]["ReportIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Report detail record */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportDetailResponse"];
+                };
+            };
+        };
+    };
     downloadPersianPdfReport: {
         parameters: {
             query?: never;
@@ -2134,6 +5581,665 @@ export interface operations {
                 };
                 content: {
                     "application/pdf": string;
+                };
+            };
+        };
+    };
+    getClinicAnalytics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Clinic analytics data */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicAnalyticsResponse"];
+                };
+            };
+        };
+    };
+    getPilotScorecard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pilot KPI scorecard */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PilotScorecardResponse"];
+                };
+            };
+        };
+    };
+    getAiQualityAnalytics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description AI quality operational analytics */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiQualityAnalyticsResponse"];
+                };
+            };
+        };
+    };
+    exportResearchPseudonymizedCohort: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResearchExportRequest"];
+            };
+        };
+        responses: {
+            /** @description Pseudonymized cohort bundle with SHA-256 manifest */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchExportResponse"];
+                };
+            };
+        };
+    };
+    generateBillingAdherenceEvidence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingEvidenceRequest"];
+            };
+        };
+        responses: {
+            /** @description Non-diagnostic billing evidence summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingEvidenceResponse"];
+                };
+            };
+        };
+    };
+    updateClinicProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateClinicProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description Updated clinic profile */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicProfile"];
+                };
+            };
+        };
+    };
+    listClinicStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Staff membership list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffMembershipListResponse"];
+                };
+            };
+        };
+    };
+    upsertClinicStaffMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertStaffMemberRequest"];
+            };
+        };
+        responses: {
+            /** @description Staff membership saved */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffMembershipRecord"];
+                };
+            };
+        };
+    };
+    updateClinicStaffMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                membershipId: components["parameters"]["MembershipIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateStaffMemberRequest"];
+            };
+        };
+        responses: {
+            /** @description Staff membership updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffMembershipRecord"];
+                };
+            };
+        };
+    };
+    listAdminProtocols: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Protocol registry overview */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProtocolListResponse"];
+                };
+            };
+        };
+    };
+    createAdminProtocolVersion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProtocolVersionRequest"];
+            };
+        };
+        responses: {
+            /** @description Protocol version created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProtocolTemplateRecord"];
+                };
+            };
+        };
+    };
+    listAdminMessageTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Message template versions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageTemplateListResponse"];
+                };
+            };
+        };
+    };
+    createAdminMessageTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMessageTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description Message template created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageTemplateRecord"];
+                };
+            };
+        };
+    };
+    listAdminConsentTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Consent template list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentTemplateListResponse"];
+                };
+            };
+        };
+    };
+    createAdminConsentTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateConsentTemplateRequest"];
+            };
+        };
+        responses: {
+            /** @description Consent template saved */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentTemplateRecord"];
+                };
+            };
+        };
+    };
+    listAdminFeatureFlags: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Feature flag states */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeatureFlagListResponse"];
+                };
+            };
+        };
+    };
+    upsertAdminFeatureFlag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertFeatureFlagRequest"];
+            };
+        };
+        responses: {
+            /** @description Feature flag updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClinicFeatureFlagRecord"];
+                };
+            };
+        };
+    };
+    listIntegrationEndpoints: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Endpoint configurations */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationEndpointListResponse"];
+                };
+            };
+        };
+    };
+    createIntegrationEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateIntegrationEndpointRequest"];
+            };
+        };
+        responses: {
+            /** @description Integration endpoint created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationEndpointRecord"];
+                };
+            };
+        };
+    };
+    updateIntegrationEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                endpointId: components["parameters"]["EndpointIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateIntegrationEndpointRequest"];
+            };
+        };
+        responses: {
+            /** @description Integration endpoint updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationEndpointRecord"];
+                };
+            };
+        };
+    };
+    testIntegrationEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                endpointId: components["parameters"]["EndpointIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Probe outcome and delivery record */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestIntegrationEndpointResponse"];
+                };
+            };
+        };
+    };
+    listIntegrationDeliveries: {
+        parameters: {
+            query?: {
+                endpointId?: string;
+                status?: "queued" | "delivered" | "failed" | "retrying";
+                direction?: "inbound" | "outbound";
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Delivery history list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationDeliveryListResponse"];
+                };
+            };
+        };
+    };
+    getOpsHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Operations health payload */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpsHealthResponse"];
+                };
+            };
+        };
+    };
+    listOpsJobs: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Operations jobs summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpsJobsResponse"];
+                };
+            };
+        };
+    };
+    listAuditLogs: {
+        parameters: {
+            query?: {
+                action?: string;
+                resourceType?: string;
+                actorUserId?: string;
+                breakGlassOnly?: boolean;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redacted immutable audit log entries */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditLogListResponse"];
+                };
+            };
+        };
+    };
+    listBreakGlassSessions: {
+        parameters: {
+            query?: {
+                activeOnly?: boolean;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Break-glass sessions list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BreakGlassSessionListResponse"];
+                };
+            };
+        };
+    };
+    openBreakGlassSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenBreakGlassRequest"];
+            };
+        };
+        responses: {
+            /** @description Break-glass session created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BreakGlassSessionRecord"];
+                };
+            };
+        };
+    };
+    revokeBreakGlassSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: components["parameters"]["BreakGlassSessionIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RevokeBreakGlassRequest"];
+            };
+        };
+        responses: {
+            /** @description Break-glass session revoked */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BreakGlassSessionRecord"];
+                };
+            };
+        };
+    };
+    listOpsModels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Model registry inventory */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpsModelsResponse"];
                 };
             };
         };

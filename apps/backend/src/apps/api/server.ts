@@ -24,14 +24,10 @@ function resolveMigrationsDir(): string {
 }
 
 const config = loadConfig();
+const adminPool = createDbPool(config.DATABASE_ADMIN_URL ?? config.DATABASE_URL, 2);
 
 if (config.AUTO_MIGRATE === "true") {
-  const adminPool = createDbPool(config.DATABASE_ADMIN_URL ?? config.DATABASE_URL, 2);
-  try {
-    await runMigrations(adminPool, resolveMigrationsDir());
-  } finally {
-    await closeDbPool(adminPool);
-  }
+  await runMigrations(adminPool, resolveMigrationsDir());
 }
 
 const appPool = createDbPool(config.DATABASE_URL, 6);
@@ -47,16 +43,11 @@ const app = buildApp(config, {
   appPool,
   aiGateway,
   resolveTenantByClinicId: async (clinicId: string) => {
-    const adminPool = createDbPool(config.DATABASE_ADMIN_URL ?? config.DATABASE_URL, 1);
-    try {
-      const res = await adminPool.query<{ tenant_id: string }>(
-        "SELECT tenant_id FROM clinics WHERE id = $1 LIMIT 1",
-        [clinicId]
-      );
-      return res.rows[0]?.tenant_id ?? null;
-    } finally {
-      await closeDbPool(adminPool);
-    }
+    const res = await adminPool.query<{ tenant_id: string }>(
+      "SELECT tenant_id FROM clinics WHERE id = $1 LIMIT 1",
+      [clinicId]
+    );
+    return res.rows[0]?.tenant_id ?? null;
   },
 });
 
@@ -67,6 +58,7 @@ async function shutdown(signal: string): Promise<void> {
     await redisGateway.close();
   }
   await closeDbPool(appPool);
+  await closeDbPool(adminPool);
   process.exit(0);
 }
 
@@ -77,5 +69,7 @@ try {
   await app.listen({ host: "0.0.0.0", port: config.PORT });
 } catch (error) {
   app.log.error({ err: error }, "Failed to start Bina backend");
+  await closeDbPool(appPool).catch(() => undefined);
+  await closeDbPool(adminPool).catch(() => undefined);
   process.exit(1);
 }

@@ -9,7 +9,7 @@ import {
 } from "../../../packages/domain-kernel/index.js";
 import type { TriageCaseCreatorPort } from "../../triage-operations/ports/index.js";
 import { classifyPersianSymptomText } from "../domain/persian-symptom-nlp.js";
-import type { SymptomRepoPort } from "../ports/index.js";
+import type { EpisodeSymptomHistoryItem, SymptomRepoPort } from "../ports/index.js";
 
 export class SymptomService {
   constructor(
@@ -120,5 +120,13 @@ export class SymptomService {
       guidanceFa,
       deduplicated: stored.deduplicated,
     };
+  }
+
+  async listEpisodeSymptoms(tx: DbTx, episodeId: string): Promise<EpisodeSymptomHistoryItem[]> {
+    const ep = await this.repo.findEpisodeContext(tx, episodeId);
+    if (!ep) {
+      throw new Error("EPISODE_NOT_FOUND");
+    }
+    return this.repo.listByEpisode(tx, episodeId);
   }
 }

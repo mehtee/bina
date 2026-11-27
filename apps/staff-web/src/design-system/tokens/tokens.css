@@ -1,0 +1,297 @@
+/* Bina Clinical Glass Desktop v2.0 — Canonical Design Tokens (Appendix A + §2/§3/§10.3) */
+
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --canvas: #EDF5F7;
+  --canvas-top: #F4F8FA;
+  --canvas-bottom: #E5F0F3;
+  --surface: #F8FBFC;
+  --surface-raised: #FFFFFF;
+  --surface-soft: #EAF3F5;
+  --surface-mint: #E5F8F2;
+  --surface-aqua: #E5F5F8;
+  --surface-cream: #F5F9E8;
+  --on-surface: #102126;
+  --on-surface-variant: #40565D;
+  --muted: #50676D;
+  --primary: #006C66;
+  --on-primary: #FFFFFF;
+  --primary-container: #D1EFEC;
+  --on-primary-container: #005D48;
+  --primary-grad-start: #007D77;
+  --primary-grad-end: #005C57;
+  --on-primary-gradient: #FFFFFF;
+  --primary-shine: #06A99E;
+  --secondary: #007F78;
+  --on-secondary: #FFFFFF;
+  --tertiary: #5654A6;
+  --on-tertiary: #FFFFFF;
+  --tertiary-container: #E7E8FC;
+  --on-tertiary-container: #41418E;
+  --outline: #55747A;
+  --outline-variant: #D5E5E8;
+  --glass-edge: #FFFFFF;
+  --focus: #006C66;
+  --shadow: #2D777C;
+  --scrim: #10292D;
+  --disabled-bg: #E1EBED;
+  --disabled-fg: #52686D;
+  --success: #216F1C;
+  --success-bg: #DDF6D5;
+  --success-icon: #237A19;
+  --success-vivid: #20B600;
+  --warning: #805200;
+  --warning-bg: #FFF2D3;
+  --error: #A72D35;
+  --error-bg: #FDE8E8;
+  --urgent-action: #A72D35;
+  --on-urgent-action: #FFFFFF;
+  --info: #195B89;
+  --info-bg: #E1F0FA;
+  --neutral: #40565D;
+  --neutral-bg: #EAF2F3;
+  --medication-well: #FFF3D8;
+  --medication-ink: #8A5800;
+  --plan-well: #E3EEFF;
+  --plan-ink: #2255A4;
+  --test-well: #DCF5EF;
+  --test-ink: #006C66;
+  --profile-well: #E0F4D9;
+  --profile-ink: #296B2B;
+  --chart1: #287A19;
+  --chart2: #006E7A;
+  --chart-axis: #40565D;
+  --chart-grid: #D2E3E6;
+  --chart-band: #DDF6D5;
+  --chart-band-edge: #447B37;
+  --ribbon-aqua: #A6EAE9;
+  --ribbon-teal: #7BDCCB;
+  --ribbon-mint: #BDEED8;
+  --ribbon-lime: #D9F3AE;
+  --ribbon-highlight: #FFFFFF;
+  --iris-teal: #008B88;
+  --iris-green: #83CF58;
+  --vf-paper: #FFFFFF;
+  --vf-ink: #171717;
+  --sidebar: #F8FBFC;
+  --topbar: #F8FBFC;
+  --table-head: #EAF3F5;
+  --row-hover: #EAF3F5;
+  --row-selected: #D1EFEC;
+  --row-alternate: #F1F7FA;
+  --viewer-canvas: #090D12;
+  --viewer-chrome: #17232C;
+  --viewer-text: #E8EEF1;
+  --viewer-border: #53636E;
+  --viewer-focus: #83E8D6;
+  --chart-od: #006C66;
+  --chart-os: #2468B6;
+  --chart-reference: #805200;
+  --chart-rejected: #A72D35;
+  --chart-baseline: #40565D;
+  --chart-band-neutral: #E1F0FA;
+  --link-visited: #5654A6;
+  --code-bg: #EAF2F3;
+  --nav-deep-start: #0E4144;
+  --nav-deep-end: #0A3339;
+  --nav-deep-ink: #F1F8F7;
+  --nav-deep-muted: #C1DEDF;
+  --nav-deep-selected: #006C66;
+  --nav-deep-selected-ink: #FFFFFF;
+  --chart-operational-blue: #2468B6;
+  --chart-operational-teal: #007F78;
+  --chart-operational-purple: #6655B8;
+  --chart-operational-amber: #A56B00;
+  --panel-divider: #D5E5E8;
+  --selected-outline: #007F78;
+  --icon-well: #E5F5F8;
+  --action-grad-start: #006C66;
+  --action-grad-end: #005C57;
+  --shadow-1: 0 2px 6px #2D777C0D;
+  --shadow-2: 0 6px 20px #2D777C15, 0 1px 3px #2D777C0D;
+  --shadow-overlay: 0 16px 48px #10292D26;
+  --scrim-alpha: rgba(16, 41, 45, 0.45);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --canvas: #091B20;
+  --canvas-top: #10272D;
+  --canvas-bottom: #0C2228;
+  --surface: #142C32;
+  --surface-raised: #1B373D;
+  --surface-soft: #18343A;
+  --surface-mint: #173F3A;
+  --surface-aqua: #17343D;
+  --surface-cream: #293C30;
+  --on-surface: #F1F8F7;
+  --on-surface-variant: #B8D0D1;
+  --muted: #A7C2C4;
+  --primary: #77E0CE;
+  --on-primary: #062823;
+  --primary-container: #194B42;
+  --on-primary-container: #9BF1D2;
+  --primary-grad-start: #097D74;
+  --primary-grad-end: #07554F;
+  --on-primary-gradient: #FFFFFF;
+  --primary-shine: #29B7A6;
+  --secondary: #68D9D1;
+  --on-secondary: #082E2B;
+  --tertiary: #BEBBFF;
+  --on-tertiary: #222052;
+  --tertiary-container: #302D58;
+  --on-tertiary-container: #D4D1FF;
+  --outline: #7FA1A6;
+  --outline-variant: #35535A;
+  --glass-edge: #3D6267;
+  --focus: #80E7D5;
+  --shadow: #00090C;
+  --scrim: #000000;
+  --disabled-bg: #243B40;
+  --disabled-fg: #A1B8BB;
+  --success: #9AE78F;
+  --success-bg: #203E29;
+  --success-icon: #287A3A;
+  --success-vivid: #6AD950;
+  --warning: #FFD387;
+  --warning-bg: #44351D;
+  --error: #FFB3B5;
+  --error-bg: #49262D;
+  --urgent-action: #AA303A;
+  --on-urgent-action: #FFFFFF;
+  --info: #A8D6FF;
+  --info-bg: #1C364B;
+  --neutral: #C3D4D5;
+  --neutral-bg: #263D42;
+  --medication-well: #44351D;
+  --medication-ink: #FFD387;
+  --plan-well: #203A55;
+  --plan-ink: #A8CAFF;
+  --test-well: #1D463F;
+  --test-ink: #8FE3D6;
+  --profile-well: #273E30;
+  --profile-ink: #B1E8A6;
+  --chart1: #9AE78F;
+  --chart2: #72DBEE;
+  --chart-axis: #B8D0D1;
+  --chart-grid: #36545A;
+  --chart-band: #28482D;
+  --chart-band-edge: #9AD58E;
+  --ribbon-aqua: #16484E;
+  --ribbon-teal: #176052;
+  --ribbon-mint: #1D513F;
+  --ribbon-lime: #40572E;
+  --ribbon-highlight: #659E93;
+  --iris-teal: #169E96;
+  --iris-green: #77BC63;
+  --vf-paper: #FFFFFF;
+  --vf-ink: #171717;
+  --sidebar: #10272D;
+  --topbar: #142C32;
+  --table-head: #18343A;
+  --row-hover: #1B373D;
+  --row-selected: #194B42;
+  --row-alternate: #11292F;
+  --viewer-canvas: #090D12;
+  --viewer-chrome: #17232C;
+  --viewer-text: #E8EEF1;
+  --viewer-border: #53636E;
+  --viewer-focus: #83E8D6;
+  --chart-od: #77E0CE;
+  --chart-os: #8CC4FF;
+  --chart-reference: #FFD387;
+  --chart-rejected: #FFB3B5;
+  --chart-baseline: #B8D0D1;
+  --chart-band-neutral: #1C364B;
+  --link-visited: #BEBBFF;
+  --code-bg: #263D42;
+  --nav-deep-start: #0D3438;
+  --nav-deep-end: #09272D;
+  --nav-deep-ink: #F1F8F7;
+  --nav-deep-muted: #B8D0D1;
+  --nav-deep-selected: #194B42;
+  --nav-deep-selected-ink: #9BF1D2;
+  --chart-operational-blue: #8CC4FF;
+  --chart-operational-teal: #68D9D1;
+  --chart-operational-purple: #BEBBFF;
+  --chart-operational-amber: #FFD387;
+  --panel-divider: #35535A;
+  --selected-outline: #77E0CE;
+  --icon-well: #17343D;
+  --action-grad-start: #086B64;
+  --action-grad-end: #07554F;
+  --shadow-1: 0 2px 6px #00090C40;
+  --shadow-2: 0 6px 20px #00090C59;
+  --shadow-overlay: 0 16px 48px #00090C99;
+  --scrim-alpha: rgba(0, 0, 0, 0.6);
+}
+
+:root {
+  font-family: "Vazirmatn", Tahoma, Arial, sans-serif;
+  font-size: 100%;
+  font-synthesis: none;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --radius-chip: 0.25rem;
+  --radius-dense: 0.375rem;
+  --radius-input: 0.5rem;
+  --radius-small: 0.625rem;
+  --radius-table: 0.75rem;
+  --radius-card: 0.75rem;
+  --radius-hero: 1rem;
+  --radius-pill: 999px;
+  --sidebar-width: 184px;
+  --topbar-height: 56px;
+  --page-gutter: 12px;
+  --grid-gap: 10px;
+  --panel-padding: 12px;
+  --control-height: 36px;
+  --table-row-height: 38px;
+  --table-head-height: 36px;
+  --kpi-min-height: 88px;
+  --nav-row-height: 36px;
+  --context-min-height: 60px;
+  --duration-instant: 0ms;
+  --duration-micro: 100ms;
+  --duration-fast: 150ms;
+  --duration-standard: 200ms;
+  --duration-panel: 240ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  :root {
+    --sidebar-width: 60px;
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1439px) {
+  :root {
+    --sidebar-width: 176px;
+  }
+}
+
+@media (min-width: 1600px) {
+  :root {
+    --sidebar-width: 196px;
+    --page-gutter: 16px;
+    --grid-gap: 12px;
+    --panel-padding: 14px;
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --sidebar-width: 216px;
+  }
+}

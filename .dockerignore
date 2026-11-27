@@ -10,7 +10,7 @@ coverage
 test-results
 playwright-report
 apps/patient-app
-apps/staff-web
+apps/staff-web/.react-router
 apps/marketing-site
 ml
 docs

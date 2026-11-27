@@ -24,3 +24,10 @@ export {
   type IcareHome2IngestResult,
   type IcareHome2ReadingInput,
 } from "./devices/icare-home2.js";
+export * from "./ports/index.js";
+export { PgIntegrationsRepo } from "./infrastructure/pg-integrations-repo.js";
+export {
+  IntegrationsService,
+  IntegrationsError,
+  maskIntegrationSecret,
+} from "./application/integrations-service.js";

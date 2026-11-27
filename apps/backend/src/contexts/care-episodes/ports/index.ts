@@ -27,6 +27,45 @@ export interface CareEpisodeRecord {
   readonly anchorAt: Date;
 }
 
+export interface CareEpisodeWorklistItem {
+  readonly episodeId: string;
+  readonly clinicId: string;
+  readonly patientId: string;
+  readonly patientNameFa: string;
+  readonly phoneMasked: string;
+  readonly protocolType: string;
+  readonly eyeLaterality: EyeLaterality;
+  readonly eyeLabelFa: string;
+  readonly surgeonId: string;
+  readonly accessMode: "app" | "caregiver" | "print_phone";
+  readonly activePrescriptionVersion: number;
+  readonly status: "active" | "completed" | "cancelled";
+  readonly anchorAtIso: string;
+  readonly anchorAtJalali: string;
+}
+
+export interface PrintPhoneQueueItem {
+  readonly episodeId: string;
+  readonly patientId: string;
+  readonly patientNameFa: string;
+  readonly phoneMasked: string;
+  readonly eyeLaterality: EyeLaterality;
+  readonly eyeLabelFa: string;
+  readonly activePrescriptionVersion: number;
+  readonly pendingTaskCount: number;
+  readonly lastOutreachAtIso: string | null;
+  readonly lastOutreachOutcomeFa: string | null;
+}
+
+export interface PrintPhoneOutreachRecord {
+  readonly taskId: string;
+  readonly episodeId: string;
+  readonly patientId: string;
+  readonly status: "completed" | "pending" | "missed";
+  readonly outcomeFa: string;
+  readonly recordedAtIso: string;
+}
+
 export interface PrescriptionVersionRecord {
   readonly prescriptionId: string;
   readonly tenantId: string;
@@ -70,6 +109,17 @@ export interface PatientTodayPlan {
   readonly scheduleItems: PatientTodayDropCard[];
 }
 
+export interface CareEpisodeWorklistFilter {
+  readonly clinicId?: string | undefined;
+  readonly patientId?: string | undefined;
+  readonly status?: "active" | "completed" | "cancelled" | undefined;
+  readonly eyeLaterality?: EyeLaterality | undefined;
+  readonly accessMode?: "app" | "caregiver" | "print_phone" | undefined;
+  readonly protocolType?: string | undefined;
+  readonly limit: number;
+  readonly offset: number;
+}
+
 export interface CareEpisodeRepoPort {
   createEpisode(
     tx: DbTx,
@@ -85,10 +135,20 @@ export interface CareEpisodeRepoPort {
     }
   ): Promise<CareEpisodeRecord>;
   findEpisodeById(tx: DbTx, episodeId: string): Promise<CareEpisodeRecord | null>;
+  listClinicEpisodes(
+    tx: DbTx,
+    filter: CareEpisodeWorklistFilter
+  ): Promise<{ items: CareEpisodeWorklistItem[]; total: number }>;
+  closeEpisode(
+    tx: DbTx,
+    episodeId: string,
+    status: "completed" | "cancelled"
+  ): Promise<CareEpisodeRecord | null>;
   listActiveEpisodesWithLatestRx(
     tx: DbTx,
     patientId: string
   ): Promise<Array<{ episode: CareEpisodeRecord; prescription: PrescriptionVersionRecord | null }>>;
+  listPrescriptionHistory(tx: DbTx, episodeId: string): Promise<PrescriptionVersionRecord[]>;
   insertPrescriptionVersion(
     tx: DbTx,
     input: {
@@ -115,4 +175,18 @@ export interface CareEpisodeRepoPort {
     }
   ): Promise<AdherenceEventRecord>;
   listAdherenceEvents(tx: DbTx, episodeId: string, limit: number): Promise<AdherenceEventRecord[]>;
+  listPrintPhoneQueue(tx: DbTx, clinicId: string): Promise<PrintPhoneQueueItem[]>;
+  recordPrintPhoneOutreach(
+    tx: DbTx,
+    input: {
+      tenantId: string;
+      clinicId: string;
+      patientId: string;
+      episodeId: string;
+      eyeLaterality: EyeLaterality;
+      staffUserId: string;
+      status: "completed" | "pending" | "missed";
+      outcomeFa: string;
+    }
+  ): Promise<PrintPhoneOutreachRecord>;
 }

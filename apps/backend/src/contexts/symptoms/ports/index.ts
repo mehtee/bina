@@ -17,6 +17,23 @@ export interface StoredSymptomReport {
   readonly deduplicated: boolean;
 }
 
+export interface EpisodeSymptomHistoryItem {
+  readonly reportId: string;
+  readonly episodeId: string;
+  readonly eyeLaterality: EyeLaterality;
+  readonly eyeLabelFa: string;
+  readonly severePain: boolean;
+  readonly suddenVisionLoss: boolean;
+  readonly purulentDischarge: boolean;
+  readonly flashesOrCurtain: boolean;
+  readonly freeTextFa: string;
+  readonly urgencyTier: UrgencyTier;
+  readonly urgencyLabelFa: string;
+  readonly signals: ClinicalSignal[];
+  readonly createdAtIso: string;
+  readonly createdAtJalali: string;
+}
+
 export interface SymptomRepoPort {
   findEpisodeContext(tx: DbTx, episodeId: string): Promise<EpisodeSummaryForSymptom | null>;
   insertReportIdempotent(
@@ -35,4 +52,5 @@ export interface SymptomRepoPort {
       idempotencyKey: string;
     }
   ): Promise<StoredSymptomReport>;
+  listByEpisode(tx: DbTx, episodeId: string): Promise<EpisodeSymptomHistoryItem[]>;
 }

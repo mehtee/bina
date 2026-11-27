@@ -21,8 +21,12 @@
     "typecheck:backend": "pnpm --filter @bina/backend typecheck",
     "build:backend": "pnpm --filter @bina/backend build",
     "test:backend": "pnpm --filter @bina/backend test",
+    "typecheck:staff-web": "pnpm --filter @bina/staff-web typecheck",
+    "build:staff-web": "pnpm --filter @bina/staff-web build",
+    "test:staff-web": "pnpm --filter @bina/staff-web test",
     "test:security": "pnpm --filter @bina/tests test:security",
     "test:process": "pnpm --filter @bina/tests test:process",
+    "test:e2e": "pnpm --filter @bina/tests test:e2e",
     "test:ai-engine": "cd apps/ai-engine && uv run pytest"
   },
   "devDependencies": {

@@ -30,6 +30,24 @@ export interface GeneratedReportRecord {
   readonly pdfBuffer: Buffer;
 }
 
+export interface ReportListItem {
+  readonly reportId: string;
+  readonly reportType: ReportType;
+  readonly patientId: string;
+  readonly patientNameFa: string;
+  readonly sourceRefId: string;
+  readonly titleFa: string;
+  readonly issuedAtJalali: string;
+  readonly sourceSha256: string;
+  readonly pdfSha256: string;
+  readonly createdAtIso: string;
+}
+
+export interface ReportDetailRecord extends ReportListItem {
+  readonly clinicId: string;
+  readonly payload: PersianPdfDocumentPayload;
+}
+
 export interface ReportingRepoPort {
   saveReportVersion(
     tx: DbTx,
@@ -53,4 +71,15 @@ export interface ReportingRepoPort {
     pdfSha256: string;
     payload: PersianPdfDocumentPayload;
   } | null>;
+  listReports(
+    tx: DbTx,
+    filter: {
+      clinicId?: string | undefined;
+      patientId?: string | undefined;
+      reportType?: ReportType | undefined;
+      limit: number;
+      offset: number;
+    }
+  ): Promise<{ items: ReportListItem[]; total: number }>;
+  getReportDetail(tx: DbTx, reportId: string): Promise<ReportDetailRecord | null>;
 }

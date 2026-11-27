@@ -14,11 +14,16 @@ servers:
 tags:
   - name: System
   - name: Auth
+  - name: Overview
+  - name: Analytics
   - name: CareOperations
   - name: HomeMonitoringR2
   - name: Triage
   - name: DiagnosticsAI
   - name: Reports
+  - name: Admin
+  - name: Integrations
+  - name: Ops
   - name: AiEngineInternal
 
 paths:
@@ -85,6 +90,83 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/StaffStepUpResponse"
+
+  /v1/auth/staff/me:
+    get:
+      tags: [Auth]
+      operationId: getStaffMe
+      summary: Current authenticated staff profile, capabilities, authorized clinics, and active feature flags
+      responses:
+        "200":
+          description: Staff profile and server-derived capabilities
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMeResponse"
+
+  /v1/auth/staff/clinics:
+    get:
+      tags: [Auth]
+      operationId: listAuthorizedStaffClinics
+      summary: List clinics within the tenant where the authenticated staff member holds an active membership
+      responses:
+        "200":
+          description: Authorized clinic memberships
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizedClinicListResponse"
+
+  /v1/overview/dashboard:
+    get:
+      tags: [Overview]
+      operationId: getOverviewDashboard
+      summary: Operational & clinical overview dashboard KPIs for Staff Web Module A
+      responses:
+        "200":
+          description: Overview dashboard snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OverviewDashboardResponse"
+
+  /v1/overview/search:
+    get:
+      tags: [Overview]
+      operationId: searchStaffWorkspace
+      summary: Permission-scoped search across patients, diagnostic studies, care episodes, and reports
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+      responses:
+        "200":
+          description: Scoped workspace search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceSearchResponse"
+
+  /v1/overview/activity:
+    get:
+      tags: [Overview]
+      operationId: listRecentOverviewActivity
+      summary: Recent PHI-redacted clinical and operational audit activity feed
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Recent clinic activity feed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecentActivityListResponse"
 
   /v1/auth/patient/otp/request:
     post:
@@ -169,6 +251,138 @@ paths:
               schema:
                 $ref: "#/components/schemas/PatientProfileResponse"
 
+  /v1/patients:
+    get:
+      tags: [CareOperations]
+      operationId: listPatients
+      summary: Paginated clinic patient registry search (masked phones only)
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: accessMode
+          in: query
+          schema:
+            $ref: "#/components/schemas/AccessMode"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated patient list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientListResponse"
+    post:
+      tags: [CareOperations]
+      operationId: enrollPatientByStaff
+      summary: Staff-assisted patient enrollment (app, caregiver, or Print+Phone) with +98 validation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StaffEnrollPatientRequest"
+      responses:
+        "201":
+          description: Enrolled patient summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffEnrolledPatientResponse"
+
+  /v1/patients/{patientId}:
+    get:
+      tags: [CareOperations]
+      operationId: getPatient360
+      summary: Staff Web Patient 360 clinical summary across OD/OS episodes, R2, studies, triage, and consent
+      parameters:
+        - $ref: "#/components/parameters/PatientIdParam"
+      responses:
+        "200":
+          description: Patient 360 aggregate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient360Response"
+
+  /v1/patients/{patientId}/history:
+    get:
+      tags: [CareOperations]
+      operationId: listPatientClinicalHistory
+      summary: List immutable structured clinical history entries for a patient
+      parameters:
+        - $ref: "#/components/parameters/PatientIdParam"
+      responses:
+        "200":
+          description: Patient clinical history list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientClinicalHistoryListResponse"
+    post:
+      tags: [CareOperations]
+      operationId: addPatientClinicalHistory
+      summary: Append immutable structured clinical history/risk-factor entry
+      parameters:
+        - $ref: "#/components/parameters/PatientIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddClinicalHistoryRequest"
+      responses:
+        "201":
+          description: Clinical history appended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientClinicalHistoryItem"
+
+  /v1/patients/{patientId}/timeline:
+    get:
+      tags: [CareOperations]
+      operationId: getPatientTimeline
+      summary: Unified chronological patient timeline across Pillar 1, Pillar 2, and R2 events
+      parameters:
+        - $ref: "#/components/parameters/PatientIdParam"
+      responses:
+        "200":
+          description: Chronological patient timeline events
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientTimelineResponse"
+
+  /v1/patients/{patientId}/consent:
+    patch:
+      tags: [CareOperations]
+      operationId: updatePatientConsent
+      summary: Record patient consent acceptance or withdrawal
+      parameters:
+        - $ref: "#/components/parameters/PatientIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePatientConsentRequest"
+      responses:
+        "200":
+          description: Consent event recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsentRecord"
+
   /v1/patients/{patientId}/caregivers:
     get:
       tags: [CareOperations]
@@ -216,6 +430,48 @@ paths:
           description: Caregiver access revoked
 
   /v1/episodes:
+    get:
+      tags: [CareOperations]
+      operationId: listClinicEpisodes
+      summary: Paginated clinic care episodes queue filterable by eye, access mode, status, and patient
+      parameters:
+        - name: patientId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: ["active", "completed", "cancelled"]
+        - name: eyeLaterality
+          in: query
+          schema:
+            $ref: "#/components/schemas/EyeLaterality"
+        - name: accessMode
+          in: query
+          schema:
+            $ref: "#/components/schemas/AccessMode"
+        - name: protocolType
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Clinic care episodes list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareEpisodeWorklistResponse"
     post:
       tags: [CareOperations]
       operationId: createCareEpisode
@@ -249,7 +505,41 @@ paths:
               schema:
                 $ref: "#/components/schemas/CareEpisode"
 
+  /v1/episodes/{episodeId}/close:
+    patch:
+      tags: [CareOperations]
+      operationId: closeCareEpisode
+      summary: Close or cancel a care episode with audit reason
+      parameters:
+        - $ref: "#/components/parameters/EpisodeIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CloseEpisodeRequest"
+      responses:
+        "200":
+          description: Care episode closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareEpisode"
+
   /v1/episodes/{episodeId}/prescriptions:
+    get:
+      tags: [CareOperations]
+      operationId: listEpisodePrescriptions
+      summary: List immutable eye drop prescription versions v1..vN for diffing
+      parameters:
+        - $ref: "#/components/parameters/EpisodeIdParam"
+      responses:
+        "200":
+          description: Prescription version history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrescriptionHistoryListResponse"
     post:
       tags: [CareOperations]
       operationId: publishEpisodePrescription
@@ -332,6 +622,19 @@ paths:
                 $ref: "#/components/schemas/AdherenceEventResponse"
 
   /v1/episodes/{episodeId}/symptoms:
+    get:
+      tags: [CareOperations]
+      operationId: listEpisodeSymptoms
+      summary: List chronological post-op symptom reports submitted for a care episode
+      parameters:
+        - $ref: "#/components/parameters/EpisodeIdParam"
+      responses:
+        "200":
+          description: Episode symptom history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EpisodeSymptomListResponse"
     post:
       tags: [CareOperations]
       operationId: submitSymptomReport
@@ -353,11 +656,81 @@ paths:
               schema:
                 $ref: "#/components/schemas/SymptomReportResponse"
 
+  /v1/care/print-phone:
+    get:
+      tags: [CareOperations]
+      operationId: listPrintPhoneQueue
+      summary: List active non-smartphone Print+Phone parity cohort and outreach status
+      responses:
+        "200":
+          description: Print+Phone cohort queue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrintPhoneQueueResponse"
+
+  /v1/care/print-phone/{episodeId}/outreach:
+    post:
+      tags: [CareOperations]
+      operationId: recordPrintPhoneOutreach
+      summary: Log Print+Phone coordinator phone check-in or print pack delivery outcome
+      parameters:
+        - $ref: "#/components/parameters/EpisodeIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrintPhoneOutreachRequest"
+      responses:
+        "201":
+          description: Print+Phone outreach logged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrintPhoneOutreachRecord"
+
   /v1/triage/cases:
     get:
       tags: [Triage]
       operationId: listTriageCases
       summary: List unified Pillar 1 care-ops and Pillar 2 3-tier urgency triage queue
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: ["New", "OwnerAssigned", "ContactAttempted", "ContactEstablished", "Escalated", "Referred", "Closed"]
+        - name: urgencyTier
+          in: query
+          schema:
+            $ref: "#/components/schemas/UrgencyTier"
+        - name: sourcePillar
+          in: query
+          schema:
+            type: string
+            enum: ["pillar1_care", "pillar2_diagnostic"]
+        - name: eyeLaterality
+          in: query
+          schema:
+            $ref: "#/components/schemas/StudyLaterality"
+        - name: ownerId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: unassignedOnly
+          in: query
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
       responses:
         "200":
           description: Prioritized triage queue
@@ -365,6 +738,63 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TriageCaseListResponse"
+
+  /v1/triage/cases/{caseId}:
+    get:
+      tags: [Triage]
+      operationId: getTriageCaseDetail
+      summary: Get full triage case details including triggers, contact logs, referrals, and follow-up tasks
+      parameters:
+        - $ref: "#/components/parameters/CaseIdParam"
+      responses:
+        "200":
+          description: Triage case detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriageCaseDetailResponse"
+
+  /v1/triage/cases/{caseId}/contact:
+    post:
+      tags: [Triage]
+      operationId: recordTriageContact
+      summary: Log triage contact attempt or contact establishment and advance workflow state
+      parameters:
+        - $ref: "#/components/parameters/CaseIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TriageContactRequest"
+      responses:
+        "200":
+          description: Triage case updated with contact attempt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriageCase"
+
+  /v1/triage/cases/{caseId}/close:
+    post:
+      tags: [Triage]
+      operationId: closeTriageCase
+      summary: Close triage case (enforces contact/referral/ophthalmologist verification guard on urgent cases)
+      parameters:
+        - $ref: "#/components/parameters/CaseIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CloseTriageCaseRequest"
+      responses:
+        "200":
+          description: Triage case closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriageCase"
 
   /v1/triage/cases/{caseId}/claim:
     post:
@@ -429,7 +859,251 @@ paths:
               schema:
                 $ref: "#/components/schemas/ReferralRecord"
 
+  /v1/triage/outages:
+    get:
+      tags: [Triage]
+      operationId: listClinicOutages
+      summary: List operational clinic channel outages and mitigation windows
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: ["active", "mitigated", "resolved"]
+      responses:
+        "200":
+          description: Clinic outage records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicOutageListResponse"
+    post:
+      tags: [Triage]
+      operationId: createClinicOutage
+      summary: Log operational outage event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClinicOutageRequest"
+      responses:
+        "201":
+          description: Outage created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicOutageRecord"
+
+  /v1/triage/outages/{outageId}:
+    patch:
+      tags: [Triage]
+      operationId: updateClinicOutage
+      summary: Update outage mitigation note, severity, or resolve outage
+      parameters:
+        - $ref: "#/components/parameters/OutageIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateClinicOutageRequest"
+      responses:
+        "200":
+          description: Outage updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicOutageRecord"
+
+  /v1/referrals:
+    get:
+      tags: [Triage]
+      operationId: listReferrals
+      summary: Paginated closed-loop referrals queue
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: ["dispatched", "attended", "missed"]
+        - name: urgentOnly
+          in: query
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Referrals queue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralListResponse"
+
+  /v1/referrals/{referralId}:
+    get:
+      tags: [Triage]
+      operationId: getReferralDetail
+      summary: Retrieve closed-loop referral detail
+      parameters:
+        - $ref: "#/components/parameters/ReferralIdParam"
+      responses:
+        "200":
+          description: Referral record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralRecord"
+
+  /v1/referrals/{referralId}/outcome:
+    patch:
+      tags: [Triage]
+      operationId: updateReferralOutcome
+      summary: Record patient referral attendance or missed reason
+      parameters:
+        - $ref: "#/components/parameters/ReferralIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateReferralOutcomeRequest"
+      responses:
+        "200":
+          description: Referral outcome recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralRecord"
+
+  /v1/follow-ups:
+    get:
+      tags: [Triage]
+      operationId: listFollowUpTasks
+      summary: List scheduled coordinator follow-up tasks (post-op calls, Print+Phone check-ins, visits)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: ["pending", "completed", "missed", "cancelled"]
+        - name: taskType
+          in: query
+          schema:
+            type: string
+            enum: ["postop_call", "print_phone_checkin", "clinic_visit", "referral_followup", "r2_recalibration"]
+        - name: patientId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Follow-up tasks list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowUpTaskListResponse"
+    post:
+      tags: [Triage]
+      operationId: createFollowUpTask
+      summary: Schedule follow-up task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFollowUpTaskRequest"
+      responses:
+        "201":
+          description: Follow-up task created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowUpTaskRecord"
+
+  /v1/follow-ups/{taskId}:
+    patch:
+      tags: [Triage]
+      operationId: updateFollowUpTask
+      summary: Update follow-up task status, assignee, or Persian outcome note
+      parameters:
+        - $ref: "#/components/parameters/TaskIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFollowUpTaskRequest"
+      responses:
+        "200":
+          description: Follow-up task updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowUpTaskRecord"
+
   /v1/diagnostic-studies:
+    get:
+      tags: [DiagnosticsAI]
+      operationId: listDiagnosticStudies
+      summary: Paginated Diagnostic AI HITL worklist filterable by status, urgency, eye, patient, and modality
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/StudyStatus"
+        - name: urgencyTier
+          in: query
+          schema:
+            $ref: "#/components/schemas/UrgencyTier"
+        - name: eyeLaterality
+          in: query
+          schema:
+            $ref: "#/components/schemas/StudyLaterality"
+        - name: patientId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: modality
+          in: query
+          schema:
+            type: string
+        - name: signedOnly
+          in: query
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Diagnostic studies worklist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiagnosticStudyWorklistResponse"
     post:
       tags: [DiagnosticsAI]
       operationId: submitDiagnosticStudy
@@ -463,11 +1137,68 @@ paths:
               schema:
                 $ref: "#/components/schemas/DiagnosticStudyDetail"
 
+  /v1/diagnostic-studies/{studyId}/assets:
+    post:
+      tags: [DiagnosticsAI]
+      operationId: addStudyRecaptureAssets
+      summary: Add new recapture imaging assets after QC rejection without overwriting prior rejected assets and re-run pipeline
+      parameters:
+        - $ref: "#/components/parameters/StudyIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddRecaptureAssetsRequest"
+      responses:
+        "202":
+          description: Study re-analyzed with recaptured assets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiagnosticStudyDetail"
+
+  /v1/diagnostic-studies/{studyId}/jobs:
+    get:
+      tags: [DiagnosticsAI]
+      operationId: listStudyInferenceJobs
+      summary: List AI inference job executions for a diagnostic study
+      parameters:
+        - $ref: "#/components/parameters/StudyIdParam"
+      responses:
+        "200":
+          description: Study inference jobs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudyInferenceJobListResponse"
+
+  /v1/diagnostic-studies/{studyId}/report-draft:
+    put:
+      tags: [DiagnosticsAI]
+      operationId: saveStudyReportDraft
+      summary: Save clinician-edited Persian draft with optimistic draftVersion concurrency check and clinical safety validation
+      parameters:
+        - $ref: "#/components/parameters/StudyIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaveReportDraftRequest"
+      responses:
+        "200":
+          description: Updated Persian report draft
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersianReportDraft"
+
   /v1/diagnostic-studies/{studyId}/signoff:
     post:
       tags: [DiagnosticsAI]
       operationId: signOffDiagnosticStudy
-      summary: Mandatory Ophthalmologist HITL sign-off and feedback capture
+      summary: Mandatory Ophthalmologist HITL sign-off (blocks downgrades below deterministic urgent floor)
       parameters:
         - $ref: "#/components/parameters/StudyIdParam"
       requestBody:
@@ -483,6 +1214,89 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ClinicianSignoffResponse"
+
+  /v1/diagnostic-studies/{studyId}/feedback:
+    get:
+      tags: [DiagnosticsAI]
+      operationId: listStudyClinicianFeedback
+      summary: List immutable clinician adjudication feedback for a study
+      parameters:
+        - $ref: "#/components/parameters/StudyIdParam"
+      responses:
+        "200":
+          description: Clinician feedback list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicianFeedbackListResponse"
+    post:
+      tags: [DiagnosticsAI]
+      operationId: createStudyClinicianFeedback
+      summary: Record immutable ophthalmologist adjudication feedback for D5 retraining
+      parameters:
+        - $ref: "#/components/parameters/StudyIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClinicianFeedbackRequest"
+      responses:
+        "201":
+          description: Feedback recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicianFeedbackRecord"
+
+  /v1/diagnostic-studies/{studyId}/compare:
+    get:
+      tags: [DiagnosticsAI]
+      operationId: compareDiagnosticStudy
+      summary: Longitudinal comparison of current diagnostic study against prior studies of the same eye
+      parameters:
+        - $ref: "#/components/parameters/StudyIdParam"
+      responses:
+        "200":
+          description: Longitudinal study and biomarker comparison
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudyComparisonResponse"
+
+  /v1/diagnostic-studies/{studyId}/fhir:
+    get:
+      tags: [Integrations]
+      operationId: exportDiagnosticStudyFhirBundle
+      summary: Export HL7 FHIR R4/R5 Bundle for an ophthalmologist-signed diagnostic study
+      parameters:
+        - $ref: "#/components/parameters/StudyIdParam"
+      responses:
+        "200":
+          description: FHIR Bundle JSON
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FhirBundleResponse"
+
+  /v1/integrations/dicom/ingest:
+    post:
+      tags: [Integrations]
+      operationId: ingestDicomStudyBatch
+      summary: Ingest DICOM asset batch, strip Part 10 PHI tags into D5 snapshot, and enqueue 6-layer analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DicomIngestRequest"
+      responses:
+        "202":
+          description: DICOM batch anonymized and queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DicomIngestResponse"
 
   /v1/patient/diagnostic-summaries:
     get:
@@ -535,6 +1349,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/HomeVisionTestResponse"
 
+  /v1/r2/monitoring/overview:
+    get:
+      tags: [HomeMonitoringR2]
+      operationId: getR2MonitoringOverview
+      summary: Clinic R2 home vision monitoring overview metrics and latest alerts
+      responses:
+        "200":
+          description: R2 monitoring overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/R2MonitoringOverviewResponse"
+
   /v1/r2/patients/{patientId}/trends:
     get:
       tags: [HomeMonitoringR2]
@@ -549,6 +1376,158 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PatientVisionTrendsResponse"
+
+  /v1/r2/patients/{patientId}/sessions:
+    get:
+      tags: [HomeMonitoringR2]
+      operationId: listR2PatientSessions
+      summary: Paginated patient R2 home vision test sessions filterable by eye, testType, and QC status
+      parameters:
+        - $ref: "#/components/parameters/PatientIdParam"
+        - name: eyeLaterality
+          in: query
+          schema:
+            $ref: "#/components/schemas/EyeLaterality"
+        - name: testType
+          in: query
+          schema:
+            type: string
+            enum: ["landolt_c", "amsler", "contrast"]
+        - name: qualityStatus
+          in: query
+          schema:
+            type: string
+            enum: ["accepted", "rejected"]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: R2 sessions list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/R2SessionListResponse"
+
+  /v1/r2/sessions/{sessionId}:
+    get:
+      tags: [HomeMonitoringR2]
+      operationId: getR2SessionDetail
+      summary: Retrieve single R2 session with immutable raw psychophysics trials and calibration profile
+      parameters:
+        - $ref: "#/components/parameters/SessionIdParam"
+      responses:
+        "200":
+          description: R2 session detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/R2SessionDetailResponse"
+
+  /v1/r2/patients/{patientId}/iop:
+    get:
+      tags: [HomeMonitoringR2]
+      operationId: listPatientIopReadings
+      summary: Retrieve eye-separated external iCare HOME2 home tonometry readings
+      parameters:
+        - $ref: "#/components/parameters/PatientIdParam"
+      responses:
+        "200":
+          description: Patient IOP readings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientIopListResponse"
+
+  /v1/r2/patients/{patientId}/plans:
+    get:
+      tags: [HomeMonitoringR2]
+      operationId: listPatientMonitoringPlans
+      summary: List eye-specific R2 home monitoring protocols for a patient
+      parameters:
+        - $ref: "#/components/parameters/PatientIdParam"
+      responses:
+        "200":
+          description: Monitoring plans
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitoringPlanListResponse"
+    post:
+      tags: [HomeMonitoringR2]
+      operationId: createPatientMonitoringPlan
+      summary: Create eye-specific R2 home monitoring protocol schedule
+      parameters:
+        - $ref: "#/components/parameters/PatientIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMonitoringPlanRequest"
+      responses:
+        "201":
+          description: Monitoring plan created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitoringPlanRecord"
+
+  /v1/r2/devices:
+    get:
+      tags: [HomeMonitoringR2]
+      operationId: listQualifiedDevices
+      summary: List qualified/provisional/killed display device models for R2 monitoring
+      responses:
+        "200":
+          description: Device qualification registry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceQualificationListResponse"
+    post:
+      tags: [HomeMonitoringR2]
+      operationId: upsertQualifiedDevice
+      summary: Register or update display device qualification entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertDeviceQualificationRequest"
+      responses:
+        "201":
+          description: Device qualification saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceQualificationRecord"
+
+  /v1/r2/devices/{deviceId}:
+    patch:
+      tags: [HomeMonitoringR2]
+      operationId: updateQualifiedDeviceStatus
+      summary: Update device verification status or engage R2 device safety kill-switch
+      parameters:
+        - $ref: "#/components/parameters/DeviceIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDeviceStatusRequest"
+      responses:
+        "200":
+          description: Device status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceQualificationRecord"
 
   /v1/integrations/icare-home2/readings:
     post:
@@ -570,6 +1549,36 @@ paths:
                 $ref: "#/components/schemas/IcareHome2ReadingResponse"
 
   /v1/reports:
+    get:
+      tags: [Reports]
+      operationId: listReports
+      summary: Paginated Persian PDF report archive metadata
+      parameters:
+        - name: patientId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: reportType
+          in: query
+          schema:
+            type: string
+            enum: ["patient_schedule", "postop_closure", "signed_diagnostic"]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated report list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportListResponse"
     post:
       tags: [Reports]
       operationId: createPersianReport
@@ -588,6 +1597,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreateReportResponse"
 
+  /v1/reports/{reportId}:
+    get:
+      tags: [Reports]
+      operationId: getReportDetail
+      summary: Retrieve report metadata, payload, and sha256 verification manifests
+      parameters:
+        - $ref: "#/components/parameters/ReportIdParam"
+      responses:
+        "200":
+          description: Report detail record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportDetailResponse"
+
   /v1/reports/{reportId}/pdf:
     get:
       tags: [Reports]
@@ -603,6 +1627,523 @@ paths:
               schema:
                 type: string
                 format: binary
+
+  /v1/analytics/clinic:
+    get:
+      tags: [Analytics]
+      operationId: getClinicAnalytics
+      summary: Clinic operational KPIs across adherence cohorts, episodes, triage SLA, and referral attendance
+      responses:
+        "200":
+          description: Clinic analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicAnalyticsResponse"
+
+  /v1/analytics/pilot:
+    get:
+      tags: [Analytics]
+      operationId: getPilotScorecard
+      summary: PRD §8.1 pilot KPI scorecard returning null whenever denominator equals zero and explicitly including Print+Phone
+      responses:
+        "200":
+          description: Pilot KPI scorecard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PilotScorecardResponse"
+
+  /v1/analytics/ai-quality:
+    get:
+      tags: [Analytics]
+      operationId: getAiQualityAnalytics
+      summary: Online AI operational metrics (QC pass/fail, feedback agreement, overrides) strictly separated from offline benchmarks
+      responses:
+        "200":
+          description: AI quality operational analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiQualityAnalyticsResponse"
+
+  /v1/research/exports:
+    post:
+      tags: [Analytics]
+      operationId: exportResearchPseudonymizedCohort
+      summary: Step-up MFA protected pseudonymized D5 research cohort export under IRB code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResearchExportRequest"
+      responses:
+        "200":
+          description: Pseudonymized cohort bundle with SHA-256 manifest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchExportResponse"
+
+  /v1/billing-evidence/summary:
+    post:
+      tags: [Analytics]
+      operationId: generateBillingAdherenceEvidence
+      summary: Non-diagnostic adherence and R2 telemonitoring evidence summary for supplementary insurance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingEvidenceRequest"
+      responses:
+        "200":
+          description: Non-diagnostic billing evidence summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingEvidenceResponse"
+
+  /v1/admin/clinic:
+    patch:
+      tags: [Admin]
+      operationId: updateClinicProfile
+      summary: Update clinic profile settings (name, emergency hotline, staffed hours, DICOM AE title)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateClinicProfileRequest"
+      responses:
+        "200":
+          description: Updated clinic profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicProfile"
+
+  /v1/admin/staff:
+    get:
+      tags: [Admin]
+      operationId: listClinicStaff
+      summary: List clinic staff memberships and roles
+      responses:
+        "200":
+          description: Staff membership list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMembershipListResponse"
+    post:
+      tags: [Admin]
+      operationId: upsertClinicStaffMember
+      summary: Add or update staff membership in current clinic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertStaffMemberRequest"
+      responses:
+        "201":
+          description: Staff membership saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMembershipRecord"
+
+  /v1/admin/staff/{membershipId}:
+    patch:
+      tags: [Admin]
+      operationId: updateClinicStaffMember
+      summary: Update staff role or active status (prevents deactivating last active admin)
+      parameters:
+        - $ref: "#/components/parameters/MembershipIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStaffMemberRequest"
+      responses:
+        "200":
+          description: Staff membership updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StaffMembershipRecord"
+
+  /v1/admin/protocols:
+    get:
+      tags: [Admin]
+      operationId: listAdminProtocols
+      summary: List built-in care protocols and custom protocol template versions
+      responses:
+        "200":
+          description: Protocol registry overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminProtocolListResponse"
+    post:
+      tags: [Admin]
+      operationId: createAdminProtocolVersion
+      summary: Publish new clinic care protocol template version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProtocolVersionRequest"
+      responses:
+        "201":
+          description: Protocol version created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProtocolTemplateRecord"
+
+  /v1/admin/message-templates:
+    get:
+      tags: [Admin]
+      operationId: listAdminMessageTemplates
+      summary: List versioned Persian message templates
+      responses:
+        "200":
+          description: Message template versions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageTemplateListResponse"
+    post:
+      tags: [Admin]
+      operationId: createAdminMessageTemplate
+      summary: Create new message template version (enforces strict zero-PHI & UCS-2 guard on SMS templates)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMessageTemplateRequest"
+      responses:
+        "201":
+          description: Message template created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageTemplateRecord"
+
+  /v1/admin/consents:
+    get:
+      tags: [Admin]
+      operationId: listAdminConsentTemplates
+      summary: List versioned Persian clinic consent forms
+      responses:
+        "200":
+          description: Consent template list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsentTemplateListResponse"
+    post:
+      tags: [Admin]
+      operationId: createAdminConsentTemplate
+      summary: Publish clinic Persian consent template version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConsentTemplateRequest"
+      responses:
+        "201":
+          description: Consent template saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsentTemplateRecord"
+
+  /v1/admin/features:
+    get:
+      tags: [Admin]
+      operationId: listAdminFeatureFlags
+      summary: List evaluated clinic feature flags
+      responses:
+        "200":
+          description: Feature flag states
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeatureFlagListResponse"
+    patch:
+      tags: [Admin]
+      operationId: upsertAdminFeatureFlag
+      summary: Enable, disable, or configure a clinic feature flag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertFeatureFlagRequest"
+      responses:
+        "200":
+          description: Feature flag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicFeatureFlagRecord"
+
+  /v1/integrations/endpoints:
+    get:
+      tags: [Integrations]
+      operationId: listIntegrationEndpoints
+      summary: List configured DICOM/FHIR/HIS/iCare/SMS endpoints (credentials masked only)
+      responses:
+        "200":
+          description: Endpoint configurations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntegrationEndpointListResponse"
+    post:
+      tags: [Integrations]
+      operationId: createIntegrationEndpoint
+      summary: Register integration endpoint (masks secrets on persistence)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateIntegrationEndpointRequest"
+      responses:
+        "201":
+          description: Integration endpoint created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntegrationEndpointRecord"
+
+  /v1/integrations/endpoints/{endpointId}:
+    patch:
+      tags: [Integrations]
+      operationId: updateIntegrationEndpoint
+      summary: Update integration endpoint settings
+      parameters:
+        - $ref: "#/components/parameters/EndpointIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateIntegrationEndpointRequest"
+      responses:
+        "200":
+          description: Integration endpoint updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntegrationEndpointRecord"
+
+  /v1/integrations/endpoints/{endpointId}/test:
+    post:
+      tags: [Integrations]
+      operationId: testIntegrationEndpoint
+      summary: Run safe configuration & connectivity validation probe for an endpoint
+      parameters:
+        - $ref: "#/components/parameters/EndpointIdParam"
+      responses:
+        "200":
+          description: Probe outcome and delivery record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestIntegrationEndpointResponse"
+
+  /v1/integrations/history:
+    get:
+      tags: [Integrations]
+      operationId: listIntegrationDeliveries
+      summary: Paginated inbound/outbound integration delivery and retry history
+      parameters:
+        - name: endpointId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: ["queued", "delivered", "failed", "retrying"]
+        - name: direction
+          in: query
+          schema:
+            type: string
+            enum: ["inbound", "outbound"]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Delivery history list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntegrationDeliveryListResponse"
+
+  /v1/ops/health:
+    get:
+      tags: [Ops]
+      operationId: getOpsHealth
+      summary: Authenticated clinic operations health summary including DB latency and queue backlogs
+      responses:
+        "200":
+          description: Operations health payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpsHealthResponse"
+
+  /v1/ops/jobs:
+    get:
+      tags: [Ops]
+      operationId: listOpsJobs
+      summary: List recent AI inference jobs, transactional outbox events, and durable workflows
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Operations jobs summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpsJobsResponse"
+
+  /v1/ops/audit:
+    get:
+      tags: [Ops]
+      operationId: listAuditLogs
+      summary: Step-up MFA protected PHI-redacted immutable audit log viewer
+      parameters:
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: resourceType
+          in: query
+          schema:
+            type: string
+        - name: actorUserId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: breakGlassOnly
+          in: query
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Redacted immutable audit log entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditLogListResponse"
+
+  /v1/ops/break-glass:
+    get:
+      tags: [Ops]
+      operationId: listBreakGlassSessions
+      summary: List audited emergency break-glass access sessions
+      parameters:
+        - name: activeOnly
+          in: query
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Break-glass sessions list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BreakGlassSessionListResponse"
+    post:
+      tags: [Ops]
+      operationId: openBreakGlassSession
+      summary: Open time-limited audited break-glass session (requires >= 10 char clinical reason)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpenBreakGlassRequest"
+      responses:
+        "201":
+          description: Break-glass session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BreakGlassSessionRecord"
+
+  /v1/ops/break-glass/{sessionId}/revoke:
+    post:
+      tags: [Ops]
+      operationId: revokeBreakGlassSession
+      summary: Immediately revoke an active break-glass emergency session
+      parameters:
+        - $ref: "#/components/parameters/BreakGlassSessionIdParam"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RevokeBreakGlassRequest"
+      responses:
+        "200":
+          description: Break-glass session revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BreakGlassSessionRecord"
+
+  /v1/ops/models:
+    get:
+      tags: [Ops]
+      operationId: listOpsModels
+      summary: List active commercial-safe AI engine configuration, LLM config, and exported ONNX model card artifacts
+      responses:
+        "200":
+          description: Model registry inventory
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpsModelsResponse"
 
   /v1/ai-engine/qc:
     post:
@@ -681,6 +2222,62 @@ components:
         format: uuid
     ReportIdParam:
       name: reportId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    OutageIdParam:
+      name: outageId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ReferralIdParam:
+      name: referralId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TaskIdParam:
+      name: taskId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SessionIdParam:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    DeviceIdParam:
+      name: deviceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    MembershipIdParam:
+      name: membershipId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    EndpointIdParam:
+      name: endpointId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    BreakGlassSessionIdParam:
+      name: sessionId
       in: path
       required: true
       schema:
@@ -1757,6 +3354,14 @@ components:
             type: string
         validationPassed:
           type: boolean
+        draftVersion:
+          type: integer
+        editedByUserId:
+          type: ["string", "null"]
+          format: uuid
+        updatedAtIso:
+          type: ["string", "null"]
+          format: date-time
 
     ClinicianSignoffRequest:
       type: object
@@ -1770,6 +3375,8 @@ components:
           type: string
         overrideReasonFa:
           type: ["string", "null"]
+        expectedDraftVersion:
+          type: integer
 
     ClinicianSignoffResponse:
       type: object
@@ -1811,6 +3418,18 @@ components:
           $ref: "#/components/schemas/StudyLaterality"
         status:
           $ref: "#/components/schemas/StudyStatus"
+        urgentFloorActive:
+          type: boolean
+        urgentFloorRuleCodes:
+          type: array
+          items:
+            type: string
+        createdAtIso:
+          type: string
+          format: date-time
+        updatedAtIso:
+          type: string
+          format: date-time
         qcDecisions:
           type: array
           items:
@@ -1935,6 +3554,12 @@ components:
           type: number
         glareDetected:
           type: boolean
+        deviceModelCode:
+          type: string
+        rawTrials:
+          type: array
+          items:
+            $ref: "#/components/schemas/HomeVisionTestTrialInput"
 
     HomeVisionTestResponse:
       type: object
@@ -2129,3 +3754,2331 @@ components:
           $ref: "#/components/schemas/FusionResult"
         explainability:
           $ref: "#/components/schemas/ExplainabilityOutput"
+
+    AuthorizedClinicMembership:
+      type: object
+      required: [membershipId, tenantId, clinicId, clinicNameFa, role, emergencyPhone, calendarMode]
+      properties:
+        membershipId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        clinicNameFa:
+          type: string
+        role:
+          $ref: "#/components/schemas/StaffRole"
+        emergencyPhone:
+          type: string
+        calendarMode:
+          type: string
+
+    AuthorizedClinicListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuthorizedClinicMembership"
+
+    FeatureFlagRecord:
+      type: object
+      required: [flagKey, labelFa, descriptionFa, enabled, config]
+      properties:
+        flagKey:
+          type: string
+        labelFa:
+          type: string
+        descriptionFa:
+          type: string
+        enabled:
+          type: boolean
+        config:
+          type: object
+          additionalProperties: true
+        updatedAtIso:
+          type: ["string", "null"]
+
+    FeatureFlagListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/FeatureFlagRecord"
+
+    ClinicFeatureFlagRecord:
+      type: object
+      required: [id, tenantId, clinicId, flagKey, enabled, config, updatedByUserId, updatedAtIso]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        flagKey:
+          type: string
+        enabled:
+          type: boolean
+        config:
+          type: object
+          additionalProperties: true
+        updatedByUserId:
+          type: string
+          format: uuid
+        updatedAtIso:
+          type: string
+          format: date-time
+
+    UpsertFeatureFlagRequest:
+      type: object
+      required: [flagKey, enabled]
+      properties:
+        flagKey:
+          type: string
+        enabled:
+          type: boolean
+        config:
+          type: object
+          additionalProperties: true
+
+    StaffMeResponse:
+      type: object
+      required: [userId, tenantId, clinicId, role, mfaVerified, stepUpVerified, capabilities, authorizedClinics, featureFlags]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        role:
+          $ref: "#/components/schemas/StaffRole"
+        mfaVerified:
+          type: boolean
+        stepUpVerified:
+          type: boolean
+        capabilities:
+          type: object
+          additionalProperties:
+            type: boolean
+        clinic:
+          $ref: "#/components/schemas/ClinicProfile"
+        authorizedClinics:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuthorizedClinicMembership"
+        featureFlags:
+          type: array
+          items:
+            $ref: "#/components/schemas/FeatureFlagRecord"
+
+    OverviewDashboardResponse:
+      type: object
+      required: [todayJalali, activeEpisodesOd, activeEpisodesOs, printPhoneCohortCount, urgentTriageCount, overdueSlaCount, openTriageCount, pendingHitlStudies, qcFailedStudies, r2AlertCount, activeOutagesCount, queueUrgentItems, pendingHitlItems]
+      properties:
+        todayJalali:
+          type: string
+        activeEpisodesOd:
+          type: integer
+        activeEpisodesOs:
+          type: integer
+        printPhoneCohortCount:
+          type: integer
+        urgentTriageCount:
+          type: integer
+        overdueSlaCount:
+          type: integer
+        openTriageCount:
+          type: integer
+        pendingHitlStudies:
+          type: integer
+        qcFailedStudies:
+          type: integer
+        r2AlertCount:
+          type: integer
+        activeOutagesCount:
+          type: integer
+        queueUrgentItems:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        pendingHitlItems:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    WorkspaceSearchResponse:
+      type: object
+      required: [query, patients, studies, episodes, reports]
+      properties:
+        query:
+          type: string
+        patients:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        studies:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        episodes:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        reports:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    RecentActivityItem:
+      type: object
+      required: [activityId, action, actorRole, resourceType, resourceId, breakGlass, occurredAtIso, occurredAtJalali]
+      properties:
+        activityId:
+          type: string
+          format: uuid
+        action:
+          type: string
+        actorRole:
+          type: string
+        resourceType:
+          type: string
+        resourceId:
+          type: string
+        breakGlass:
+          type: boolean
+        reasonFa:
+          type: ["string", "null"]
+        occurredAtIso:
+          type: string
+          format: date-time
+        occurredAtJalali:
+          type: string
+
+    RecentActivityListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecentActivityItem"
+
+    PatientListItem:
+      type: object
+      required: [patientId, clinicId, fullNameFa, phoneMasked, accessMode, preferredLocale, activeEpisodeCount, openTriageCount, createdAtIso]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        fullNameFa:
+          type: string
+        phoneMasked:
+          type: string
+        nationalIdMasked:
+          type: ["string", "null"]
+        accessMode:
+          $ref: "#/components/schemas/AccessMode"
+        preferredLocale:
+          type: string
+        activeEpisodeCount:
+          type: integer
+        openTriageCount:
+          type: integer
+        createdAtIso:
+          type: string
+          format: date-time
+
+    PatientListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PatientListItem"
+        total:
+          type: integer
+
+    StaffEnrollPatientRequest:
+      type: object
+      required: [fullNameFa, phoneNumber, accessMode]
+      properties:
+        fullNameFa:
+          type: string
+        phoneNumber:
+          type: string
+        accessMode:
+          $ref: "#/components/schemas/AccessMode"
+        nationalIdMasked:
+          type: string
+        birthYearJalali:
+          type: integer
+        notesFa:
+          type: string
+        consentVersion:
+          type: string
+        mlTrainingConsentFlag:
+          type: boolean
+
+    StaffEnrolledPatientResponse:
+      type: object
+      required: [patientId, tenantId, clinicId, fullNameFa, phoneMasked, accessMode, preferredLocale, mlTrainingConsentFlag, consents]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        fullNameFa:
+          type: string
+        phoneMasked:
+          type: string
+        nationalIdMasked:
+          type: ["string", "null"]
+        birthYearJalali:
+          type: ["integer", "null"]
+        notesFa:
+          type: ["string", "null"]
+        accessMode:
+          $ref: "#/components/schemas/AccessMode"
+        preferredLocale:
+          type: string
+        mlTrainingConsentFlag:
+          type: boolean
+        consents:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConsentRecord"
+
+    Patient360Response:
+      type: object
+      required: [patient, odEpisodes, osEpisodes, recentStudies, r2Summary, openTriageCases, pendingFollowUpTasks, clinicalHistories, consents]
+      properties:
+        patient:
+          type: object
+          additionalProperties: true
+        odEpisodes:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        osEpisodes:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        recentStudies:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        r2Summary:
+          type: object
+          additionalProperties: true
+        openTriageCases:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        pendingFollowUpTasks:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        clinicalHistories:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        consents:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    PatientClinicalHistoryItem:
+      type: object
+      required: [historyId, tenantId, clinicId, patientId, recordedByUserId, summaryFa, conditions, allergies, medications, riskFactors, labs, createdAtIso]
+      properties:
+        historyId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        recordedByUserId:
+          type: string
+          format: uuid
+        summaryFa:
+          type: string
+        conditions:
+          type: array
+          items:
+            type: string
+        allergies:
+          type: array
+          items:
+            type: string
+        medications:
+          type: array
+          items:
+            type: string
+        riskFactors:
+          type: object
+          additionalProperties: true
+        labs:
+          type: object
+          additionalProperties: true
+        createdAtIso:
+          type: string
+          format: date-time
+
+    PatientClinicalHistoryListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PatientClinicalHistoryItem"
+
+    AddClinicalHistoryRequest:
+      type: object
+      required: [summaryFa]
+      properties:
+        summaryFa:
+          type: string
+        conditions:
+          type: array
+          items:
+            type: string
+        allergies:
+          type: array
+          items:
+            type: string
+        medications:
+          type: array
+          items:
+            type: string
+        riskFactors:
+          type: object
+          additionalProperties: true
+        labs:
+          type: object
+          additionalProperties: true
+
+    PatientTimelineEvent:
+      type: object
+      required: [category, refId, titleFa, summaryFa, occurredAtIso, occurredAtJalali]
+      properties:
+        category:
+          type: string
+        refId:
+          type: string
+        eyeLaterality:
+          $ref: "#/components/schemas/StudyLaterality"
+        eyeLabelFa:
+          type: ["string", "null"]
+        titleFa:
+          type: string
+        summaryFa:
+          type: string
+        occurredAtIso:
+          type: string
+          format: date-time
+        occurredAtJalali:
+          type: string
+
+    PatientTimelineResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PatientTimelineEvent"
+
+    UpdatePatientConsentRequest:
+      type: object
+      required: [consentVersion, action]
+      properties:
+        consentVersion:
+          type: string
+        action:
+          type: string
+          enum: ["accepted", "withdrawn"]
+        mlTrainingConsentFlag:
+          type: boolean
+        noteFa:
+          type: string
+
+    CareEpisodeWorklistItem:
+      type: object
+      required: [episodeId, clinicId, patientId, patientNameFa, phoneMasked, protocolType, eyeLaterality, eyeLabelFa, surgeonId, accessMode, activePrescriptionVersion, status, anchorAtIso, anchorAtJalali]
+      properties:
+        episodeId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        patientNameFa:
+          type: string
+        phoneMasked:
+          type: string
+        protocolType:
+          type: string
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        eyeLabelFa:
+          type: string
+        surgeonId:
+          type: string
+          format: uuid
+        accessMode:
+          $ref: "#/components/schemas/AccessMode"
+        activePrescriptionVersion:
+          type: integer
+        status:
+          type: string
+        anchorAtIso:
+          type: string
+          format: date-time
+        anchorAtJalali:
+          type: string
+
+    CareEpisodeWorklistResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CareEpisodeWorklistItem"
+        total:
+          type: integer
+
+    CloseEpisodeRequest:
+      type: object
+      required: [reasonFa]
+      properties:
+        status:
+          type: string
+          enum: ["completed", "cancelled"]
+        reasonFa:
+          type: string
+
+    PrescriptionHistoryListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PrescriptionVersion"
+
+    EpisodeSymptomHistoryItem:
+      type: object
+      required: [reportId, episodeId, eyeLaterality, eyeLabelFa, severePain, suddenVisionLoss, purulentDischarge, flashesOrCurtain, freeTextFa, urgencyTier, urgencyLabelFa, createdAtIso, createdAtJalali]
+      properties:
+        reportId:
+          type: string
+          format: uuid
+        episodeId:
+          type: string
+          format: uuid
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        eyeLabelFa:
+          type: string
+        severePain:
+          type: boolean
+        suddenVisionLoss:
+          type: boolean
+        purulentDischarge:
+          type: boolean
+        flashesOrCurtain:
+          type: boolean
+        freeTextFa:
+          type: string
+        urgencyTier:
+          $ref: "#/components/schemas/UrgencyTier"
+        urgencyLabelFa:
+          type: string
+        signals:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        createdAtIso:
+          type: string
+          format: date-time
+        createdAtJalali:
+          type: string
+
+    EpisodeSymptomListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/EpisodeSymptomHistoryItem"
+
+    PrintPhoneQueueItem:
+      type: object
+      required: [episodeId, patientId, patientNameFa, phoneMasked, eyeLaterality, eyeLabelFa, activePrescriptionVersion, pendingTaskCount]
+      properties:
+        episodeId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        patientNameFa:
+          type: string
+        phoneMasked:
+          type: string
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        eyeLabelFa:
+          type: string
+        activePrescriptionVersion:
+          type: integer
+        pendingTaskCount:
+          type: integer
+        lastOutreachAtIso:
+          type: ["string", "null"]
+        lastOutreachOutcomeFa:
+          type: ["string", "null"]
+
+    PrintPhoneQueueResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PrintPhoneQueueItem"
+        total:
+          type: integer
+
+    PrintPhoneOutreachRequest:
+      type: object
+      required: [outcomeFa]
+      properties:
+        status:
+          type: string
+          enum: ["completed", "pending", "missed"]
+        outcomeFa:
+          type: string
+
+    PrintPhoneOutreachRecord:
+      type: object
+      required: [taskId, episodeId, patientId, status, outcomeFa, recordedAtIso]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        episodeId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        status:
+          type: string
+        outcomeFa:
+          type: string
+        recordedAtIso:
+          type: string
+          format: date-time
+
+    TriageCaseDetailResponse:
+      type: object
+      required: [triageCase, triggers, contactLogs, referrals, followUpTasks]
+      properties:
+        triageCase:
+          $ref: "#/components/schemas/TriageCase"
+        triggers:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        contactLogs:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        referrals:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReferralRecord"
+        followUpTasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/FollowUpTaskRecord"
+
+    TriageContactRequest:
+      type: object
+      required: [outcome, noteFa]
+      properties:
+        outcome:
+          type: string
+          enum: ["no_answer", "contacted", "escalated"]
+        channel:
+          type: string
+          enum: ["phone", "sms", "in_person"]
+        noteFa:
+          type: string
+
+    CloseTriageCaseRequest:
+      type: object
+      required: [resolutionNoteFa]
+      properties:
+        resolutionNoteFa:
+          type: string
+        resolutionType:
+          type: string
+          enum: ["resolved", "referred", "false_positive_clinician_verified"]
+
+    ClinicOutageRecord:
+      type: object
+      required: [outageId, tenantId, clinicId, titleFa, status, severity, affectedChannel, mitigationNoteFa, startedAtIso, createdByUserId, createdAtIso]
+      properties:
+        outageId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        titleFa:
+          type: string
+        status:
+          type: string
+          enum: ["active", "mitigated", "resolved"]
+        severity:
+          type: string
+          enum: ["warning", "critical"]
+        affectedChannel:
+          type: string
+          enum: ["sms", "ai_engine", "ehr_his", "phone", "portal"]
+        mitigationNoteFa:
+          type: string
+        startedAtIso:
+          type: string
+          format: date-time
+        resolvedAtIso:
+          type: ["string", "null"]
+        createdByUserId:
+          type: string
+          format: uuid
+        createdAtIso:
+          type: string
+          format: date-time
+
+    ClinicOutageListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClinicOutageRecord"
+
+    CreateClinicOutageRequest:
+      type: object
+      required: [titleFa, affectedChannel]
+      properties:
+        titleFa:
+          type: string
+        severity:
+          type: string
+          enum: ["warning", "critical"]
+        affectedChannel:
+          type: string
+          enum: ["sms", "ai_engine", "ehr_his", "phone", "portal"]
+        mitigationNoteFa:
+          type: string
+
+    UpdateClinicOutageRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: ["active", "mitigated", "resolved"]
+        severity:
+          type: string
+          enum: ["warning", "critical"]
+        mitigationNoteFa:
+          type: string
+
+    ReferralListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReferralRecord"
+        total:
+          type: integer
+
+    UpdateReferralOutcomeRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: ["attended", "missed"]
+        missReasonFa:
+          type: string
+
+    FollowUpTaskRecord:
+      type: object
+      required: [taskId, tenantId, clinicId, patientId, taskType, dueAtIso, dueAtJalali, status, createdAtIso, updatedAtIso]
+      properties:
+        taskId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        patientNameFa:
+          type: string
+        episodeId:
+          type: ["string", "null"]
+        triageCaseId:
+          type: ["string", "null"]
+        eyeLaterality:
+          $ref: "#/components/schemas/StudyLaterality"
+        eyeLabelFa:
+          type: ["string", "null"]
+        taskType:
+          type: string
+        dueAtIso:
+          type: string
+          format: date-time
+        dueAtJalali:
+          type: string
+        status:
+          type: string
+        assignedUserId:
+          type: ["string", "null"]
+        outcomeFa:
+          type: ["string", "null"]
+        completedAtIso:
+          type: ["string", "null"]
+        createdAtIso:
+          type: string
+          format: date-time
+        updatedAtIso:
+          type: string
+          format: date-time
+
+    FollowUpTaskListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/FollowUpTaskRecord"
+        total:
+          type: integer
+
+    CreateFollowUpTaskRequest:
+      type: object
+      required: [patientId, taskType, dueAt]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        episodeId:
+          type: string
+          format: uuid
+        triageCaseId:
+          type: string
+          format: uuid
+        eyeLaterality:
+          $ref: "#/components/schemas/StudyLaterality"
+        taskType:
+          type: string
+          enum: ["postop_call", "print_phone_checkin", "clinic_visit", "referral_followup", "r2_recalibration"]
+        dueAt:
+          type: string
+          format: date-time
+        assignedUserId:
+          type: string
+          format: uuid
+        outcomeFa:
+          type: string
+
+    UpdateFollowUpTaskRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: ["pending", "completed", "missed", "cancelled"]
+        assignedUserId:
+          type: ["string", "null"]
+        outcomeFa:
+          type: ["string", "null"]
+
+    DiagnosticStudyWorklistItem:
+      type: object
+      required: [studyId, patientId, patientNameFa, clinicId, eyeLaterality, eyeLabelFa, status, urgentFloorActive, modalities, createdAtIso, createdAtJalali]
+      properties:
+        studyId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        patientNameFa:
+          type: string
+        clinicId:
+          type: string
+          format: uuid
+        eyeLaterality:
+          $ref: "#/components/schemas/StudyLaterality"
+        eyeLabelFa:
+          type: string
+        status:
+          $ref: "#/components/schemas/StudyStatus"
+        urgencyTier:
+          $ref: "#/components/schemas/UrgencyTier"
+        urgencyLabelFa:
+          type: ["string", "null"]
+        urgentFloorActive:
+          type: boolean
+        modalities:
+          type: array
+          items:
+            type: string
+        topConditionNameFa:
+          type: ["string", "null"]
+        createdAtIso:
+          type: string
+          format: date-time
+        createdAtJalali:
+          type: string
+        signedAtIso:
+          type: ["string", "null"]
+
+    DiagnosticStudyWorklistResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiagnosticStudyWorklistItem"
+        total:
+          type: integer
+
+    AddRecaptureAssetsRequest:
+      type: object
+      required: [assets]
+      properties:
+        assets:
+          type: array
+          items:
+            $ref: "#/components/schemas/StudyAssetInput"
+
+    StudyInferenceJobRecord:
+      type: object
+      required: [jobId, studyId, engineMode, modelVersions, status, createdAtIso]
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        studyId:
+          type: string
+          format: uuid
+        engineMode:
+          type: string
+        modelVersions:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+        startedAtIso:
+          type: ["string", "null"]
+        completedAtIso:
+          type: ["string", "null"]
+        errorCode:
+          type: ["string", "null"]
+        createdAtIso:
+          type: string
+          format: date-time
+
+    StudyInferenceJobListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/StudyInferenceJobRecord"
+
+    SaveReportDraftRequest:
+      type: object
+      required: [expectedDraftVersion, titleFa, modalityFindingsFa, differentialSummaryFa, crossModalCorrelationFa, followUpPlanFa, urgencyTier]
+      properties:
+        expectedDraftVersion:
+          type: integer
+        titleFa:
+          type: string
+        modalityFindingsFa:
+          type: string
+        differentialSummaryFa:
+          type: string
+        crossModalCorrelationFa:
+          type: string
+        followUpPlanFa:
+          type: string
+        urgencyTier:
+          $ref: "#/components/schemas/UrgencyTier"
+        evidenceIds:
+          type: array
+          items:
+            type: string
+
+    ClinicianFeedbackRecord:
+      type: object
+      required: [feedbackId, studyId, clinicianUserId, targetLayer, agreementState, noteFa, createdAtIso]
+      properties:
+        feedbackId:
+          type: string
+          format: uuid
+        studyId:
+          type: string
+          format: uuid
+        clinicianUserId:
+          type: string
+          format: uuid
+        targetLayer:
+          type: string
+        agreementState:
+          type: string
+        correctedLabelCode:
+          type: ["string", "null"]
+        noteFa:
+          type: string
+        createdAtIso:
+          type: string
+          format: date-time
+
+    ClinicianFeedbackListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClinicianFeedbackRecord"
+
+    CreateClinicianFeedbackRequest:
+      type: object
+      required: [targetLayer, agreementState]
+      properties:
+        targetLayer:
+          type: string
+          enum: ["qc", "specialist", "fusion", "segmentation", "gradcam", "report_draft", "urgency"]
+        agreementState:
+          type: string
+          enum: ["agree", "partially_agree", "disagree"]
+        correctedLabelCode:
+          type: string
+        noteFa:
+          type: string
+
+    BiomarkerDelta:
+      type: object
+      required: [metricKey, currentValue, priorValue, delta]
+      properties:
+        metricKey:
+          type: string
+        currentValue:
+          type: number
+        priorValue:
+          type: number
+        delta:
+          type: number
+
+    StudyComparisonResponse:
+      type: object
+      required: [currentStudy, priorStudies, biomarkerDeltas]
+      properties:
+        currentStudy:
+          $ref: "#/components/schemas/DiagnosticStudyDetail"
+        priorStudies:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiagnosticStudyDetail"
+        biomarkerDeltas:
+          type: array
+          items:
+            $ref: "#/components/schemas/BiomarkerDelta"
+
+    FhirBundleResponse:
+      type: object
+      required: [resourceType, id, type, timestamp, entry]
+      properties:
+        resourceType:
+          type: string
+        id:
+          type: string
+        type:
+          type: string
+        timestamp:
+          type: string
+        entry:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    DicomRawTags:
+      type: object
+      properties:
+        patientName:
+          type: string
+        patientId:
+          type: string
+        patientBirthDate:
+          type: string
+        patientTelephone:
+          type: string
+        institutionName:
+          type: string
+        performingPhysicianName:
+          type: string
+        referringPhysicianName:
+          type: string
+        studyInstanceUid:
+          type: string
+        seriesInstanceUid:
+          type: string
+        sopInstanceUid:
+          type: string
+        modality:
+          type: string
+        imageLaterality:
+          type: string
+        studyDate:
+          type: string
+
+    DicomIngestItem:
+      type: object
+      required: [assetId, s3ObjectKey, rawTags]
+      properties:
+        assetId:
+          type: string
+          format: uuid
+        s3ObjectKey:
+          type: string
+        declaredModalityHint:
+          $ref: "#/components/schemas/DiagnosticModality"
+        rawTags:
+          $ref: "#/components/schemas/DicomRawTags"
+
+    DicomIngestRequest:
+      type: object
+      required: [patientId, eyeLaterality, dicomItems]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        eyeLaterality:
+          $ref: "#/components/schemas/StudyLaterality"
+        dicomItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/DicomIngestItem"
+        labs:
+          $ref: "#/components/schemas/ClinicalLabsInput"
+
+    AnonymizedDicomSnapshot:
+      type: object
+      required: [pseudonymId, sha256, scrubbedTags]
+      properties:
+        pseudonymId:
+          type: string
+        sha256:
+          type: string
+        scrubbedTags:
+          type: object
+          additionalProperties: true
+
+    DicomIngestResponse:
+      type: object
+      required: [study, anonymizedSnapshots]
+      properties:
+        study:
+          $ref: "#/components/schemas/DiagnosticStudyDetail"
+        anonymizedSnapshots:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnonymizedDicomSnapshot"
+
+    HomeVisionTestTrialInput:
+      type: object
+      required: [trialIndex, stimulus, response]
+      properties:
+        trialIndex:
+          type: integer
+        stimulus:
+          type: object
+          additionalProperties: true
+        response:
+          type: object
+          additionalProperties: true
+        reactionMs:
+          type: integer
+        correct:
+          type: boolean
+
+    HomeVisionTestTrialRecord:
+      type: object
+      required: [trialId, testId, trialIndex, stimulus, response, createdAtIso]
+      properties:
+        trialId:
+          type: string
+          format: uuid
+        testId:
+          type: string
+          format: uuid
+        trialIndex:
+          type: integer
+        stimulus:
+          type: object
+          additionalProperties: true
+        response:
+          type: object
+          additionalProperties: true
+        reactionMs:
+          type: ["integer", "null"]
+        correct:
+          type: ["boolean", "null"]
+        createdAtIso:
+          type: string
+          format: date-time
+
+    VisionTrendAlert:
+      type: object
+      required: [id, patientId, eyeLaterality, ruleCode, severity, summaryFa, ewmaValue, cusumValue, createdAtIso]
+      properties:
+        id:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        ruleCode:
+          type: string
+        severity:
+          $ref: "#/components/schemas/UrgencyTier"
+        summaryFa:
+          type: string
+        ewmaValue:
+          type: number
+        cusumValue:
+          type: number
+        triageCaseId:
+          type: ["string", "null"]
+        createdAtIso:
+          type: string
+          format: date-time
+
+    R2MonitoringOverviewResponse:
+      type: object
+      required: [activePlanCount, enrolledPatientCount, acceptedTestCount, rejectedTestCount, activeAlertCount, killedDeviceCount, latestAlerts]
+      properties:
+        activePlanCount:
+          type: integer
+        enrolledPatientCount:
+          type: integer
+        acceptedTestCount:
+          type: integer
+        rejectedTestCount:
+          type: integer
+        activeAlertCount:
+          type: integer
+        killedDeviceCount:
+          type: integer
+        latestAlerts:
+          type: array
+          items:
+            $ref: "#/components/schemas/VisionTrendAlert"
+
+    HomeVisionTestRecord:
+      type: object
+      required: [id, tenantId, clinicId, patientId, eyeLaterality, testType, amslerDistortionScore, amslerCentralScotoma, qualityStatus, rejectionCodes, measuredAtIso]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        calibrationProfileId:
+          type: ["string", "null"]
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        testType:
+          type: string
+        vaLogmar:
+          type: ["number", "null"]
+        amslerDistortionScore:
+          type: number
+        amslerCentralScotoma:
+          type: boolean
+        qualityStatus:
+          type: string
+        rejectionCodes:
+          type: array
+          items:
+            type: string
+        measuredAtIso:
+          type: string
+          format: date-time
+
+    R2SessionListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/HomeVisionTestRecord"
+        total:
+          type: integer
+
+    R2SessionDetailResponse:
+      type: object
+      required: [session, trials, alerts]
+      properties:
+        session:
+          $ref: "#/components/schemas/HomeVisionTestRecord"
+        trials:
+          type: array
+          items:
+            $ref: "#/components/schemas/HomeVisionTestTrialRecord"
+        calibrationProfile:
+          $ref: "#/components/schemas/CalibrationProfileResponse"
+        alerts:
+          type: array
+          items:
+            $ref: "#/components/schemas/VisionTrendAlert"
+
+    IopReadingRecord:
+      type: object
+      required: [readingId, patientId, deviceVendor, deviceSerialHash, eyeLaterality, eyeLabelFa, iopMmHg, qualityScore, accepted, measuredAtIso]
+      properties:
+        readingId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        deviceVendor:
+          type: string
+        deviceSerialHash:
+          type: string
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        eyeLabelFa:
+          type: string
+        iopMmHg:
+          type: number
+        qualityScore:
+          type: number
+        accepted:
+          type: boolean
+        measuredAtIso:
+          type: string
+          format: date-time
+
+    PatientIopListResponse:
+      type: object
+      required: [items, od, os]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/IopReadingRecord"
+        od:
+          type: array
+          items:
+            $ref: "#/components/schemas/IopReadingRecord"
+        os:
+          type: array
+          items:
+            $ref: "#/components/schemas/IopReadingRecord"
+
+    MonitoringPlanRecord:
+      type: object
+      required: [planId, tenantId, clinicId, patientId, eyeLaterality, eyeLabelFa, testTypes, cadenceDays, alertThresholdLogmar, active, createdByUserId, createdAtIso, updatedAtIso]
+      properties:
+        planId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        eyeLabelFa:
+          type: string
+        testTypes:
+          type: array
+          items:
+            type: string
+        cadenceDays:
+          type: integer
+        alertThresholdLogmar:
+          type: number
+        active:
+          type: boolean
+        createdByUserId:
+          type: string
+          format: uuid
+        createdAtIso:
+          type: string
+          format: date-time
+        updatedAtIso:
+          type: string
+          format: date-time
+
+    MonitoringPlanListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MonitoringPlanRecord"
+
+    CreateMonitoringPlanRequest:
+      type: object
+      required: [eyeLaterality, testTypes]
+      properties:
+        eyeLaterality:
+          $ref: "#/components/schemas/EyeLaterality"
+        testTypes:
+          type: array
+          items:
+            type: string
+        cadenceDays:
+          type: integer
+        alertThresholdLogmar:
+          type: number
+        active:
+          type: boolean
+
+    DeviceQualificationRecord:
+      type: object
+      required: [deviceId, tenantId, clinicId, modelCode, manufacturer, verifiedStatus, updatedByUserId, createdAtIso, updatedAtIso]
+      properties:
+        deviceId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        modelCode:
+          type: string
+        manufacturer:
+          type: string
+        displayPpi:
+          type: ["number", "null"]
+        verifiedStatus:
+          type: string
+          enum: ["qualified", "provisional", "killed"]
+        killSwitchReasonFa:
+          type: ["string", "null"]
+        updatedByUserId:
+          type: string
+          format: uuid
+        createdAtIso:
+          type: string
+          format: date-time
+        updatedAtIso:
+          type: string
+          format: date-time
+
+    DeviceQualificationListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeviceQualificationRecord"
+
+    UpsertDeviceQualificationRequest:
+      type: object
+      required: [modelCode, manufacturer]
+      properties:
+        modelCode:
+          type: string
+        manufacturer:
+          type: string
+        displayPpi:
+          type: number
+        verifiedStatus:
+          type: string
+          enum: ["qualified", "provisional", "killed"]
+        killSwitchReasonFa:
+          type: string
+
+    UpdateDeviceStatusRequest:
+      type: object
+      required: [verifiedStatus]
+      properties:
+        verifiedStatus:
+          type: string
+          enum: ["qualified", "provisional", "killed"]
+        killSwitchReasonFa:
+          type: string
+
+    ReportListItem:
+      type: object
+      required: [reportId, reportType, patientId, patientNameFa, sourceRefId, titleFa, issuedAtJalali, sourceSha256, pdfSha256, createdAtIso]
+      properties:
+        reportId:
+          type: string
+          format: uuid
+        reportType:
+          type: string
+        patientId:
+          type: string
+          format: uuid
+        patientNameFa:
+          type: string
+        sourceRefId:
+          type: string
+          format: uuid
+        titleFa:
+          type: string
+        issuedAtJalali:
+          type: string
+        sourceSha256:
+          type: string
+        pdfSha256:
+          type: string
+        createdAtIso:
+          type: string
+          format: date-time
+
+    ReportListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportListItem"
+        total:
+          type: integer
+
+    ReportDetailResponse:
+      type: object
+      required: [reportId, clinicId, reportType, patientId, patientNameFa, sourceRefId, titleFa, issuedAtJalali, sourceSha256, pdfSha256, payload, createdAtIso]
+      properties:
+        reportId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        reportType:
+          type: string
+        patientId:
+          type: string
+          format: uuid
+        patientNameFa:
+          type: string
+        sourceRefId:
+          type: string
+          format: uuid
+        titleFa:
+          type: string
+        issuedAtJalali:
+          type: string
+        sourceSha256:
+          type: string
+        pdfSha256:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        createdAtIso:
+          type: string
+          format: date-time
+
+    KpiRatio:
+      type: object
+      required: [numerator, denominator]
+      properties:
+        numerator:
+          type: integer
+        denominator:
+          type: integer
+        rate:
+          type: ["number", "null"]
+
+    ClinicAnalyticsResponse:
+      type: object
+      required: [episodeCountsByStatus, episodeCountsByEye, cohortCountsByAccessMode, adherenceDistribution, triageSlaCompliance, referralAttendance]
+      properties:
+        episodeCountsByStatus:
+          type: object
+          additionalProperties:
+            type: integer
+        episodeCountsByEye:
+          type: object
+          additionalProperties:
+            type: integer
+        cohortCountsByAccessMode:
+          type: object
+          additionalProperties:
+            type: integer
+        adherenceDistribution:
+          type: object
+          additionalProperties:
+            type: integer
+        triageSlaCompliance:
+          $ref: "#/components/schemas/KpiRatio"
+        referralAttendance:
+          $ref: "#/components/schemas/KpiRatio"
+
+    PilotScorecardResponse:
+      type: object
+      required: [generatedAtIso, generatedAtJalali, kpis, noticeFa]
+      properties:
+        generatedAtIso:
+          type: string
+          format: date-time
+        generatedAtJalali:
+          type: string
+        kpis:
+          type: object
+          additionalProperties: true
+        noticeFa:
+          type: string
+
+    AiQualityAnalyticsResponse:
+      type: object
+      required: [onlineOperationalMetrics, offlineBenchmarkNoticeFa]
+      properties:
+        onlineOperationalMetrics:
+          type: object
+          additionalProperties: true
+        offlineBenchmarkNoticeFa:
+          type: string
+
+    ResearchExportRequest:
+      type: object
+      required: [irbProtocolCode, reasonFa]
+      properties:
+        irbProtocolCode:
+          type: string
+        reasonFa:
+          type: string
+        limit:
+          type: integer
+
+    ResearchExportResponse:
+      type: object
+      required: [irbProtocolCode, exportedAtIso, recordCount, records, manifestSha256]
+      properties:
+        irbProtocolCode:
+          type: string
+        exportedAtIso:
+          type: string
+          format: date-time
+        recordCount:
+          type: integer
+        records:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        manifestSha256:
+          type: string
+
+    BillingEvidenceRequest:
+      type: object
+      required: [patientId, periodStartJalali, periodEndJalali]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        periodStartJalali:
+          type: string
+        periodEndJalali:
+          type: string
+
+    BillingEvidenceResponse:
+      type: object
+      required: [patientId, periodStartJalali, periodEndJalali, acceptedHomeVisionTestCount, confirmedAdherenceEventCount, disclaimerFa]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        periodStartJalali:
+          type: string
+        periodEndJalali:
+          type: string
+        acceptedHomeVisionTestCount:
+          type: integer
+        confirmedAdherenceEventCount:
+          type: integer
+        disclaimerFa:
+          type: string
+
+    StaffedHoursWindow:
+      type: object
+      required: [open, close]
+      properties:
+        open:
+          type: string
+        close:
+          type: string
+
+    StaffedHoursInput:
+      type: object
+      properties:
+        satToWed:
+          $ref: "#/components/schemas/StaffedHoursWindow"
+        thursday:
+          $ref: "#/components/schemas/StaffedHoursWindow"
+        fridayClosed:
+          type: boolean
+
+    UpdateClinicProfileRequest:
+      type: object
+      properties:
+        nameFa:
+          type: string
+        emergencyPhone:
+          type: string
+        calendarMode:
+          type: string
+          enum: ["jalali", "gregorian"]
+        dicomAeTitle:
+          type: ["string", "null"]
+        staffedHours:
+          $ref: "#/components/schemas/StaffedHoursInput"
+
+    StaffMembershipRecord:
+      type: object
+      required: [id, tenantId, clinicId, userId, role, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        role:
+          $ref: "#/components/schemas/StaffRole"
+        active:
+          type: boolean
+        fullNameFa:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        mfaVerifiedAtIso:
+          type: ["string", "null"]
+        createdAtIso:
+          type: string
+
+    StaffMembershipListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/StaffMembershipRecord"
+
+    UpsertStaffMemberRequest:
+      type: object
+      required: [userId, role]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        role:
+          $ref: "#/components/schemas/StaffRole"
+        fullNameFa:
+          type: string
+        email:
+          type: string
+        active:
+          type: boolean
+        mfaVerified:
+          type: boolean
+
+    UpdateStaffMemberRequest:
+      type: object
+      properties:
+        role:
+          $ref: "#/components/schemas/StaffRole"
+        active:
+          type: boolean
+        fullNameFa:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+
+    ProtocolTemplateRecord:
+      type: object
+      required: [id, tenantId, clinicId, protocolType, version, schema, createdAtIso]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        protocolType:
+          type: string
+        version:
+          type: integer
+        schema:
+          type: object
+          additionalProperties: true
+        approvedBy:
+          type: string
+        createdAtIso:
+          type: string
+          format: date-time
+
+    AdminProtocolListResponse:
+      type: object
+      required: [builtInTypes, versions]
+      properties:
+        builtInTypes:
+          type: array
+          items:
+            type: string
+        versions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProtocolTemplateRecord"
+
+    CreateProtocolVersionRequest:
+      type: object
+      required: [protocolType, schema]
+      properties:
+        protocolType:
+          type: string
+        schema:
+          type: object
+          additionalProperties: true
+
+    MessageTemplateRecord:
+      type: object
+      required: [templateId, tenantId, clinicId, templateKey, version, bodyTemplateFa, channel, active, updatedByUserId, createdAtIso]
+      properties:
+        templateId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        templateKey:
+          type: string
+        version:
+          type: integer
+        bodyTemplateFa:
+          type: string
+        channel:
+          type: string
+          enum: ["sms", "print", "in_app"]
+        active:
+          type: boolean
+        updatedByUserId:
+          type: string
+          format: uuid
+        createdAtIso:
+          type: string
+          format: date-time
+
+    MessageTemplateListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MessageTemplateRecord"
+
+    CreateMessageTemplateRequest:
+      type: object
+      required: [templateKey, bodyTemplateFa]
+      properties:
+        templateKey:
+          type: string
+        bodyTemplateFa:
+          type: string
+        channel:
+          type: string
+          enum: ["sms", "print", "in_app"]
+        active:
+          type: boolean
+
+    ConsentTemplateRecord:
+      type: object
+      required: [consentTemplateId, tenantId, clinicId, consentType, version, titleFa, bodyFa, active, updatedByUserId, createdAtIso]
+      properties:
+        consentTemplateId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        consentType:
+          type: string
+        version:
+          type: string
+        titleFa:
+          type: string
+        bodyFa:
+          type: string
+        active:
+          type: boolean
+        updatedByUserId:
+          type: string
+          format: uuid
+        createdAtIso:
+          type: string
+          format: date-time
+
+    ConsentTemplateListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConsentTemplateRecord"
+
+    CreateConsentTemplateRequest:
+      type: object
+      required: [consentType, version, titleFa, bodyFa]
+      properties:
+        consentType:
+          type: string
+          enum: ["care_enrollment", "diagnostic_ai", "research_d5", "caregiver_delegation"]
+        version:
+          type: string
+        titleFa:
+          type: string
+        bodyFa:
+          type: string
+        active:
+          type: boolean
+
+    IntegrationEndpointRecord:
+      type: object
+      required: [endpointId, tenantId, clinicId, integrationType, nameFa, endpointUrl, authMode, enabled, createdAtIso, updatedAtIso]
+      properties:
+        endpointId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        integrationType:
+          type: string
+        nameFa:
+          type: string
+        endpointUrl:
+          type: string
+        aeTitle:
+          type: ["string", "null"]
+        authMode:
+          type: string
+        secretMasked:
+          type: ["string", "null"]
+        enabled:
+          type: boolean
+        lastTestedAtIso:
+          type: ["string", "null"]
+        lastTestStatus:
+          type: ["string", "null"]
+        createdAtIso:
+          type: string
+          format: date-time
+        updatedAtIso:
+          type: string
+          format: date-time
+
+    IntegrationEndpointListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntegrationEndpointRecord"
+
+    CreateIntegrationEndpointRequest:
+      type: object
+      required: [integrationType, nameFa, endpointUrl]
+      properties:
+        integrationType:
+          type: string
+          enum: ["dicom_dimse", "dicomweb", "fhir_his", "icare_home2", "sms_gateway"]
+        nameFa:
+          type: string
+        endpointUrl:
+          type: string
+        aeTitle:
+          type: string
+        authMode:
+          type: string
+          enum: ["none", "mtls", "bearer", "basic"]
+        secret:
+          type: string
+        enabled:
+          type: boolean
+
+    UpdateIntegrationEndpointRequest:
+      type: object
+      properties:
+        nameFa:
+          type: string
+        endpointUrl:
+          type: string
+        aeTitle:
+          type: ["string", "null"]
+        authMode:
+          type: string
+          enum: ["none", "mtls", "bearer", "basic"]
+        secret:
+          type: ["string", "null"]
+        enabled:
+          type: boolean
+
+    IntegrationDeliveryRecord:
+      type: object
+      required: [deliveryId, clinicId, direction, payloadType, status, attemptCount, createdAtIso, updatedAtIso]
+      properties:
+        deliveryId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        endpointId:
+          type: ["string", "null"]
+        endpointNameFa:
+          type: ["string", "null"]
+        direction:
+          type: string
+        payloadType:
+          type: string
+        referenceId:
+          type: ["string", "null"]
+        status:
+          type: string
+        httpStatus:
+          type: ["integer", "null"]
+        errorCode:
+          type: ["string", "null"]
+        errorMessageFa:
+          type: ["string", "null"]
+        attemptCount:
+          type: integer
+        createdAtIso:
+          type: string
+          format: date-time
+        updatedAtIso:
+          type: string
+          format: date-time
+
+    TestIntegrationEndpointResponse:
+      type: object
+      required: [endpoint, delivery]
+      properties:
+        endpoint:
+          $ref: "#/components/schemas/IntegrationEndpointRecord"
+        delivery:
+          $ref: "#/components/schemas/IntegrationDeliveryRecord"
+
+    IntegrationDeliveryListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/IntegrationDeliveryRecord"
+        total:
+          type: integer
+
+    OpsHealthResponse:
+      type: object
+      required: [status, service, database, queues]
+      properties:
+        status:
+          type: string
+        service:
+          type: string
+        aiEngineMode:
+          $ref: "#/components/schemas/AiEngineMode"
+        database:
+          type: object
+          additionalProperties: true
+        queues:
+          type: object
+          additionalProperties: true
+
+    OpsJobsResponse:
+      type: object
+      required: [aiInferenceJobs, outboxEvents, workflowRuns]
+      properties:
+        aiInferenceJobs:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        outboxEvents:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        workflowRuns:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    AuditLogEntry:
+      type: object
+      required: [id, tenantId, actorUserId, actorRole, action, resourceType, resourceId, occurredAtIso]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        actorUserId:
+          type: string
+          format: uuid
+        actorRole:
+          type: string
+        action:
+          type: string
+        resourceType:
+          type: string
+        resourceId:
+          type: string
+        reasonFa:
+          type: ["string", "null"]
+        breakGlass:
+          type: boolean
+        metadata:
+          type: object
+          additionalProperties: true
+        occurredAtIso:
+          type: string
+          format: date-time
+
+    AuditLogListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLogEntry"
+        total:
+          type: integer
+
+    BreakGlassSessionRecord:
+      type: object
+      required: [sessionId, tenantId, clinicId, actorUserId, actorRole, patientId, reasonFa, expiresAtIso, active, createdAtIso]
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        clinicId:
+          type: string
+          format: uuid
+        actorUserId:
+          type: string
+          format: uuid
+        actorRole:
+          type: string
+        patientId:
+          type: string
+          format: uuid
+        reasonFa:
+          type: string
+        expiresAtIso:
+          type: string
+          format: date-time
+        revokedAtIso:
+          type: ["string", "null"]
+        revokedByUserId:
+          type: ["string", "null"]
+        active:
+          type: boolean
+        createdAtIso:
+          type: string
+          format: date-time
+
+    BreakGlassSessionListResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BreakGlassSessionRecord"
+        total:
+          type: integer
+
+    OpenBreakGlassRequest:
+      type: object
+      required: [patientId, reasonFa]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        reasonFa:
+          type: string
+        durationMinutes:
+          type: integer
+
+    RevokeBreakGlassRequest:
+      type: object
+      properties:
+        reasonFa:
+          type: string
+
+    ModelArtifactSummary:
+      type: object
+      required: [modelName, hasMetricsJson, hasModelCard]
+      properties:
+        modelName:
+          type: string
+        hasMetricsJson:
+          type: boolean
+        hasModelCard:
+          type: boolean
+        metrics:
+          type: object
+          additionalProperties: true
+
+    OpsModelsResponse:
+      type: object
+      required: [aiEngineMode, foundationBackbone, commercialLicensePolicyFa, llmProvider, llmModel, artifacts]
+      properties:
+        aiEngineMode:
+          type: string
+        foundationBackbone:
+          type: string
+        commercialLicensePolicyFa:
+          type: string
+        llmProvider:
+          type: string
+        llmModel:
+          type: string
+        artifacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModelArtifactSummary"

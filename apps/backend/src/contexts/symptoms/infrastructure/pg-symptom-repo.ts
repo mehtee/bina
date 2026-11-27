@@ -1,11 +1,18 @@
 import type { DbTx } from "../../../packages/db/index.js";
 import {
+  formatLateralityFa,
   URGENCY_LABELS_FA,
   type ClinicalSignal,
   type EyeLaterality,
   type UrgencyTier,
 } from "../../../packages/domain-kernel/index.js";
-import type { EpisodeSummaryForSymptom, StoredSymptomReport, SymptomRepoPort } from "../ports/index.js";
+import { formatJalaliDate } from "../../tenancy/index.js";
+import type {
+  EpisodeSummaryForSymptom,
+  EpisodeSymptomHistoryItem,
+  StoredSymptomReport,
+  SymptomRepoPort,
+} from "../ports/index.js";
 
 export class PgSymptomRepo implements SymptomRepoPort {
   async findEpisodeContext(tx: DbTx, episodeId: string): Promise<EpisodeSummaryForSymptom | null> {
@@ -101,5 +108,44 @@ export class PgSymptomRepo implements SymptomRepoPort {
       signals: r.signals_json,
       deduplicated: true,
     };
+  }
+
+  async listByEpisode(tx: DbTx, episodeId: string): Promise<EpisodeSymptomHistoryItem[]> {
+    const res = await tx.query<{
+      id: string;
+      episode_id: string;
+      eye_laterality: EyeLaterality;
+      severe_pain: boolean;
+      sudden_vision_loss: boolean;
+      purulent_discharge: boolean;
+      flashes_or_curtain: boolean;
+      free_text_fa: string;
+      urgency_tier: UrgencyTier;
+      signals_json: ClinicalSignal[];
+      created_at: Date;
+    }>(
+      `SELECT id, episode_id, eye_laterality, severe_pain, sudden_vision_loss, purulent_discharge, flashes_or_curtain,
+              free_text_fa, urgency_tier, signals_json, created_at
+       FROM symptom_reports
+       WHERE episode_id = $1
+       ORDER BY created_at DESC`,
+      [episodeId]
+    );
+    return res.rows.map((r) => ({
+      reportId: r.id,
+      episodeId: r.episode_id,
+      eyeLaterality: r.eye_laterality,
+      eyeLabelFa: formatLateralityFa(r.eye_laterality),
+      severePain: r.severe_pain,
+      suddenVisionLoss: r.sudden_vision_loss,
+      purulentDischarge: r.purulent_discharge,
+      flashesOrCurtain: r.flashes_or_curtain,
+      freeTextFa: r.free_text_fa,
+      urgencyTier: r.urgency_tier,
+      urgencyLabelFa: URGENCY_LABELS_FA[r.urgency_tier],
+      signals: r.signals_json ?? [],
+      createdAtIso: r.created_at.toISOString(),
+      createdAtJalali: formatJalaliDate(r.created_at),
+    }));
   }
 }

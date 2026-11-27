@@ -176,6 +176,33 @@ services:
       timeout: 3s
       retries: 10
 
+  staff-web:
+    build:
+      context: ..
+      dockerfile: apps/staff-web/Dockerfile
+      args:
+        VITE_APP_BRAND_NAME_FA: ${APP_BRAND_NAME_FA:-بینا}
+        VITE_APP_BRAND_NAME_EN: ${APP_BRAND_NAME_EN:-Bina AI}
+        VITE_API_MODE: ${VITE_API_MODE:-live}
+        VITE_API_BASE_URL: ""
+    image: binaai/staff-web:dev
+    profiles: ["app", "full"]
+    mem_limit: 128m
+    restart: unless-stopped
+    logging: *default-logging
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${STAFF_WEB_HOST_PORT:-8088}:80"
+    networks:
+      - bina_net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
 volumes:
   bina_pg_data:
   bina_redis_data:

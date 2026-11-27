@@ -18,6 +18,10 @@ export class ProtocolRegistry {
     return this.plugins.has(protocolType);
   }
 
+  listTypes(): string[] {
+    return [...this.plugins.keys()];
+  }
+
   getOrThrow(protocolType: string): AnyCareProtocolPlugin {
     const plugin = this.plugins.get(protocolType);
     if (!plugin) {

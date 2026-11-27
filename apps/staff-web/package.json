@@ -1,0 +1,35 @@
+{
+  "name": "@bina/staff-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "react-router dev --host 127.0.0.1 --port 5173",
+    "typegen": "react-router typegen",
+    "typecheck": "react-router typegen && tsc -p tsconfig.json --noEmit",
+    "build": "react-router build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "test": "vitest run --pool=forks --maxWorkers=1 --no-file-parallelism"
+  },
+  "dependencies": {
+    "@bina/contracts-openapi": "workspace:*",
+    "@fontsource/vazirmatn": "^5.3.0",
+    "lucide-react": "^1.81.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router": "^8.5.3"
+  },
+  "devDependencies": {
+    "@react-router/dev": "^8.5.3",
+    "@testing-library/jest-dom": "^8.0.0",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.3.3",
+    "@types/react-dom": "^19.3.0",
+    "jsdom": "^26.1.0",
+    "msw": "^2.10.2",
+    "typescript": "^5.8.2",
+    "vite": "^8.4.0",
+    "vitest": "^3.0.8"
+  }
+}
